@@ -1,1 +1,2 @@
 #cmakedefine STORMPY_DISABLE_SIGNATURE_DOC
+#cmakedefine PYCARL_HAS_CLN
