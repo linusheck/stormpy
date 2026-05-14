@@ -58,11 +58,11 @@ void define_sparse_matrix(py::module& m, std::string const& vtSuffix) {
                 if (rows.size() != cols.size() || rows.size() != vals.size()) {
                     throw std::invalid_argument("rows, cols, and values must have the same length");
                 }
-                size_t groupIdx = 0;
+                auto groupIt = rowGroupIndices.begin();
                 for (size_t i = 0; i < rows.size(); ++i) {
-                    while (groupIdx < rowGroupIndices.size() && rowGroupIndices[groupIdx] <= rows[i]) {
-                        self.newRowGroup(rowGroupIndices[groupIdx]);
-                        ++groupIdx;
+                    while (groupIt != rowGroupIndices.end() && *groupIt <= rows[i]) {
+                        self.newRowGroup(*groupIt);
+                        ++groupIt;
                     }
                     self.addNextValue(rows[i], cols[i], vals[i]);
                 }
