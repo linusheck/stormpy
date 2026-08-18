@@ -332,14 +332,28 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/pycarl/definitions.h.in ${CMAKE_C
 
 # Build stormpy
 ######
-# Build stormpy modules
-stormpy_module(core "." "${storm-counterexamples_INCLUDE_DIR}" storm-counterexamples)
+# Build the mutually dependent core bindings in one extension. The extension
+# registers the public native modules in two passes: all Python types first,
+# followed by their methods and free functions.
+build_stormpy_module(stormpy_bindings
+                     "." "bindings"
+                     "mod_bindings.cpp" "core/*.cpp"
+                     "${storm-counterexamples_INCLUDE_DIR}"
+                     "storm-counterexamples")
+file(GLOB_RECURSE STORMPY_BINDINGS_EXTRA_SOURCES
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/logic/*.cpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/storage/*.cpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/*.cpp")
+target_sources(stormpy_bindings PRIVATE ${STORMPY_BINDINGS_EXTRA_SOURCES})
+target_sources(stormpy_bindings PRIVATE
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/mod_core.cpp"
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/mod_logic.cpp"
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/mod_storage.cpp"
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/mod_utility.cpp")
+target_compile_definitions(stormpy_bindings PRIVATE STORMPY_REGISTRATION_TWO_PASS)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/core_config.py.in ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/_config.py @ONLY)
 stormpy_module(info info "${storm-version-info_INCLUDE_DIR}" storm-version-info)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/info_config.py.in ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/info/_config.py @ONLY)
-stormpy_module(logic logic "" "")
-stormpy_module(storage storage "" "")
-stormpy_module(utility utility "" "")
 
 # Build optional stormpy modules
 stormpy_optional_module(dft "DFT")
