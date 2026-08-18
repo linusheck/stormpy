@@ -5,6 +5,24 @@ import pytest
 
 import stormpy
 
+NATIVE_MODULE_NAMES = (
+    "stormpy._core",
+    "stormpy.storage._storage",
+    "stormpy.logic._logic",
+    "stormpy.utility._utility",
+    "stormpy.dft._dft",
+    "stormpy.gspn._gspn",
+    "stormpy.pars._pars",
+    "stormpy.pomdp._pomdp",
+    "stormpy.info._info",
+    "stormpy.pycarl._pycarl_core",
+    "stormpy.pycarl.gmp._gmp",
+    "stormpy.pycarl.cln._cln",
+    "stormpy.pycarl.formula._formula",
+    "stormpy.pycarl.gmp.formula._formula",
+    "stormpy.pycarl.cln.formula._formula",
+)
+
 
 def test_native_modules_keep_their_public_names():
     expected_modules = {
@@ -45,17 +63,32 @@ def test_cross_module_signatures_use_python_type_names(binding):
     assert "stormpy." in signature
 
 
-def test_native_callable_signatures_do_not_contain_cpp_qualified_names():
-    modules = (stormpy._core, stormpy.storage._storage, stormpy.logic._logic, stormpy.utility._utility)
+@pytest.mark.parametrize("module_name", NATIVE_MODULE_NAMES)
+def test_native_callable_signatures_do_not_contain_cpp_qualified_names(module_name):
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as error:
+        pytest.skip(str(error))
+
     signature_lines = []
 
-    for module in modules:
-        for _, obj in inspect.getmembers(module):
-            members = inspect.getmembers(obj) if inspect.isclass(obj) else ((obj.__name__, obj),) if callable(obj) else ()
-            for _, member in members:
-                doc = getattr(member, "__doc__", None)
-                if doc:
-                    signature_lines.extend(line.strip() for line in doc.splitlines() if " -> " in line and not line.lstrip().startswith(":"))
+    for _, obj in inspect.getmembers(module):
+        members = inspect.getmembers(obj) if inspect.isclass(obj) else ((obj.__name__, obj),) if callable(obj) else ()
+        for _, member in members:
+            doc = getattr(member, "__doc__", None)
+            if doc:
+                signature_lines.extend(line.strip() for line in doc.splitlines() if " -> " in line and not line.lstrip().startswith(":"))
 
     leaked_signatures = [line for line in signature_lines if "::" in line]
     assert leaked_signatures == []
+
+
+@pytest.mark.parametrize("backend", ("gmp", "cln"))
+def test_typed_pycarl_formulas_use_their_backend_module(backend):
+    try:
+        module = importlib.import_module(f"stormpy.pycarl.{backend}.formula")
+    except ImportError as error:
+        pytest.skip(str(error))
+
+    assert module.Formula.__module__ == module.__name__
+    assert module.Constraint.__module__ == module.__name__

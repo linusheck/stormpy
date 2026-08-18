@@ -294,6 +294,7 @@ function(stormpy_optional_module MOD_NAME DESCRIPTION)
                              "mod_${MOD_NAME}.cpp" "${MOD_NAME}/*.cpp"
                              "${storm-${MOD_NAME}_INCLUDE_DIR}"
                              "storm-${MOD_NAME}")
+        target_compile_definitions("stormpy_${MOD_NAME}" PRIVATE STORMPY_REGISTRATION_TWO_PASS)
         MESSAGE(STATUS "Stormpy - Support for ${DESCRIPTION} found and included.")
     else()
         MESSAGE(WARNING "Stormpy - No support for ${DESCRIPTION}!")
@@ -307,6 +308,7 @@ function(build_pycarl_module MOD_NAME OUT_DIR OUT_NAME MOD_FILE SOURCE_PATH ADDI
                  "${MOD_FILE}" "${SOURCE_PATH}"
                  "${carl_INCLUDE_DIR};${ADDITIONAL_INCLUDES}"
                  "lib_carl;${ADDITIONAL_LIBS}")
+    target_compile_definitions(${MOD_NAME} PRIVATE STORMPY_REGISTRATION_TWO_PASS)
 endfunction(build_pycarl_module)
 function(pycarl_module MOD_NAME ADDITIONAL_INCLUDES ADDITIONAL_LIBS)
     build_pycarl_module("pycarl_${MOD_NAME}"

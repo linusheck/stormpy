@@ -25,6 +25,10 @@ class module {
         return implementation_;
     }
 
+    auto attr(char const* name) const {
+        return implementation_.attr(name);
+    }
+
     template<typename... Args>
     void def(Args&&... args) {
         if (phase_ == Phase::Define) {
@@ -36,6 +40,15 @@ class module {
     pybind11::module_ implementation_;
     Phase phase_;
 };
+
+template<typename BindingFunction>
+void bindModule(pybind11::module_ const& implementation, BindingFunction&& bind) {
+    module declarations(implementation, Phase::Declare);
+    bind(declarations);
+
+    module definitions(implementation, Phase::Define);
+    bind(definitions);
+}
 
 template<typename Type, typename... Options>
 class class_;
