@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-
 API_REFERENCES = {
     "core.rst": ("stormpy",),
     "info.rst": ("stormpy.info",),
@@ -32,11 +31,7 @@ def test_all_api_reference_files_are_checked():
     api_root = _api_root()
     if not api_root.exists():
         pytest.skip("source documentation is not part of the wheel test bundle")
-    reference_files = {
-        str(path.relative_to(api_root))
-        for path in api_root.rglob("*.rst")
-        if "generated" not in path.parts
-    }
+    reference_files = {str(path.relative_to(api_root)) for path in api_root.rglob("*.rst") if "generated" not in path.parts}
     assert reference_files == set(API_REFERENCES), (
         f"API reference test manifest is out of sync. "
         f"Missing: {sorted(reference_files - set(API_REFERENCES))}; "
@@ -71,9 +66,7 @@ def test_all_public_types_are_in_api_reference(reference_name, module_names):
     reference_text = reference.read_text()
 
     for module_name in module_names:
-        documented_types = set(
-            re.findall(rf"^\s+{re.escape(module_name)}\.([A-Za-z]\w*)\s*$", reference_text, flags=re.MULTILINE)
-        )
+        documented_types = set(re.findall(rf"^\s+{re.escape(module_name)}\.([A-Za-z]\w*)\s*$", reference_text, flags=re.MULTILINE))
 
         # An automodule directive discovers members dynamically. Once a module
         # is converted to a curated autosummary, require an exhaustive list.
@@ -87,6 +80,5 @@ def test_all_public_types_are_in_api_reference(reference_name, module_names):
         missing_types = public_types - documented_types
         stale_types = documented_types - public_types
         assert not missing_types and not stale_types, (
-            f"API reference for {module_name} is out of sync. "
-            f"Missing: {sorted(missing_types)}; stale: {sorted(stale_types)}"
+            f"API reference for {module_name} is out of sync. " f"Missing: {sorted(missing_types)}; stale: {sorted(stale_types)}"
         )
