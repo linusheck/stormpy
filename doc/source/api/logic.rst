@@ -2,8 +2,6 @@ Stormpy.logic
 *************
 
 ``stormpy.logic`` contains the formula classes used to represent properties.
-The pages below show each class's inheritance hierarchy and include inherited
-members, so that the complete interface of concrete formulas is visible.
 
 Base classes
 ============
