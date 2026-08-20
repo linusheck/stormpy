@@ -5,6 +5,7 @@
 
 # Needed for version information
 import pathlib
+import re
 
 import stormpy
 
@@ -23,6 +24,7 @@ language = "en"
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
     #'sphinx.ext.intersphinx',
     "sphinx.ext.githubpages",
@@ -33,6 +35,11 @@ autosectionlabel_prefix_document = True
 
 # Autodoc options
 autoclass_content = "both"  # Add documentation for both the class and __init__
+
+# Display e.g. "BitVector" instead of "stormpy.storage.BitVector"
+python_use_unqualified_type_names = True
+# Wrap long signatures instead of scrolling them
+python_maximum_signature_line_length = 100
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -127,3 +134,21 @@ myst_nb_execution_mode = "cache"
 _source_dir = pathlib.Path(__file__).parent
 notebook_docs = sorted(str(p.relative_to(_source_dir).with_suffix("")) for p in _source_dir.rglob("*.md") if "jupytext:" in p.read_text(errors="ignore")[:500])
 html_context = {"notebook_docs": notebook_docs}
+
+# -- Myst options --
+myst_enable_extensions = [
+    "colon_fence",
+]
+
+# The following code makes Sphinx display e.g. "Environment()" instead of "<stormpy.Environment object at 0x10abc123>"
+_PYBIND_OBJECT_REPR = re.compile(r"<(?P<type>[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*) object(?: at 0x[0-9a-fA-F]+)?>")
+
+
+def _stabilize_pybind_signatures(app, what, name, obj, options, signature, return_annotation):
+    if signature is not None:
+        signature = _PYBIND_OBJECT_REPR.sub(lambda match: f"{match.group('type').rsplit('.', 1)[-1]}()", signature)
+    return signature, return_annotation
+
+
+def setup(app):
+    app.connect("autodoc-process-signature", _stabilize_pybind_signatures)
