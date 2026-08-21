@@ -4,6 +4,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # Needed for version information
+import sys
+
 import stormpy
 
 # -- Project information -----------------------------------------------------
@@ -39,25 +41,38 @@ autoclass_content = "both"  # Add documentation for both the class and __init__
 # compiled _logic module and imported into stormpy.logic)
 autosummary_imported_members = True
 
-# Modules whose members make up the core API of stormpy: the top-level package
-# itself (lib/stormpy/__init__.py) and the compiled _core extension module,
-# whose members are re-exported in the top-level namespace.
-_CORE_MODULES = frozenset({"stormpy", "stormpy._core"})
+# For modules that re-export members of other modules: the members that should
+# be listed on the module's autosummary page, identified by their __module__.
+# All other module pages list all their members.
+_MEMBER_MODULES = {
+    # The top-level stormpy package also re-exports the members of several
+    # submodules (e.g. storage and logic). Its page (the core API) only lists
+    # the members defined in stormpy itself or in the compiled _core extension.
+    "stormpy": {"stormpy", "stormpy._core"},
+    # The number-independent core types live in the compiled _pycarl_core module.
+    "stormpy.pycarl": {"stormpy.pycarl", "stormpy.pycarl._pycarl_core"},
+    # The number-dependent formula types are bound under the shared formula module.
+    "stormpy.pycarl.gmp.formula": {"stormpy.pycarl.formula"},
+    "stormpy.pycarl.cln.formula": {"stormpy.pycarl.formula"},
+    # Utility modules re-export pycarl helpers.
+    "stormpy.pycarl.convert": {"stormpy.pycarl.convert"},
+    "stormpy.pycarl.parse": {"stormpy.pycarl.parse"},
+}
 
 
 def _filter_api_members(module, members):
     """
     Filter the members listed on the autosummary page of a module.
 
-    The top-level stormpy package also re-exports the members of several
-    submodules (e.g. storage and logic). To document every member only on the
-    page of the module it belongs to, the page of the top-level stormpy module
-    (the core API) only lists members defined in stormpy itself or in the
-    _core extension module. All other module pages list all members.
+    To document every member only on the page of the module it belongs to,
+    the pages of the modules in _MEMBER_MODULES (which re-export members of
+    other modules) only list the members defined in the given modules.
     """
-    if module != "stormpy":
+    accepted = _MEMBER_MODULES.get(module)
+    if accepted is None:
         return members
-    return [name for name in members if getattr(getattr(stormpy, name, None), "__module__", None) in _CORE_MODULES]
+    module_obj = sys.modules[module]
+    return [name for name in members if getattr(getattr(module_obj, name, None), "__module__", None) in accepted]
 
 
 # Variables (and callables) available in autosummary templates
