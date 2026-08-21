@@ -50,6 +50,7 @@
 
    .. autosummary::
       :toctree:
+      :template: autosummary/class.rst
    {% for item in exceptions %}
       {{ item }}
    {%- endfor %}
