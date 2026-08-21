@@ -40,12 +40,19 @@ Work in progress!
    stormpy.dft.developer
 ```
 
-```{toctree}
-:maxdepth: 2
-:caption: Number developer modules:
+<<<<<<< HEAD
+```{eval-rst}
+.. autosummary::
+   :toctree: api/generated
+   :template: autosummary/module.rst
+   :caption: Number developer modules:
 
-api/numbers_developer/core
-api/numbers_developer/convert
-api/numbers_developer/formula
-api/numbers_developer/parse
+   stormpy.numbers.developer
+   stormpy.numbers.developer.gmp
+   stormpy.numbers.developer.cln
+   stormpy.numbers.developer.formula
+   stormpy.numbers.developer.gmp.formula
+   stormpy.numbers.developer.cln.formula
+   stormpy.numbers.developer.parse
+   stormpy.numbers.developer.convert
 ```
