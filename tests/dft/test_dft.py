@@ -24,8 +24,10 @@ class TestDft:
 
         explicit_copy = stormpy.dft.DFT[float](dft)
         inferred_copy = stormpy.dft.DFT(dft)
+        keyword_inferred_copy = stormpy.dft.DFT(dft=dft)
         assert type(explicit_copy) is concrete_type
         assert type(inferred_copy) is concrete_type
+        assert type(keyword_inferred_copy) is concrete_type
 
         builder = stormpy.dft.ExplicitDFTModelBuilder(dft)
         assert type(builder) is stormpy.dft.ExplicitDFTModelBuilder[float]

@@ -33,7 +33,7 @@ class TestModelInstantiator:
         model = stormpy.build_parametric_model(program, formulas)
         parameters = model.collect_all_parameters()
         assert len(parameters) == 2
-        instantiator = stormpy.pars.PDtmcInstantiator(model)
+        instantiator = stormpy.pars.ModelInstantiator[stormpy.ModelType.DTMC, float](model)
         point = dict()
         for x in parameters:
             assert x.name in {"p", "q"}
@@ -108,7 +108,7 @@ class TestModelInstantiator:
         model = stormpy.build_parametric_model(program, formulas)
 
         parameters = model.collect_all_parameters()
-        inst_checker = stormpy.pars.PDtmcExactInstantiationChecker(model)
+        inst_checker = stormpy.pars.ModelInstantiationChecker[stormpy.ModelType.DTMC, stormpy.Rational](model)
         inst_checker.specify_formula(stormpy.ParametricCheckTask(formulas[0].raw_formula, True))
         inst_checker.set_graph_preserving(True)
         env = stormpy.Environment()
