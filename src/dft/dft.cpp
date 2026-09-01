@@ -37,8 +37,8 @@ void define_dft(py::module& m) {
 template<typename ValueType>
 void define_dft_typed(py::module& m) {
     // DFT class
-    auto dft = stormpy::bindings::bindTemplateClass<DFT<ValueType>, py::smart_holder>(m, "DFT", stormpy::bindings::typeIndex<ValueType>(),
-                                                                                                     "Dynamic Fault Tree");
+    auto dft =
+        stormpy::bindings::bindTemplateClass<DFT<ValueType>, py::smart_holder>(m, "DFT", stormpy::bindings::typeIndex<ValueType>(), "Dynamic Fault Tree");
     dft.def(py::init<DFT<ValueType> const&>(), "Copy a Dynamic Fault Tree")
         .def("nr_elements", &DFT<ValueType>::nrElements, "Total number of elements")
         .def("nr_be", &DFT<ValueType>::nrBasicElements, "Number of basic elements")

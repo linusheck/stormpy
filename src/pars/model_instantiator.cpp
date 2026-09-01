@@ -40,8 +40,8 @@ void define_typed_instantiator(py::module& m) {
     using InstantiatedModel = SparseModel<ValueType>;
     using Instantiator = storm::utility::ModelInstantiator<ParametricModel, InstantiatedModel>;
 
-    auto implementation = stormpy::bindings::bindTemplateClass<Instantiator, py::smart_holder>(m, "ModelInstantiator", stormpy::bindings::typeIndex<ModelKind, ValueType>(),
-                                                                             "Instantiate a parametric model");
+    auto implementation = stormpy::bindings::bindTemplateClass<Instantiator, py::smart_holder>(
+        m, "ModelInstantiator", stormpy::bindings::typeIndex<ModelKind, ValueType>(), "Instantiate a parametric model");
     implementation.def(py::init<ParametricModel>(), "model"_a).def("instantiate", &Instantiator::instantiate, "Instantiate model with given parameter values");
 }
 
@@ -65,8 +65,8 @@ void define_typed_checker(py::module& m) {
         m, stormpy::bindings::templateClassName("ModelInstantiationCheckerBase", index), "Instantiation checker base");
     base.def("specify_formula", &BaseChecker::specifyFormula, "check_task"_a);
 
-    auto implementation = stormpy::bindings::bindTemplateClass<CheckerType, py::smart_holder>(
-        m, "ModelInstantiationChecker", index, "Instantiate and check a parametric model", base);
+    auto implementation = stormpy::bindings::bindTemplateClass<CheckerType, py::smart_holder>(m, "ModelInstantiationChecker", index,
+                                                                                              "Instantiate and check a parametric model", base);
     implementation.def(py::init<ParametricModel>(), "model"_a)
         .def(
             "check",

@@ -15,8 +15,8 @@ typedef storm::dft::storage::FailableElements::const_iterator FailableIter;
 template<typename ValueType>
 void define_dft_state(py::module& m) {
     // DFT state
-    auto state = stormpy::bindings::bindTemplateClass<DFTState<ValueType>, py::smart_holder>(
-        m, "DFTState", stormpy::bindings::typeIndex<ValueType>(), "DFT state");
+    auto state =
+        stormpy::bindings::bindTemplateClass<DFTState<ValueType>, py::smart_holder>(m, "DFTState", stormpy::bindings::typeIndex<ValueType>(), "DFT state");
     state.def("operational", &DFTState<ValueType>::isOperational, "Is element operational", py::arg("id"))
         .def(
             "failed", [](DFTState<ValueType> const& state, size_t id) { return state.hasFailed(id); }, "Is element failed", py::arg("id"))
