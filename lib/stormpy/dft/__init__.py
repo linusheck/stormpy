@@ -6,25 +6,69 @@ if not _config.STORM_WITH_DFT:
 from . import _dft
 from ._dft import *
 from .modules import modules_json
-from stormpy._template import TemplateClass
+from stormpy._template import TemplateClass, deduce_from_first_argument as _deduce_from_first_argument
 
 _dft._set_up()
 
-DFT = TemplateClass("DFT", _dft)
 
-DFTElement = TemplateClass("DFTElement", _dft)
+DFT = TemplateClass(
+    "stormpy.dft.DFT",
+    _dft,
+    parameters=("ValueType",),
+    deduce=_deduce_from_first_argument(keyword="dft"),
+)
 
-DFTBE = TemplateClass("DFTBE", _dft)
+DFTElement = TemplateClass(
+    "stormpy.dft.DFTElement",
+    _dft,
+    parameters=("ValueType",),
+)
 
-DFTDependency = TemplateClass("DFTDependency", _dft)
+DFTBE = TemplateClass(
+    "stormpy.dft.DFTBE",
+    _dft,
+    parameters=("ValueType",),
+)
 
-DFTState = TemplateClass("DFTState", _dft)
+DFTDependency = TemplateClass(
+    "stormpy.dft.DFTDependency",
+    _dft,
+    parameters=("ValueType",),
+)
 
-DFTSimulator = TemplateClass("DFTSimulator", _dft, deduce_from=DFT)
+DFTState = TemplateClass(
+    "stormpy.dft.DFTState",
+    _dft,
+    parameters=("ValueType",),
+)
 
-ExplicitDFTModelBuilder = TemplateClass("ExplicitDFTModelBuilder", _dft, deduce_from=DFT)
+DFTSimulator = TemplateClass(
+    "stormpy.dft.DFTSimulator",
+    _dft,
+    parameters=("ValueType",),
+    deduce=_deduce_from_first_argument(DFT, keyword="dft"),
+)
 
-DFTInstantiator = TemplateClass("DFTInstantiator", _dft)
+ExplicitDFTModelBuilder = TemplateClass(
+    "stormpy.dft.ExplicitDFTModelBuilder",
+    _dft,
+    parameters=("ValueType",),
+    deduce=_deduce_from_first_argument(DFT, keyword="dft"),
+)
+
+_deduce_dft_parameters = _deduce_from_first_argument(DFT, keyword="dft")
+
+
+def _deduce_dft_instantiator(family, args, kwargs):
+    return (*_deduce_dft_parameters(family, args, kwargs), float)
+
+
+DFTInstantiator = TemplateClass(
+    "stormpy.dft.DFTInstantiator",
+    _dft,
+    parameters=("SourceValueType", "TargetValueType"),
+    deduce=_deduce_dft_instantiator,
+)
 
 
 def prepare_for_analysis(ft):

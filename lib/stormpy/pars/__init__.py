@@ -1,3 +1,5 @@
+from collections.abc import Mapping as _Mapping
+
 from stormpy.info import _config
 
 if not _config.STORM_WITH_PARS:
@@ -7,14 +9,35 @@ from . import _pars
 from ._pars import *
 
 from stormpy import ModelType
-from stormpy._template import TemplateClass
+from stormpy._template import TemplateClass, TemplateParameter as _TemplateParameter
 
 _pars._set_up()
 
 
-ModelInstantiator = TemplateClass("ModelInstantiator", _pars)
+def _deduce_model_and_double(_family: TemplateClass, args: tuple[object, ...], kwargs: _Mapping[str, object]) -> object:
+    if args:
+        model = args[0]
+    else:
+        try:
+            model = kwargs["model"]
+        except KeyError:
+            raise TypeError("Cannot deduce template parameters without the model argument") from None
+    return model.model_type, float
 
-ModelInstantiationChecker = TemplateClass("ModelInstantiationChecker", _pars)
+
+ModelInstantiator = TemplateClass(
+    "stormpy.pars.ModelInstantiator",
+    _pars,
+    parameters=(_TemplateParameter("ModelType", kind="value"), "ValueType"),
+    deduce=_deduce_model_and_double,
+)
+
+ModelInstantiationChecker = TemplateClass(
+    "stormpy.pars.ModelInstantiationChecker",
+    _pars,
+    parameters=(_TemplateParameter("ModelType", kind="value"), "ResultType"),
+    deduce=_deduce_model_and_double,
+)
 
 
 def simplify_model(model, formula):
