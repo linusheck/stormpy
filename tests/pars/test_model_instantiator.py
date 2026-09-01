@@ -1,5 +1,4 @@
 import stormpy
-import pytest
 from helpers.helper import get_example_path
 
 from configurations import pars
