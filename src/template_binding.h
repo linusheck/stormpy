@@ -154,7 +154,7 @@ pybind11::classh<Class, Options...> bindTemplateClass(pybind11::module_& module,
                                                       std::string const& description, Extra&&... extra) {
     pybind11::dict instantiations = templateInstantiations(module, family);
     if (instantiations.contains(index.key)) {
-        throw std::runtime_error("Duplicate native template instantiation for " + std::string(family));
+        throw std::runtime_error("Duplicate native template instantiation for " + std::string(family) + " and " + index.label);
     }
 
     auto result = bindInternalClass<Class, Options...>(module, templateClassName(family, index), description, std::forward<Extra>(extra)...);
