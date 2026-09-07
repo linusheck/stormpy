@@ -79,18 +79,18 @@ inline std::string templateClassName(std::string_view family, TemplateIndex cons
  * bases that Python users do not select through `TemplateClass`.
  *
  * @tparam Class Bound C++ class.
- * @tparam Options Additional `pybind11::class_` options, such as holder types.
+ * @tparam Options Additional `pybind11::classh` options, such as base or trampoline types.
  * @tparam Extra Types of additional constructor arguments forwarded to
- *     `pybind11::class_`, such as base-class handles.
+ *     `pybind11::classh`, such as base-class handles.
  * @param module Native module receiving the class.
  * @param name Complete native Python class name.
  * @param description Python class docstring.
- * @param extra Additional arguments forwarded to `pybind11::class_`.
+ * @param extra Additional arguments forwarded to `pybind11::classh`.
  * @return The class binding, ready for `.def(...)` calls.
  */
 template<typename Class, typename... Options, typename... Extra>
-pybind11::class_<Class, Options...> bindInternalClass(pybind11::module_& module, std::string const& name, char const* description, Extra&&... extra) {
-    pybind11::class_<Class, Options...> result(module, name.c_str(), description, std::forward<Extra>(extra)...);
+pybind11::classh<Class, Options...> bindInternalClass(pybind11::module_& module, std::string const& name, std::string const& description, Extra&&... extra) {
+    pybind11::classh<Class, Options...> result(module, name.c_str(), description.c_str(), std::forward<Extra>(extra)...);
     return result;
 }
 
@@ -138,20 +138,20 @@ inline pybind11::dict templateInstantiations(pybind11::module_& module, std::str
  * key twice is an error.
  *
  * @tparam Class Bound C++ specialization.
- * @tparam Options Additional `pybind11::class_` options, such as holder types.
+ * @tparam Options Additional `pybind11::classh` options, such as base or trampoline types.
  * @tparam Extra Types of additional constructor arguments forwarded to
- *     `pybind11::class_`, such as base-class handles.
+ *     `pybind11::classh`, such as base-class handles.
  * @param module Native module receiving the class and registration.
  * @param family Public template-family name.
  * @param index Complete specialization lookup and naming index.
  * @param description Python class docstring.
- * @param extra Additional arguments forwarded to `pybind11::class_`.
+ * @param extra Additional arguments forwarded to `pybind11::classh`.
  * @return The class binding, ready for `.def(...)` calls.
  * @throws std::runtime_error If the family already contains `index.key`.
  */
 template<typename Class, typename... Options, typename... Extra>
-pybind11::class_<Class, Options...> bindTemplateClass(pybind11::module_& module, std::string_view family, TemplateIndex const& index, char const* description,
-                                                      Extra&&... extra) {
+pybind11::classh<Class, Options...> bindTemplateClass(pybind11::module_& module, std::string_view family, TemplateIndex const& index,
+                                                      std::string const& description, Extra&&... extra) {
     pybind11::dict instantiations = templateInstantiations(module, family);
     if (instantiations.contains(index.key)) {
         throw std::runtime_error("Duplicate native template instantiation for " + std::string(family));
