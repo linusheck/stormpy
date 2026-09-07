@@ -32,11 +32,6 @@ struct BindingTypeArgument<storm::RationalFunction> {
     }
 };
 
-template<typename ValueType>
-TemplateArgument bindingTypeArgument() {
-    return BindingTypeArgument<ValueType>::get();
-}
-
 template<storm::models::ModelType ModelKind>
 struct BindingModelTypeArgument;
 
@@ -70,12 +65,12 @@ struct BindingModelTypeArgument<storm::models::ModelType::MarkovAutomaton> {
 
 template<typename... ValueTypes>
 TemplateIndex typeIndex() {
-    return makeTemplateIndex({bindingTypeArgument<ValueTypes>()...});
+    return makeTemplateIndex({BindingTypeArgument<ValueTypes>::get()...});
 }
 
 template<storm::models::ModelType ModelKind, typename... ValueTypes>
 TemplateIndex typeIndex() {
-    return makeTemplateIndex({BindingModelTypeArgument<ModelKind>::get(), bindingTypeArgument<ValueTypes>()...});
+    return makeTemplateIndex({BindingModelTypeArgument<ModelKind>::get(), BindingTypeArgument<ValueTypes>::get()...});
 }
 
 }  // namespace stormpy::bindings
