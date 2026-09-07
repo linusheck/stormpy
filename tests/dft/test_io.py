@@ -71,6 +71,8 @@ class TestDftExport:
 
         assert type(dft2) is stormpy.dft.DFT[stormpy.RationalFunction]
         assert dft2.nr_elements() == dft.nr_elements()
+        assert dft2.nr_be() == dft.nr_be()
+        assert dft2.nr_dynamic() == dft.nr_dynamic()
         assert {parameter.name for parameter in stormpy.dft.get_parameters(dft2)} == parameter_names
 
     def test_export_parametric_dft_json_file(self, tmpdir):
