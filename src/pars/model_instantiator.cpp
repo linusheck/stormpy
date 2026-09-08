@@ -42,7 +42,8 @@ void define_typed_instantiator(py::module& m) {
 
     auto implementation = stormpy::bindings::bindTemplateClass<Instantiator>(m, "ModelInstantiator", stormpy::bindings::typeIndex<ModelKind, ValueType>(),
                                                                              "Instantiate a parametric model");
-    implementation.def(py::init<ParametricModel>(), "model"_a).def("instantiate", &Instantiator::instantiate, "Instantiate model with given parameter values");
+    implementation.def(py::init<ParametricModel>(), "model"_a)
+        .def("instantiate", &Instantiator::instantiate, "Instantiate model with given parameter values");
 }
 
 template<typename ValueType>
