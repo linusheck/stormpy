@@ -143,6 +143,7 @@ class TemplateClass:
         self._arity = arity
         self._deduction_guide = deduce
         self._instantiations: dict[tuple[object, ...], type] = {}
+        self._parameters_by_type: dict[type, tuple[object, ...]] = {}
         for arguments, implementation in implementations.items():
             self.register(arguments, implementation)
 
@@ -161,14 +162,19 @@ class TemplateClass:
         :param implementation: Concrete Python class for those parameters.
         :raises TypeError: If the parameter count is wrong or ``implementation``
             is not a class.
-        :raises ValueError: If the parameter tuple is already registered.
+        :raises ValueError: If the parameter tuple or implementation class is
+            already registered.
         """
         key = self._normalize(parameters)
         if not isinstance(implementation, type):
             raise TypeError("A template implementation must be a class")
         if key in self._instantiations:
             raise ValueError(f"{self.__name__}{key!r} is already registered")
+        if implementation in self._parameters_by_type:
+            other_key = self._parameters_by_type[implementation]
+            raise ValueError(f"{self.__name__} implementation {implementation!r} is already registered for {other_key!r}")
         self._instantiations[key] = implementation
+        self._parameters_by_type[implementation] = key
 
     def __getitem__(self, parameters: object) -> type:
         """Return the concrete class registered for ``parameters``.
@@ -199,13 +205,15 @@ class TemplateClass:
     def parameters_of(self, instance: object) -> tuple[object, ...]:
         """Return the complete parameter tuple of a registered instance.
 
-        :raises TypeError: If the instance matches zero or multiple registered
-            specializations.
+        The runtime type must be an exact registered implementation; instances
+        of unregistered subclasses are not recognized.
+
+        :raises TypeError: If the instance's runtime type is not registered.
         """
-        matches = [parameters for parameters, implementation in self._instantiations.items() if isinstance(instance, implementation)]
-        if len(matches) != 1:
-            raise TypeError(f"Cannot infer {self.__name__} template parameters from {type(instance)!r}")
-        return matches[0]
+        try:
+            return self._parameters_by_type[type(instance)]
+        except KeyError:
+            raise TypeError(f"Cannot infer {self.__name__} template parameters from {type(instance)!r}") from None
 
     @property
     def canonical_name(self) -> str:
@@ -230,8 +238,8 @@ class TemplateClass:
         return MappingProxyType(self._instantiations)
 
     def is_instantiation(self, instance: object) -> bool:
-        """Return whether ``instance`` belongs to any registered specialization."""
-        return isinstance(instance, tuple(self._instantiations.values()))
+        """Return whether ``instance`` has a registered concrete runtime type."""
+        return type(instance) in self._parameters_by_type
 
     def __iter__(self) -> Iterator[tuple[object, ...]]:
         """Iterate over registered parameter tuples in registration order."""
