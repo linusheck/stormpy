@@ -66,8 +66,8 @@ def deduce_from_first_argument(source: "TemplateClass | None" = None, *, keyword
         elif keyword is not None and keyword in kwargs:
             instance = kwargs[keyword]
         else:
-            argument = f" {keyword!r}" if keyword is not None else " first positional"
-            raise TypeError(f"Cannot deduce template parameters without the{argument} argument")
+            argument = f"{keyword!r}" if keyword is not None else " first positional"
+            raise TypeError(f"Cannot deduce template parameters without the {argument} argument")
         return (source if source is not None else family).parameters_of(instance)
 
     deduction.__name__ = "deduce_from_first_argument"
