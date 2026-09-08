@@ -224,8 +224,8 @@ class TemplateClass:
     def metadata(self) -> TemplateMetadata:
         """Return an immutable, current description for documentation tools."""
         instantiations = tuple(
-            TemplateInstantiation(arguments, implementation, f"{implementation.__module__}.{implementation.__name__}")
-            for arguments, implementation in self._instantiations.items()
+            TemplateInstantiation(parameters, implementation, f"{implementation.__module__}.{implementation.__name__}")
+            for parameters, implementation in self._instantiations.items()
         )
         guide = None
         if self._deduction_guide is not None:
