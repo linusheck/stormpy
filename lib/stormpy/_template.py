@@ -151,7 +151,7 @@ class TemplateClass:
         """Convert subscription parameters to a validated tuple."""
         key = parameters if isinstance(parameters, tuple) else (parameters,)
         if len(key) != self._arity:
-            raise TypeError(f"{self.__name__} expects {self._arity} template " f"parameter{'s' if self._arity != 1 else ''}, got {len(key)}")
+            raise TypeError(f"{self.__name__} expects {self._arity} template parameter{'s' if self._arity != 1 else ''}, got {len(key)}")
         return key
 
     def register(self, parameters: object, implementation: type) -> None:
