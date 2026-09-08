@@ -9,24 +9,24 @@
 namespace stormpy::bindings {
 
 template<typename ValueType>
-struct BindingTypeArgument;
+struct BindingValueTypeArgument;
 
 template<>
-struct BindingTypeArgument<double> {
+struct BindingValueTypeArgument<double> {
     static TemplateArgument get() {
         return {pybind11::module_::import("builtins").attr("float"), "Double"};
     }
 };
 
 template<>
-struct BindingTypeArgument<storm::RationalNumber> {
+struct BindingValueTypeArgument<storm::RationalNumber> {
     static TemplateArgument get() {
         return {pybind11::module_::import("stormpy").attr("Rational"), "Rational"};
     }
 };
 
 template<>
-struct BindingTypeArgument<storm::RationalFunction> {
+struct BindingValueTypeArgument<storm::RationalFunction> {
     static TemplateArgument get() {
         return {pybind11::module_::import("stormpy").attr("RationalFunction"), "RationalFunction"};
     }
@@ -65,12 +65,12 @@ struct BindingModelTypeArgument<storm::models::ModelType::MarkovAutomaton> {
 
 template<typename... ValueTypes>
 TemplateIndex typeIndex() {
-    return makeTemplateIndex({BindingTypeArgument<ValueTypes>::get()...});
+    return makeTemplateIndex({BindingValueTypeArgument<ValueTypes>::get()...});
 }
 
 template<storm::models::ModelType ModelKind, typename... ValueTypes>
 TemplateIndex typeIndex() {
-    return makeTemplateIndex({BindingModelTypeArgument<ModelKind>::get(), BindingTypeArgument<ValueTypes>::get()...});
+    return makeTemplateIndex({BindingModelTypeArgument<ModelKind>::get(), BindingValueTypeArgument<ValueTypes>::get()...});
 }
 
 }  // namespace stormpy::bindings
