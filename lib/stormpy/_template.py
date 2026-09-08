@@ -169,7 +169,7 @@ class TemplateClass:
         if not isinstance(implementation, type):
             raise TypeError("A template implementation must be a class")
         if key in self._instantiations:
-            raise ValueError(f"{self.__name__}{key!r} is already registered")
+            raise ValueError(f"{self.__name__} instantiation for {key!r} is already registered")
         if implementation in self._parameters_by_type:
             other_key = self._parameters_by_type[implementation]
             raise ValueError(f"{self.__name__} implementation {implementation!r} is already registered for {other_key!r}")
