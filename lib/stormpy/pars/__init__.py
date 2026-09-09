@@ -25,6 +25,17 @@ def _deduce_model_and_double(_family: TemplateClass, args: tuple[object, ...], k
     return model.model_type, float
 
 
+def _deduce_checker_model_and_double(_family: TemplateClass, args: tuple[object, ...], kwargs: _Mapping[str, object]) -> object:
+    if len(args) >= 2:
+        model = args[1]
+    else:
+        try:
+            model = kwargs["model"]
+        except KeyError:
+            raise TypeError("Cannot deduce template parameters without the model argument") from None
+    return model.model_type, float
+
+
 ModelInstantiator = TemplateClass(
     "stormpy.pars.ModelInstantiator",
     _pars,
@@ -36,7 +47,7 @@ ModelInstantiationChecker = TemplateClass(
     "stormpy.pars.ModelInstantiationChecker",
     _pars,
     parameters=(_TemplateParameter("ModelType", kind="value"), "ResultType"),
-    deduce=_deduce_model_and_double,
+    deduce=_deduce_checker_model_and_double,
 )
 
 

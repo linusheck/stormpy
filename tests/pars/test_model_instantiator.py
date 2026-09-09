@@ -71,11 +71,11 @@ class TestModelInstantiator:
         model = stormpy.build_parametric_model(program, formulas)
 
         parameters = model.collect_all_parameters()
-        inst_checker = stormpy.pars.ModelInstantiationChecker(model)
+        env = stormpy.Environment()
+        inst_checker = stormpy.pars.ModelInstantiationChecker(env, model)
         assert type(inst_checker) is stormpy.pars.ModelInstantiationChecker[stormpy.ModelType.DTMC, float]
         inst_checker.specify_formula(stormpy.ParametricCheckTask(formulas[0].raw_formula, True))
         inst_checker.set_graph_preserving(True)
-        env = stormpy.Environment()
 
         point = {p: stormpy.RationalRF(1 / 2) for p in parameters}
         result = inst_checker.check(env, point)
@@ -90,10 +90,10 @@ class TestModelInstantiator:
         model = stormpy.build_parametric_model(program, formulas)
 
         parameters = model.collect_all_parameters()
-        inst_checker = stormpy.pars.ModelInstantiationChecker[stormpy.ModelType.DTMC, stormpy.Rational](model)
+        env = stormpy.Environment()
+        inst_checker = stormpy.pars.ModelInstantiationChecker[stormpy.ModelType.DTMC, stormpy.Rational](env, model)
         inst_checker.specify_formula(stormpy.ParametricCheckTask(formulas[0].raw_formula, True))
         inst_checker.set_graph_preserving(True)
-        env = stormpy.Environment()
 
         point = {p: stormpy.RationalRF("1/2") for p in parameters}
         result = inst_checker.check(env, point)
@@ -108,10 +108,10 @@ class TestModelInstantiator:
         model = stormpy.build_parametric_model(program, formulas)
 
         parameters = model.collect_all_parameters()
-        inst_checker = stormpy.pars.ModelInstantiationChecker[stormpy.ModelType.DTMC, stormpy.Rational](model)
+        env = stormpy.Environment()
+        inst_checker = stormpy.pars.ModelInstantiationChecker[stormpy.ModelType.DTMC, stormpy.Rational](env, model)
         inst_checker.specify_formula(stormpy.ParametricCheckTask(formulas[0].raw_formula, True))
         inst_checker.set_graph_preserving(True)
-        env = stormpy.Environment()
 
         point = {p: stormpy.RationalRF("2/5") for p in parameters}
         result = inst_checker.check(env, point)
