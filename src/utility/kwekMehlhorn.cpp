@@ -6,7 +6,7 @@
 #include "src/common.h"
 
 template<typename RationalValueType>
-void define_kwek_mehlhorn(py::module &m, std::string const &vtSuffix) {
+void define_kwek_mehlhorn(py::module &m) {
     m.def(
         "sharpen", [](uint64_t precision, double value) { return storm::utility::kwek_mehlhorn::sharpen<RationalValueType, double>(precision, value); },
         "Convert a float to the nearest rational within precision using Kwek "
@@ -14,4 +14,4 @@ void define_kwek_mehlhorn(py::module &m, std::string const &vtSuffix) {
         py::arg("precision"), py::arg("value"));
 }
 
-template void define_kwek_mehlhorn<storm::RationalNumber>(py::module &m, std::string const &vtSuffix);
+template void define_kwek_mehlhorn<storm::RationalNumber>(py::module &m);
