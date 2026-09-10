@@ -36,11 +36,20 @@ class TestDft:
         from stormpy import pycarl
 
         pycarl.clear_pools()
+        generic_dft = stormpy.dft.load_parametric_dft_json_file(get_example_path("dft", "and.json"))
+        assert type(generic_dft) is stormpy.dft.DFT[stormpy.RationalFunction]
+        assert stormpy.dft.DFT[stormpy.RationalFunction] is stormpy.dft._dft._DFT_RationalFunction
+
+        builder = stormpy.dft.ExplicitDFTModelBuilder(generic_dft)
+        assert type(builder) is stormpy.dft.ExplicitDFTModelBuilder[stormpy.RationalFunction]
+
+        model = stormpy.dft.build_model(generic_dft)
+        assert model.supports_parameters
+
         dft = stormpy.dft.load_parametric_dft_galileo_file(get_example_path("dft", "symmetry_param.dft"))
         assert dft.nr_elements() == 7
         assert dft.nr_be() == 4
         assert dft.nr_dynamic() == 0
-        assert type(dft) is stormpy.dft.DFT[stormpy.RationalFunction]
         parameters = stormpy.dft.get_parameters(dft)
         param_names = [x.name for x in parameters]
         assert "x" in param_names
