@@ -7,6 +7,7 @@
 #include <storm/utility/graph.h>
 
 #include "src/helpers.h"
+#include "src/binding_type_index.h"
 
 template<typename ValueType>
 using SparseMatrix = storm::storage::SparseMatrix<ValueType>;
@@ -31,9 +32,10 @@ void define_sparse_matrix_nt(py::module& m) {
 }
 
 template<typename ValueType>
-void define_sparse_matrix(py::module& m, std::string const& vtSuffix) {
+void define_sparse_matrix(py::module& m) {
+    auto const index = stormpy::bindings::typeIndex<ValueType>();
     // MatrixEntry
-    py::classh<MatrixEntry<ValueType>>(m, (vtSuffix + "SparseMatrixEntry").c_str(), "Entry of sparse matrix")
+    stormpy::bindings::bindTemplateClass<MatrixEntry<ValueType>>(m, "SparseMatrixEntry", index, "Entry of sparse matrix")
         .def("__str__", &streamToString<MatrixEntry<ValueType>>)
         // def_property threw "pointer being freed not allocated" after exiting
         .def("value", &MatrixEntry<ValueType>::getValue, "Value")
@@ -41,7 +43,7 @@ void define_sparse_matrix(py::module& m, std::string const& vtSuffix) {
         .def_property_readonly("column", &MatrixEntry<ValueType>::getColumn, "Column");
 
     // SparseMatrixBuilder
-    py::classh<SparseMatrixBuilder<ValueType>>(m, (vtSuffix + "SparseMatrixBuilder").c_str(), "Builder of sparse matrix")
+    stormpy::bindings::bindTemplateClass<SparseMatrixBuilder<ValueType>>(m, "SparseMatrixBuilder", index, "Builder of sparse matrix")
         .def(py::init<double, double, double, bool, bool, double>(), "rows"_a = 0, "columns"_a = 0, "entries"_a = 0, "force_dimensions"_a = true,
              "has_custom_row_grouping"_a = false, "row_groups"_a = 0)
 
@@ -104,7 +106,7 @@ void define_sparse_matrix(py::module& m, std::string const& vtSuffix) {
              py::arg("replacements"), py::arg("offset"));
 
     // SparseMatrix
-    py::classh<SparseMatrix<ValueType>>(m, (vtSuffix + "SparseMatrix").c_str(), "Sparse matrix")
+    stormpy::bindings::bindTemplateClass<SparseMatrix<ValueType>>(m, "SparseMatrix", index, "Sparse matrix")
         .def(
             "__iter__", [](SparseMatrix<ValueType>& matrix) { return py::make_iterator(matrix.begin(), matrix.end()); },
             py::keep_alive<0, 1>() /* Essential: keep object alive while iterator exists */)
@@ -172,15 +174,15 @@ void define_sparse_matrix(py::module& m, std::string const& vtSuffix) {
             py::return_value_policy::reference, py::keep_alive<1, 0>());
 
     // Rows
-    py::classh<typename SparseMatrix<ValueType>::rows>(m, (vtSuffix + "SparseMatrixRows").c_str(), "Set of rows in a sparse matrix")
+    stormpy::bindings::bindTemplateClass<typename SparseMatrix<ValueType>::rows>(m, "SparseMatrixRows", index, "Set of rows in a sparse matrix")
         .def(
             "__iter__", [](typename SparseMatrix<ValueType>::rows& rows) { return py::make_iterator(rows.begin(), rows.end()); }, py::keep_alive<0, 1>())
         .def("__str__", &containerToString<typename SparseMatrix<ValueType>::rows>)
         .def("__len__", &storm::storage::SparseMatrix<ValueType>::rows::getNumberOfEntries);
 }
 
-template void define_sparse_matrix<double>(py::module& m, std::string const& vtSuffix);
-template void define_sparse_matrix<storm::RationalNumber>(py::module& m, std::string const& vtSuffix);
-template void define_sparse_matrix<storm::Interval>(py::module& m, std::string const& vtSuffix);
-template void define_sparse_matrix<storm::RationalInterval>(py::module& m, std::string const& vtSuffix);
-template void define_sparse_matrix<storm::RationalFunction>(py::module& m, std::string const& vtSuffix);
+template void define_sparse_matrix<double>(py::module& m);
+template void define_sparse_matrix<storm::RationalNumber>(py::module& m);
+template void define_sparse_matrix<storm::Interval>(py::module& m);
+template void define_sparse_matrix<storm::RationalInterval>(py::module& m);
+template void define_sparse_matrix<storm::RationalFunction>(py::module& m);

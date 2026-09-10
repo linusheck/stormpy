@@ -97,7 +97,7 @@ class TestSparseModelComponents:
         # Build DTMC
         dtmc = stormpy.storage.SparseDtmc(components)
 
-        assert type(dtmc) is stormpy.SparseDtmc
+        assert type(dtmc) is stormpy.SparseDtmc[float]
         assert dtmc.model_type == stormpy.ModelType.DTMC
         assert not dtmc.supports_parameters
 
@@ -264,7 +264,7 @@ class TestSparseModelComponents:
         # Build MDP
         mdp = stormpy.storage.SparseMdp(components)
 
-        assert type(mdp) is stormpy.SparseMdp
+        assert type(mdp) is stormpy.SparseMdp[float]
         assert mdp.model_type == stormpy.ModelType.MDP
         assert not mdp.supports_parameters
 
@@ -416,7 +416,7 @@ class TestSparseModelComponents:
 
         # Build CTMC
         ctmc = stormpy.storage.SparseCtmc(components)
-        assert type(ctmc) is stormpy.SparseCtmc
+        assert type(ctmc) is stormpy.SparseCtmc[float]
         assert ctmc.model_type == stormpy.ModelType.CTMC
         assert not ctmc.supports_parameters
 
@@ -567,7 +567,7 @@ class TestSparseModelComponents:
 
         # Build MA
         ma = stormpy.storage.SparseMA(components)
-        assert type(ma) is stormpy.SparseMA
+        assert type(ma) is stormpy.SparseMA[float]
         assert not ma.supports_parameters
 
         # Test transition matrix
@@ -761,7 +761,7 @@ class TestSparseModelComponents:
 
         # Build POMDP
         pomdp = stormpy.storage.SparsePomdp(components)
-        assert type(pomdp) is stormpy.SparsePomdp
+        assert type(pomdp) is stormpy.SparsePomdp[float]
         assert not pomdp.supports_parameters
 
         # Test transition matrix
@@ -831,7 +831,9 @@ class TestSparseModelComponents:
         nr_choices = 13
 
         # transition_matrix
-        builder = stormpy.ParametricSparseMatrixBuilder(rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=False, row_groups=0)
+        builder = stormpy.SparseMatrixBuilder[stormpy.RationalFunction](
+            rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=False, row_groups=0
+        )
 
         # Create variables
         var_p = create_polynomial(Variable("p"))
@@ -879,14 +881,16 @@ class TestSparseModelComponents:
         reward_models = {}
         # Create a vector representing the state-action rewards
         action_reward = [one, one, one, one, one, one, one, zero, zero, zero, zero, zero, zero]
-        reward_models["coin_flips"] = stormpy.SparseParametricRewardModel(optional_state_action_reward_vector=action_reward)
+        reward_models["coin_flips"] = stormpy.SparseRewardModel[stormpy.RationalFunction](optional_state_action_reward_vector=action_reward)
 
         # Construct components
-        components = stormpy.SparseParametricModelComponents(transition_matrix=transition_matrix, state_labeling=state_labeling, reward_models=reward_models)
+        components = stormpy.SparseModelComponents[stormpy.RationalFunction](
+            transition_matrix=transition_matrix, state_labeling=state_labeling, reward_models=reward_models
+        )
         # Build parametric DTMC
-        dtmc = stormpy.storage.SparseParametricDtmc(components)
+        dtmc = stormpy.storage.SparseDtmc[stormpy.RationalFunction](components)
 
-        assert type(dtmc) is stormpy.SparseParametricDtmc
+        assert type(dtmc) is stormpy.SparseDtmc[stormpy.RationalFunction]
         assert dtmc.supports_parameters
         assert dtmc.has_parameters
 
@@ -983,7 +987,7 @@ class TestSparseModelComponents:
         # Build SMG
         smg = stormpy.storage.SparseSmg(components)
 
-        assert type(smg) is stormpy.SparseSmg
+        assert type(smg) is stormpy.SparseSmg[float]
         assert smg.model_type == stormpy.storage.ModelType.SMG
 
         # Test transition matrix

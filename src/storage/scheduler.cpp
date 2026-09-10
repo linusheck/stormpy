@@ -5,14 +5,15 @@
 #include <storm/storage/Scheduler.h>
 
 #include "src/helpers.h"
+#include "src/binding_type_index.h"
 
 template<typename ValueType>
-void define_scheduler(py::module& m, std::string vt_suffix) {
+void define_scheduler(py::module& m) {
     using Scheduler = storm::storage::Scheduler<ValueType>;
     using SchedulerChoice = storm::storage::SchedulerChoice<ValueType>;
 
-    std::string schedulerClassName = std::string("Scheduler") + vt_suffix;
-    py::classh<Scheduler> scheduler(m, schedulerClassName.c_str(), "A Finite Memory Scheduler");
+    auto const index = stormpy::bindings::typeIndex<ValueType>();
+    auto scheduler = stormpy::bindings::bindTemplateClass<Scheduler>(m, "Scheduler", index, "A Finite Memory Scheduler");
     scheduler
         .def("__str__",
              [](Scheduler const& s) {
@@ -60,8 +61,7 @@ void define_scheduler(py::module& m, std::string vt_suffix) {
         }
     }
 
-    std::string schedulerChoiceClassName = std::string("SchedulerChoice") + vt_suffix;
-    py::classh<SchedulerChoice> schedulerChoice(m, schedulerChoiceClassName.c_str(), "A choice of a finite memory scheduler");
+    auto schedulerChoice = stormpy::bindings::bindTemplateClass<SchedulerChoice>(m, "SchedulerChoice", index, "A choice of a finite memory scheduler");
     schedulerChoice.def(py::init<uint64_t>(), "choice"_a)
         .def_property_readonly("defined", &SchedulerChoice::isDefined, "Is the choice defined by the scheduler?")
         .def_property_readonly("deterministic", &SchedulerChoice::isDeterministic, "Is the choice deterministic (given by a Dirac distribution)?")
@@ -70,8 +70,8 @@ void define_scheduler(py::module& m, std::string vt_suffix) {
         .def("__str__", &streamToString<SchedulerChoice>);
 }
 
-template void define_scheduler<double>(py::module& m, std::string vt_suffix);
-template void define_scheduler<storm::RationalNumber>(py::module& m, std::string vt_suffix);
-template void define_scheduler<storm::Interval>(py::module& m, std::string vt_suffix);
-template void define_scheduler<storm::RationalInterval>(py::module& m, std::string vt_suffix);
-template void define_scheduler<storm::RationalFunction>(py::module& m, std::string vt_suffix);
+template void define_scheduler<double>(py::module& m);
+template void define_scheduler<storm::RationalNumber>(py::module& m);
+template void define_scheduler<storm::Interval>(py::module& m);
+template void define_scheduler<storm::RationalInterval>(py::module& m);
+template void define_scheduler<storm::RationalFunction>(py::module& m);
