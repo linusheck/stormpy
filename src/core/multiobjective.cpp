@@ -9,6 +9,8 @@
 #include <storm/models/sparse/StandardRewardModel.h>
 #include <storm/utility/macros.h>
 
+#include "src/binding_type_index.h"
+
 // Helper class to avoid that we also need to bind the preprocessing.
 template<typename ValueType>
 std::pair<std::unique_ptr<storm::modelchecker::multiobjective::PcaaWeightVectorChecker<storm::models::sparse::Mdp<ValueType>>>,
@@ -22,12 +24,19 @@ makeWeightedObjectiveMDPModelChecker(storm::Environment const& env, storm::model
 }
 
 template<typename ValueType>
-void define_multiobjective(py::module& m, std::string const& vtSuffix) {
-    m.def(("_make_weighted_objective_mdp_model_checker_" + vtSuffix).c_str(), &makeWeightedObjectiveMDPModelChecker<ValueType>, py::arg("env"),
-          py::arg("model"), py::arg("formula"), py::arg("compute_scheduler") = false);
+void define_multiobjective(py::module& m) {
+    std::string suffix;
+    if constexpr (std::is_same_v<ValueType, double>) {
+        suffix = "Double";
+    } else if constexpr (std::is_same_v<ValueType, storm::RationalNumber>) {
+        suffix = "Exact";
+    }
+    m.def(("_make_weighted_objective_mdp_model_checker_" + suffix).c_str(), &makeWeightedObjectiveMDPModelChecker<ValueType>, py::arg("env"), py::arg("model"),
+          py::arg("formula"), py::arg("compute_scheduler") = false);
 
     using PcaaWeightVectorChecker = storm::modelchecker::multiobjective::PcaaWeightVectorChecker<storm::models::sparse::Mdp<ValueType>>;
-    py::classh<PcaaWeightVectorChecker> weightedObjectiveMdpModelChecker(m, ("WeightedObjectiveMdpModelChecker" + vtSuffix).c_str());
+    auto weightedObjectiveMdpModelChecker = stormpy::bindings::bindTemplateClass<PcaaWeightVectorChecker>(
+        m, "WeightedObjectiveMdpModelChecker", stormpy::bindings::typeIndex<ValueType>(), "Model checker for weighted multi-objective queries");
     weightedObjectiveMdpModelChecker.def("check", &PcaaWeightVectorChecker::check, py::arg("env"), py::arg("weight_vector"))
         .def("get_achievable_point", &PcaaWeightVectorChecker::getAchievablePoint)
         .def("get_optimal_weighted_sum", &PcaaWeightVectorChecker::getOptimalWeightedSum,
@@ -36,5 +45,5 @@ void define_multiobjective(py::module& m, std::string const& vtSuffix) {
         .def("set_weighted_precision", &PcaaWeightVectorChecker::setWeightedPrecision, py::arg("value"), "A smaller value means a higher precision.");
 }
 
-template void define_multiobjective<double>(py::module&, std::string const&);
-template void define_multiobjective<storm::RationalNumber>(py::module&, std::string const&);
+template void define_multiobjective<double>(py::module&);
+template void define_multiobjective<storm::RationalNumber>(py::module&);

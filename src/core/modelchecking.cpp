@@ -11,6 +11,7 @@
 #include <storm/models/symbolic/StandardRewardModel.h>
 #include <storm/utility/graph.h>
 
+#include "src/binding_type_index.h"
 #include "src/core/result.h"
 
 template<typename ValueType>
@@ -141,11 +142,10 @@ storm::storage::BitVector getReachableStates(storm::models::sparse::Model<ValueT
                                                      steps, choiceFilter);
 }
 
-// TODO: use consistent suffix instead of name
 template<typename ValueType>
-void define_check_task(py::module& m, std::string const& name) {
+void define_check_task(py::module& m) {
     // CheckTask
-    py::classh<CheckTask<ValueType>>(m, name.c_str(), "Task for model checking")
+    stormpy::bindings::bindTemplateClass<CheckTask<ValueType>>(m, "CheckTask", stormpy::bindings::typeIndex<ValueType>(), "Task for model checking")
         .def(py::init<storm::logic::Formula const&, bool>(), py::arg("formula"), py::arg("only_initial_states") = false)
         .def("set_produce_schedulers", &CheckTask<ValueType>::setProduceSchedulers, "Set whether schedulers should be produced (if possible)",
              py::arg("produce_schedulers") = true)
@@ -207,8 +207,8 @@ void define_modelchecking_mdefs(py::module& m) {
 
 void define_modelchecking(py::module& m) {
     py::classh<storm::modelchecker::ModelCheckerHint> mchint(m, "ModelCheckerHint", "Information that may accelerate the model checking process");
-    py::classh<storm::modelchecker::ExplicitModelCheckerHint<double>>(m, "ExplicitModelCheckerHintDouble",
-                                                                      "Information that may accelerate an explicit state model checker", mchint)
+    stormpy::bindings::bindTemplateClass<storm::modelchecker::ExplicitModelCheckerHint<double>>(
+        m, "ExplicitModelCheckerHint", stormpy::bindings::typeIndex<double>(), "Information that may accelerate an explicit state model checker", mchint)
         .def(py::init<>())
         .def("set_scheduler_hint",
              py::overload_cast<boost::optional<storm::storage::Scheduler<double>> const&>(
@@ -233,6 +233,6 @@ void define_modelchecking(py::module& m) {
     m.def("compute_transient_probabilities", &computeTransientProbabilities, "Compute transient probabilities");
 }
 
-template void define_check_task<double>(py::module&, std::string const&);
-template void define_check_task<storm::RationalNumber>(py::module&, std::string const&);
-template void define_check_task<storm::RationalFunction>(py::module&, std::string const&);
+template void define_check_task<double>(py::module&);
+template void define_check_task<storm::RationalNumber>(py::module&);
+template void define_check_task<storm::RationalFunction>(py::module&);

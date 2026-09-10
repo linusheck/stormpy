@@ -7,6 +7,39 @@ from .storage import *
 from .logic import *
 from . import exceptions
 
+from ._template import TemplateClass as _TemplateClass, deduce_default as _deduce_default
+
+
+def _deduce_from_model_value_type(_family, args, kwargs):
+    model = args[0] if args else kwargs.get("model")
+    if model is None:
+        return (float,)
+    return (storage._value_type_of_model(model),)
+
+
+# Template families for native classes of the core module
+CheckTask = _TemplateClass("stormpy.CheckTask", _core, parameters=("ValueType",), deduce=_deduce_default(float))
+ExplicitQualitativeCheckResult = _TemplateClass("stormpy.ExplicitQualitativeCheckResult", _core, parameters=("ValueType",))
+QuantitativeCheckResult = _TemplateClass("stormpy.QuantitativeCheckResult", _core, parameters=("ValueType",))
+ExplicitQuantitativeCheckResult = _TemplateClass("stormpy.ExplicitQuantitativeCheckResult", _core, parameters=("ValueType",), deduce=_deduce_default(float))
+SymbolicQuantitativeCheckResult = _TemplateClass("stormpy.SymbolicQuantitativeCheckResult", _core, parameters=("ValueType",))
+HybridQuantitativeCheckResult = _TemplateClass("stormpy.HybridQuantitativeCheckResult", _core, parameters=("ValueType",))
+ParetoCurveCheckResult = _TemplateClass("stormpy.ParetoCurveCheckResult", _core, parameters=("ValueType",))
+ExplicitParetoCurveCheckResult = _TemplateClass("stormpy.ExplicitParetoCurveCheckResult", _core, parameters=("ValueType",))
+ExplicitModelCheckerHint = _TemplateClass("stormpy.ExplicitModelCheckerHint", _core, parameters=("ValueType",), deduce=_deduce_default(float))
+DiscreteTimeSparseModelSimulator = _TemplateClass(
+    "stormpy.DiscreteTimeSparseModelSimulator", _core, parameters=("ValueType",), deduce=_deduce_from_model_value_type
+)
+DiscreteTimePrismProgramSimulator = _TemplateClass("stormpy.DiscreteTimePrismProgramSimulator", _core, parameters=("ValueType",), deduce=_deduce_default(float))
+WeightedObjectiveMdpModelChecker = _TemplateClass("stormpy.WeightedObjectiveMdpModelChecker", _core, parameters=("ValueType",))
+SubsystemBuilderReturnType = _TemplateClass("stormpy.SubsystemBuilderReturnType", _core, parameters=("ValueType",))
+EndComponentEliminatorReturnType = _TemplateClass("stormpy.EndComponentEliminatorReturnType", _core, parameters=("ValueType",))
+AddUncertainty = _TemplateClass("stormpy.AddUncertainty", _core, parameters=("ValueType",), deduce=_deduce_from_model_value_type)
+ExplicitModelBuilderOptions = _TemplateClass("stormpy.ExplicitModelBuilderOptions", _core, parameters=("ValueType",), deduce=_deduce_default(float))
+ExplicitModelBuilder = _TemplateClass("stormpy.ExplicitModelBuilder", _core, parameters=("ValueType",))
+ActionMask = _TemplateClass("stormpy.ActionMask", _core, parameters=("ValueType",))
+StateValuationFunctionActionMask = _TemplateClass("stormpy.StateValuationFunctionActionMask", _core, parameters=("ValueType",), deduce=_deduce_default(float))
+
 from enum import Enum
 
 try:
@@ -458,13 +491,13 @@ def check_model_sparse(model, property, only_initial_states=False, extract_sched
             elif model.supports_uncertainty:
                 raise NotImplementedError("Model checking of partially observable models is not supported for interval models.")
             elif model.is_exact:
-                task = _core.ExactCheckTask(formula, only_initial_states)
+                task = CheckTask[stormpy.Rational](formula, only_initial_states)
                 task.set_produce_schedulers(extract_scheduler)
                 if hint:
                     task.set_hint(hint)
                 return _core._exact_model_checking_fully_observable(model, task, environment=environment)
             else:
-                task = _core.CheckTask(formula, only_initial_states)
+                task = CheckTask[float](formula, only_initial_states)
                 task.set_produce_schedulers(extract_scheduler)
                 if hint:
                     task.set_hint(hint)
@@ -473,7 +506,7 @@ def check_model_sparse(model, property, only_initial_states=False, extract_sched
             raise RuntimeError("Model checking of partially observable models is handled via dedicated methods, unless the force fully-observable is set.")
 
     if model.supports_parameters:
-        task = _core.ParametricCheckTask(formula, only_initial_states)
+        task = CheckTask[stormpy.RationalFunction](formula, only_initial_states)
         task.set_produce_schedulers(extract_scheduler)
         if hint:
             task.set_hint(hint)
@@ -482,7 +515,7 @@ def check_model_sparse(model, property, only_initial_states=False, extract_sched
         if model.is_exact:
             if formula.is_multi_objective_formula:
                 return _core._multi_objective_model_checking_exact(model, formula, environment=environment)
-            task = _core.ExactCheckTask(formula, only_initial_states)
+            task = CheckTask[stormpy.Rational](formula, only_initial_states)
             task.set_produce_schedulers(extract_scheduler)
             if hint:
                 task.set_hint(hint)
@@ -490,7 +523,7 @@ def check_model_sparse(model, property, only_initial_states=False, extract_sched
         else:
             if formula.is_multi_objective_formula:
                 return _core._multi_objective_model_checking_double(model, formula, environment=environment)
-            task = _core.CheckTask(formula, only_initial_states)
+            task = CheckTask[float](formula, only_initial_states)
             task.set_produce_schedulers(extract_scheduler)
             if hint:
                 task.set_hint(hint)
@@ -512,10 +545,10 @@ def check_model_dd(model, property, only_initial_states=False, environment=Envir
         formula = property
 
     if model.supports_parameters:
-        task = _core.ParametricCheckTask(formula, only_initial_states)
+        task = CheckTask[stormpy.RationalFunction](formula, only_initial_states)
         return _core._parametric_model_checking_dd_engine(model, task, environment=environment)
     else:
-        task = _core.CheckTask(formula, only_initial_states)
+        task = CheckTask[float](formula, only_initial_states)
         return _core._model_checking_dd_engine(model, task, environment=environment)
 
 
@@ -534,10 +567,10 @@ def check_model_hybrid(model, property, only_initial_states=False, environment=E
         formula = property
 
     if model.supports_parameters:
-        task = _core.ParametricCheckTask(formula, only_initial_states)
+        task = CheckTask[stormpy.RationalFunction](formula, only_initial_states)
         return _core._parametric_model_checking_hybrid_engine(model, task, environment=environment)
     else:
-        task = _core.CheckTask(formula, only_initial_states)
+        task = CheckTask[float](formula, only_initial_states)
         return _core._model_checking_hybrid_engine(model, task, environment=environment)
 
 
