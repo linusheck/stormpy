@@ -13,7 +13,7 @@ class TestSparseModel:
         assert model.nr_transitions == 20
         assert model.model_type == stormpy.ModelType.DTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseDtmc
+        assert type(model) is stormpy.SparseDtmc[float]
         assert model.labeling.get_labels() == {"one", "two", "three", "four", "five", "six", "done", "init", "deadlock"}
 
     def test_build_dtmc_from_prism_program_formulas_label(self):
@@ -26,7 +26,7 @@ class TestSparseModel:
         assert model.model_type == stormpy.ModelType.DTMC
         assert len(model.reward_models) == 0
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseDtmc
+        assert type(model) is stormpy.SparseDtmc[float]
         assert set(model.labeling.get_labels()) == {"init", "deadlock", "one"}
 
     def test_build_dtmc_from_prism_program_formulas_ap(self):
@@ -39,7 +39,7 @@ class TestSparseModel:
         assert model.model_type == stormpy.ModelType.DTMC
         assert len(model.reward_models) == 0
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseDtmc
+        assert type(model) is stormpy.SparseDtmc[float]
         assert set(model.labeling.get_labels()) == {"init", "deadlock", "(s = 2)"}
 
     def test_build_dtmc_from_prism_program_reward_formulas(self):
@@ -60,7 +60,7 @@ class TestSparseModel:
             assert reward == 1.0 or reward == 0.0
         assert not model.reward_models["coin_flips"].has_transition_rewards
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseDtmc
+        assert type(model) is stormpy.SparseDtmc[float]
 
     def test_reduce_to_state_based_rewards(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
@@ -82,7 +82,7 @@ class TestSparseModel:
         assert model.nr_transitions == 20
         assert model.model_type == stormpy.ModelType.DTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseDtmc
+        assert type(model) is stormpy.SparseDtmc[float]
 
     def test_build_dtmc_with_undefined_constants(self):
         jani_model, properties = stormpy.parse_jani_model(get_example_path("dtmc", "brp.jani"))
@@ -103,7 +103,7 @@ class TestSparseModel:
         assert model.nr_transitions == 867
         assert model.model_type == stormpy.ModelType.DTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseDtmc
+        assert type(model) is stormpy.SparseDtmc[float]
 
     def test_build_instantiated_dtmc_jani(self):
         jani_model, properties = stormpy.parse_jani_model(get_example_path("dtmc", "brp.jani"))
@@ -117,7 +117,7 @@ class TestSparseModel:
         assert model.nr_transitions == 867
         assert model.model_type == stormpy.ModelType.DTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseDtmc
+        assert type(model) is stormpy.SparseDtmc[float]
 
     def test_build_mdp(self):
         program = stormpy.parse_prism_program(get_example_path("mdp", "two_dice.nm"))
@@ -127,7 +127,7 @@ class TestSparseModel:
         assert model.nr_transitions == 435
         assert model.model_type == stormpy.ModelType.MDP
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseMdp
+        assert type(model) is stormpy.SparseMdp[float]
 
     def test_build_ctmc(self):
         program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), True)
@@ -137,13 +137,13 @@ class TestSparseModel:
         assert model.nr_transitions == 22
         assert model.model_type == stormpy.ModelType.CTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseCtmc
+        assert type(model) is stormpy.SparseCtmc[float]
         model_for_formula = stormpy.build_model(program, formulas)
         assert model_for_formula.nr_states == 12
         assert model_for_formula.nr_transitions == 21
         assert model_for_formula.model_type == stormpy.ModelType.CTMC
         assert not model_for_formula.supports_parameters
-        assert type(model_for_formula) is stormpy.SparseCtmc
+        assert type(model_for_formula) is stormpy.SparseCtmc[float]
 
     def test_build_pomdp(self):
         program = stormpy.parse_prism_program(get_example_path("pomdp", "maze_2.prism"))
@@ -160,7 +160,7 @@ class TestSparseModel:
         assert model.nr_transitions == 7
         assert model.model_type == stormpy.ModelType.MA
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseMA
+        assert type(model) is stormpy.SparseMA[float]
         assert model.is_closed
         assert not model.has_zeno_cycle
 
@@ -171,7 +171,7 @@ class TestSparseModel:
         assert model.nr_transitions == 13
         assert model.model_type == stormpy.ModelType.MA
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseMA
+        assert type(model) is stormpy.SparseMA[float]
         assert not model.is_closed
         assert not model.has_zeno_cycle
         model.close()
@@ -179,7 +179,7 @@ class TestSparseModel:
         assert model.nr_transitions == 9
         assert model.model_type == stormpy.ModelType.MA
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseMA
+        assert type(model) is stormpy.SparseMA[float]
         assert model.is_closed
         assert model.has_zeno_cycle
         # Building MA with hybrid states and formula already applies close
@@ -190,7 +190,7 @@ class TestSparseModel:
         assert model.nr_transitions == 9
         assert model.model_type == stormpy.ModelType.MA
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseMA
+        assert type(model) is stormpy.SparseMA[float]
         assert model.is_closed
         assert model.has_zeno_cycle
 
@@ -202,7 +202,7 @@ class TestSparseModel:
         assert model.nr_choices == 5
         assert model.nr_transitions == 7
         assert model.model_type == stormpy.ModelType.SMG
-        assert type(model) is stormpy.SparseSmg
+        assert type(model) is stormpy.SparseSmg[float]
         assert model.get_state_player_indications() == [1, 0, 0, 0]
 
     def test_convert_ma_to_ctmc(self):
@@ -212,14 +212,14 @@ class TestSparseModel:
         assert model.nr_states == 4
         assert model.nr_transitions == 6
         assert model.model_type == stormpy.ModelType.MA
-        assert type(model) is stormpy.SparseMA
+        assert type(model) is stormpy.SparseMA[float]
 
         assert model.convertible_to_ctmc
         ctmc = model.convert_to_ctmc()
         assert ctmc.nr_states == 4
         assert ctmc.nr_transitions == 6
         assert ctmc.model_type == stormpy.ModelType.CTMC
-        assert type(ctmc) is stormpy.SparseCtmc
+        assert type(ctmc) is stormpy.SparseCtmc[float]
 
     def test_initial_states(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
@@ -247,7 +247,7 @@ class TestSymbolicSylvanModel:
         assert model.nr_transitions == 20
         assert model.model_type == stormpy.ModelType.DTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SymbolicSylvanDtmc
+        assert type(model) is stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, float]
 
     def test_build_dtmc_from_prism_program_formulas(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
@@ -259,7 +259,7 @@ class TestSymbolicSylvanModel:
         assert model.model_type == stormpy.ModelType.DTMC
         assert len(model.reward_models) == 0
         assert not model.supports_parameters
-        assert type(model) is stormpy.SymbolicSylvanDtmc
+        assert type(model) is stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, float]
 
     def test_build_dtmc_from_prism_program_reward_formulas(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
@@ -274,7 +274,7 @@ class TestSymbolicSylvanModel:
         assert model.reward_models["coin_flips"].has_state_action_rewards
         assert not model.reward_models["coin_flips"].has_transition_rewards
         assert not model.supports_parameters
-        assert type(model) is stormpy.SymbolicSylvanDtmc
+        assert type(model) is stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, float]
 
     def test_reduce_to_state_based_rewards(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
@@ -297,7 +297,7 @@ class TestSymbolicSylvanModel:
         assert model.nr_transitions == 867
         assert model.model_type == stormpy.ModelType.DTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SymbolicSylvanDtmc
+        assert type(model) is stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, float]
 
     def test_build_mdp(self):
         program = stormpy.parse_prism_program(get_example_path("mdp", "two_dice.nm"))
@@ -307,7 +307,7 @@ class TestSymbolicSylvanModel:
         assert model.nr_transitions == 435
         assert model.model_type == stormpy.ModelType.MDP
         assert not model.supports_parameters
-        assert type(model) is stormpy.SymbolicSylvanMdp
+        assert type(model) is stormpy.SymbolicMdp[stormpy.DdType.Sylvan, float]
 
     def test_build_ctmc(self):
         program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), True)
@@ -317,7 +317,7 @@ class TestSymbolicSylvanModel:
         assert model.nr_transitions == 21
         assert model.model_type == stormpy.ModelType.CTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SymbolicSylvanCtmc
+        assert type(model) is stormpy.SymbolicCtmc[stormpy.DdType.Sylvan, float]
 
     def test_build_ma(self):
         program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"))
@@ -341,7 +341,7 @@ class TestSymbolicSylvanModel:
                 assert transition.value().upper() == 0.8
 
         assert model.model_type == stormpy.ModelType.POMDP
-        assert type(model) is stormpy.SparseIntervalPomdp
+        assert type(model) is stormpy.SparsePomdp[stormpy.Interval]
 
     def test_build_exact_ipomdp(self):
         model = stormpy.build_exact_interval_model_from_drn(get_example_path("ipomdp", "tiny-01.drn"))
@@ -359,4 +359,4 @@ class TestSymbolicSylvanModel:
                 assert transition.value().upper() == stormpy.Rational("4/5")
 
         assert model.model_type == stormpy.ModelType.POMDP
-        assert type(model) is stormpy.SparseRationalIntervalPomdp
+        assert type(model) is stormpy.SparsePomdp[stormpy.RationalInterval]

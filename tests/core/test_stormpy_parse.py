@@ -51,7 +51,7 @@ class TestStormpyParse:
         assert model.nr_transitions == 20
         assert model.model_type == stormpy.ModelType.DTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseDtmc
+        assert type(model) is stormpy.SparseDtmc[float]
 
     def test_parse_explicit_mdp(self):
         model = stormpy.build_sparse_model_from_explicit(get_example_path("mdp", "two_dice.tra"), get_example_path("mdp", "two_dice.lab"))
@@ -59,7 +59,7 @@ class TestStormpyParse:
         assert model.nr_transitions == 436
         assert model.model_type == stormpy.ModelType.MDP
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseMdp
+        assert type(model) is stormpy.SparseMdp[float]
 
     def test_parse_drn_dtmc(self):
         model = stormpy.build_model_from_drn(get_example_path("ctmc", "dft.drn"))
@@ -67,4 +67,4 @@ class TestStormpyParse:
         assert model.nr_transitions == 33
         assert model.model_type == stormpy.ModelType.CTMC
         assert not model.supports_parameters
-        assert type(model) is stormpy.SparseCtmc
+        assert type(model) is stormpy.SparseCtmc[float]

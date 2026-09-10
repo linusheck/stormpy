@@ -51,6 +51,17 @@ class TemplateMetadata:
 DeductionGuide: TypeAlias = Callable[["TemplateClass", tuple[Any, ...], Mapping[str, Any]], object]
 
 
+def deduce_default(*parameters: object) -> DeductionGuide:
+    """Create a guide that always selects the given template parameters."""
+
+    def deduction(_family: TemplateClass, _args: tuple[Any, ...], _kwargs: Mapping[str, Any]) -> object:
+        return parameters
+
+    deduction.__name__ = "deduce_default"
+    deduction.__qualname__ = "deduce_default"
+    return deduction
+
+
 def deduce_from_first_argument(source: "TemplateClass | None" = None, *, keyword: str | None = None) -> DeductionGuide:
     """Create a guide that copies template arguments from an instance.
 

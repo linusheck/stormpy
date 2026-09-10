@@ -283,7 +283,7 @@ class TestModelChecking:
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         formulas = stormpy.parse_properties_for_prism_program('P=? [ F "one" ]', program)
         model = stormpy.build_symbolic_model(program, formulas)
-        assert isinstance(model, stormpy.SymbolicSylvanDtmc)
+        assert isinstance(model, stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, float])
         assert model.nr_states == 13
         assert model.nr_transitions == 20
         result = stormpy.check_model_dd(model, formulas[0])
@@ -299,7 +299,7 @@ class TestModelChecking:
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         formulas = stormpy.parse_properties_for_prism_program('P=? [ F "one" ]', program)
         model = stormpy.build_symbolic_model(program, formulas)
-        assert isinstance(model, stormpy.SymbolicSylvanDtmc)
+        assert isinstance(model, stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, float])
         assert model.nr_states == 13
         assert model.nr_transitions == 20
         result = stormpy.check_model_hybrid(model, formulas[0])

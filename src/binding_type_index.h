@@ -1,8 +1,10 @@
 #pragma once
 
+#include <storm/adapters/IntervalAdapter.h>
 #include <storm/adapters/RationalFunctionAdapter.h>
 #include <storm/adapters/RationalNumberAdapter.h>
 #include <storm/models/ModelType.h>
+#include <storm/storage/dd/DdType.h>
 
 #include "src/template_binding.h"
 
@@ -29,6 +31,20 @@ template<>
 struct BindingValueTypeArgument<storm::RationalFunction> {
     static TemplateArgument get() {
         return {pybind11::module_::import("stormpy").attr("RationalFunction"), "RationalFunction"};
+    }
+};
+
+template<>
+struct BindingValueTypeArgument<storm::Interval> {
+    static TemplateArgument get() {
+        return {pybind11::module_::import("stormpy").attr("Interval"), "Interval"};
+    }
+};
+
+template<>
+struct BindingValueTypeArgument<storm::RationalInterval> {
+    static TemplateArgument get() {
+        return {pybind11::module_::import("stormpy").attr("RationalInterval"), "RationalInterval"};
     }
 };
 
@@ -63,6 +79,23 @@ struct BindingModelTypeArgument<storm::models::ModelType::MarkovAutomaton> {
     }
 };
 
+template<storm::dd::DdType DdKind>
+struct BindingDdTypeArgument;
+
+template<>
+struct BindingDdTypeArgument<storm::dd::DdType::Sylvan> {
+    static TemplateArgument get() {
+        return {pybind11::cast(storm::dd::DdType::Sylvan), "Sylvan"};
+    }
+};
+
+template<>
+struct BindingDdTypeArgument<storm::dd::DdType::CUDD> {
+    static TemplateArgument get() {
+        return {pybind11::cast(storm::dd::DdType::CUDD), "CUDD"};
+    }
+};
+
 template<typename... ValueTypes>
 TemplateIndex typeIndex() {
     return makeTemplateIndex({BindingValueTypeArgument<ValueTypes>::get()...});
@@ -71,6 +104,11 @@ TemplateIndex typeIndex() {
 template<storm::models::ModelType ModelKind, typename... ValueTypes>
 TemplateIndex typeIndex() {
     return makeTemplateIndex({BindingModelTypeArgument<ModelKind>::get(), BindingValueTypeArgument<ValueTypes>::get()...});
+}
+
+template<storm::dd::DdType DdKind, typename... ValueTypes>
+TemplateIndex typeIndex() {
+    return makeTemplateIndex({BindingDdTypeArgument<DdKind>::get(), BindingValueTypeArgument<ValueTypes>::get()...});
 }
 
 }  // namespace stormpy::bindings
