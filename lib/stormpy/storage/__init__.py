@@ -2,6 +2,127 @@ import stormpy.utility
 from . import _storage
 from ._storage import *
 from deprecated.sphinx import deprecated
+from stormpy._template import TemplateClass, TemplateParameter as _TemplateParameter, deduce_default as _deduce_default
+
+SparseMatrixEntry = TemplateClass("stormpy.storage.SparseMatrixEntry", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SparseMatrixBuilder = TemplateClass("stormpy.storage.SparseMatrixBuilder", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SparseMatrix = TemplateClass("stormpy.storage.SparseMatrix", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SparseMatrixRows = TemplateClass("stormpy.storage.SparseMatrixRows", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SparseModelStates = TemplateClass("stormpy.storage.SparseModelStates", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SparseModelState = TemplateClass("stormpy.storage.SparseModelState", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SparseModelActions = TemplateClass("stormpy.storage.SparseModelActions", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SparseModelAction = TemplateClass("stormpy.storage.SparseModelAction", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+Scheduler = TemplateClass("stormpy.storage.Scheduler", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SchedulerChoice = TemplateClass("stormpy.storage.SchedulerChoice", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+Distribution = TemplateClass("stormpy.storage.Distribution", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+Polytope = TemplateClass("stormpy.storage.Polytope", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+DdMetaVariable = TemplateClass("stormpy.storage.DdMetaVariable", _storage, parameters=(_TemplateParameter("DdType", kind="value"),))
+DdManager = TemplateClass("stormpy.storage.DdManager", _storage, parameters=(_TemplateParameter("DdType", kind="value"),))
+Dd = TemplateClass("stormpy.storage.Dd", _storage, parameters=(_TemplateParameter("DdType", kind="value"),))
+Bdd = TemplateClass("stormpy.storage.Bdd", _storage, parameters=(_TemplateParameter("DdType", kind="value"),))
+Add = TemplateClass(
+    "stormpy.storage.Add",
+    _storage,
+    parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"),
+)
+AddIterator = TemplateClass(
+    "stormpy.storage.AddIterator",
+    _storage,
+    parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"),
+)
+
+
+def _deduce_sparse_model_components(family, args, kwargs):
+    if args:
+        return SparseMatrix.parameters_of(args[0])
+    transition_matrix = kwargs.get("transition_matrix")
+    if transition_matrix is not None:
+        return SparseMatrix.parameters_of(transition_matrix)
+    return (float,)
+
+
+SparseModelComponents = TemplateClass(
+    "stormpy.storage.SparseModelComponents",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_sparse_model_components,
+)
+
+
+def _deduce_sparse_model(family, args, kwargs):
+    if args:
+        source = args[0]
+    else:
+        source = kwargs.get("components", kwargs.get("other_model"))
+        if source is None:
+            return (float,)
+    try:
+        return family.parameters_of(source)
+    except TypeError:
+        return SparseModelComponents.parameters_of(source)
+
+
+SparseModel = TemplateClass("stormpy.storage.SparseModel", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SparseDtmc = TemplateClass("stormpy.storage.SparseDtmc", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
+SparseMdp = TemplateClass("stormpy.storage.SparseMdp", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
+SparsePomdp = TemplateClass("stormpy.storage.SparsePomdp", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
+SparseCtmc = TemplateClass("stormpy.storage.SparseCtmc", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
+SparseMA = TemplateClass("stormpy.storage.SparseMA", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
+SparseSmg = TemplateClass("stormpy.storage.SparseSmg", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
+SparseRewardModel = TemplateClass("stormpy.storage.SparseRewardModel", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+SymbolicModel = TemplateClass("stormpy.storage.SymbolicModel", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
+SymbolicDtmc = TemplateClass("stormpy.storage.SymbolicDtmc", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
+SymbolicMdp = TemplateClass("stormpy.storage.SymbolicMdp", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
+SymbolicCtmc = TemplateClass("stormpy.storage.SymbolicCtmc", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
+SymbolicMA = TemplateClass("stormpy.storage.SymbolicMA", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
+SymbolicRewardModel = TemplateClass("stormpy.storage.SymbolicRewardModel", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
+
+
+def _value_type_of_model(model):
+    if model.supports_uncertainty:
+        return stormpy.RationalInterval if model.is_exact else stormpy.Interval
+    if model.supports_parameters:
+        return stormpy.RationalFunction
+    if model.is_exact:
+        return stormpy.Rational
+    return float
+
+
+def _deduce_from_model(_family, args, kwargs):
+    if args:
+        model = args[0]
+    else:
+        model = kwargs.get("model")
+        if model is None:
+            return (float,)
+    return (_value_type_of_model(model),)
+
+
+MaximalEndComponentDecomposition = TemplateClass(
+    "stormpy.storage.MaximalEndComponentDecomposition",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_from_model,
+)
+
+
+def _deduce_memory_structure_builder(_family, args, kwargs):
+    if len(args) >= 2:
+        model = args[1]
+    else:
+        model = kwargs.get("model")
+        if model is None:
+            return (float,)
+    return (_value_type_of_model(model),)
+
+
+MemoryStructureBuilder = TemplateClass(
+    "stormpy.storage.MemoryStructureBuilder",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_memory_structure_builder,
+)
+MemoryStructureProduct = TemplateClass("stormpy.storage.MemoryStructureProduct", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 
 
 def build_sparse_matrix(array, row_group_indices=[]):
@@ -13,7 +134,7 @@ def build_sparse_matrix(array, row_group_indices=[]):
     :param List[double] row_group_indices: List containing the starting row of each row group in ascending order.
     :return: Sparse matrix.
     """
-    return _build_sparse_matrix(_storage.SparseMatrixBuilder, array, row_group_indices=row_group_indices)
+    return _build_sparse_matrix(SparseMatrixBuilder, array, row_group_indices=row_group_indices)
 
 
 def build_parametric_sparse_matrix(array, row_group_indices=[]):
@@ -25,7 +146,7 @@ def build_parametric_sparse_matrix(array, row_group_indices=[]):
     :param List[double] row_group_indices: List containing the starting row of each row group in ascending order.
     :return: Parametric sparse matrix.
     """
-    return _build_sparse_matrix(_storage.ParametricSparseMatrixBuilder, array, row_group_indices=row_group_indices)
+    return _build_sparse_matrix(SparseMatrixBuilder[stormpy.RationalFunction], array, row_group_indices=row_group_indices)
 
 
 def _build_sparse_matrix(builder_class, array, row_group_indices=[]):
@@ -58,16 +179,7 @@ def get_maximal_end_components(model):
     :param model: Model.
     :return: Maximal end components.
     """
-    if model.supports_parameters:
-        return stormpy.MaximalEndComponentDecomposition_ratfunc(model)
-    elif model.supports_uncertainty and model.is_exact:
-        return stormpy.MaximalEndComponentDecomposition_ratinterval(model)
-    elif model.is_exact:
-        return stormpy.MaximalEndComponentDecomposition_exact(model)
-    elif model.supports_uncertainty:
-        return stormpy.MaximalEndComponentDecomposition_interval(model)
-    else:
-        return stormpy.MaximalEndComponentDecomposition_double(model)
+    return MaximalEndComponentDecomposition(model)
 
 
 # Extend class Valuations
@@ -264,36 +376,3 @@ def _get_integer_value(self, var):
 
 
 SimpleValuation.get_integer_value = _get_integer_value
-
-
-# Extend class MemoryStructure
-def product_model(self: MemoryStructure, model):
-    """
-    Compute the product of the memory structure with the model.
-    """
-    if model.supports_parameters:
-        return self._product_model_parametric(model)
-    elif model.supports_uncertainty:
-        raise NotImplementedError(f"product_model is not supported for interval models")
-    elif model.is_exact:
-        return self._product_model_exact(model)
-    else:
-        return self._product_model_double(model)
-
-
-MemoryStructure.product_model = product_model
-
-
-# Extend class SparseModelMemoryProductReverseData
-def _reverse_scheduler(self, product_scheduler):
-    if isinstance(product_scheduler, _storage.SchedulerParametric):
-        return self._reverse_scheduler_parametric(product_scheduler)
-    elif isinstance(product_scheduler, _storage.SchedulerExact):
-        return self._reverse_scheduler_exact(product_scheduler)
-    elif isinstance(product_scheduler, _storage.Scheduler):
-        return self._reverse_scheduler_double(product_scheduler)
-    else:
-        raise ValueError(f"Unsupported scheduler type: {type(product_scheduler)}")
-
-
-SparseModelMemoryProductReverseData.reverse_scheduler = _reverse_scheduler

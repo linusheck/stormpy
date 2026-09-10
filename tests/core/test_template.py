@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from stormpy._template import TemplateClass, deduce_from_first_argument
+from stormpy._template import TemplateClass, deduce_default, deduce_from_first_argument
 
 
 class BaseImplementation:
@@ -28,6 +28,14 @@ def test_deduction_selects_exact_registered_subclass():
 
     assert type(result) is DerivedImplementation
     assert result.source is source
+
+
+def test_default_deduction_selects_configured_instantiation():
+    family = make_family(deduce=deduce_default("base"))
+
+    result = family()
+
+    assert type(result) is BaseImplementation
 
 
 def test_deduction_rejects_unregistered_subclass():

@@ -663,9 +663,9 @@ def topological_sort(model, forward=True, initial=[]):
     :return: A topological sort of the states
     """
     matrix = model.transition_matrix if forward else model.backward_transition_matrix
-    if isinstance(model, storage._storage._SparseParametricModel):
+    if isinstance(model, storage.SparseModel[stormpy.RationalFunction]):
         return storage._storage._topological_sort_rf(matrix, initial)
-    elif isinstance(model, storage._storage._SparseModel):
+    elif isinstance(model, storage.SparseModel[float]):
         return storage._storage._topological_sort_double(matrix, initial)
     else:
         raise stormpy.exceptions.StormError("Unknown kind of model.")
@@ -776,13 +776,13 @@ def eliminate_ECs(matrix, subsystem, possible_ecs, add_sink_row_states, add_self
     assert matrix.nr_rows == possible_ecs.size(), "possible_ecs vector should have an entry for every row."
     assert matrix.nr_columns == add_sink_row_states.size(), "add_sink_row_states vector should have an entry for every state."
 
-    if isinstance(matrix, storage.RationalIntervalSparseMatrix):
+    if isinstance(matrix, storage.SparseMatrix[stormpy.RationalInterval]):
         return _core._eliminate_end_components_RationalInterval(matrix, subsystem, possible_ecs, add_sink_row_states, add_self_loop_at_sink_states)
-    elif isinstance(matrix, storage.IntervalSparseMatrix):
+    elif isinstance(matrix, storage.SparseMatrix[stormpy.Interval]):
         return _core._eliminate_end_components_Interval(matrix, subsystem, possible_ecs, add_sink_row_states, add_self_loop_at_sink_states)
-    elif isinstance(matrix, storage.ExactSparseMatrix):
+    elif isinstance(matrix, storage.SparseMatrix[stormpy.Rational]):
         return _core._eliminate_end_components_Exact(matrix, subsystem, possible_ecs, add_sink_row_states, add_self_loop_at_sink_states)
-    elif isinstance(matrix, storage.SparseMatrix):
+    elif isinstance(matrix, storage.SparseMatrix[float]):
         return _core._eliminate_end_components_Double(matrix, subsystem, possible_ecs, add_sink_row_states, add_self_loop_at_sink_states)
     else:
         raise TypeError(f"eliminate_ECs: unsupported matrix type {type(matrix)}")
