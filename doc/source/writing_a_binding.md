@@ -83,7 +83,7 @@ PYBIND11_MODULE(_animal, m) {
 
     define_cat(m);
     define_dog(m); // <-- put this here!
-    
+
     // ...
 }
 ```
@@ -194,7 +194,7 @@ PYBIND11_MODULE(_animal, m) {
     define_cat(m);
     define_dog<double>(m); // <-- put this here!
     define_dog<storm::RationalNumber>(m); // <-- put this here!
-    
+
     // ...
 }
 ```
