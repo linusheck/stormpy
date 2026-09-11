@@ -8,6 +8,8 @@
 #include <storm/storage/expressions/ExpressionManager.h>
 #include <storm/transformer/MakePOMDPCanonic.h>
 
+#include "src/binding_type_index.h"
+
 template<typename ValueType>
 std::shared_ptr<storm::models::sparse::Pomdp<ValueType>> make_canonic(storm::models::sparse::Pomdp<ValueType> const &pomdp) {
     storm::transformer::MakePOMDPCanonic<ValueType> makeCanonic(pomdp);
@@ -62,19 +64,27 @@ void define_transformations_nt(py::module &m) {
 }
 
 template<typename ValueType>
-void define_transformations(py::module &m, std::string const &vtSuffix) {
-    m.def(("_make_canonic_" + vtSuffix).c_str(), &make_canonic<ValueType>, "Return a canonicly-ordered POMDP", py::arg("pomdp"));
-    m.def(("_unfold_memory_" + vtSuffix).c_str(), &unfold_memory<ValueType>, "Unfold memory into a POMDP", py::arg("pomdp"), py::arg("memorystructure"),
+void define_transformations(py::module &m) {
+    std::string suffix;
+    if constexpr (std::is_same_v<ValueType, double>) {
+        suffix = "Double";
+    } else if constexpr (std::is_same_v<ValueType, storm::RationalNumber>) {
+        suffix = "Exact";
+    } else if constexpr (std::is_same_v<ValueType, storm::RationalFunction>) {
+        suffix = "Rf";
+    }
+    m.def(("_make_canonic_" + suffix).c_str(), &make_canonic<ValueType>, "Return a canonicly-ordered POMDP", py::arg("pomdp"));
+    m.def(("_unfold_memory_" + suffix).c_str(), &unfold_memory<ValueType>, "Unfold memory into a POMDP", py::arg("pomdp"), py::arg("memorystructure"),
           py::arg("memorylabels") = false, py::arg("keep_state_valuations") = false);
-    m.def(("_make_simple_" + vtSuffix).c_str(), &make_simple<ValueType>, "Make POMDP simple", py::arg("pomdp"), py::arg("keep_state_valuations") = false);
-    m.def(("_apply_unknown_fsc_" + vtSuffix).c_str(), &apply_unknown_fsc<ValueType>, "Apply unknown FSC", py::arg("pomdp"),
+    m.def(("_make_simple_" + suffix).c_str(), &make_simple<ValueType>, "Make POMDP simple", py::arg("pomdp"), py::arg("keep_state_valuations") = false);
+    m.def(("_apply_unknown_fsc_" + suffix).c_str(), &apply_unknown_fsc<ValueType>, "Apply unknown FSC", py::arg("pomdp"),
           py::arg("application_mode") = storm::transformer::PomdpFscApplicationMode::SIMPLE_LINEAR);
 }
 
 template<typename ValueType>
-void define_transformations_int(py::module &m, std::string const &vtSuffix) {
-    py::classh<storm::pomdp::ObservationTraceUnfolder<ValueType>> unfolder(m, ("ObservationTraceUnfolder" + vtSuffix).c_str(),
-                                                                           "Unfolds observation traces in models");
+void define_transformations_int(py::module &m) {
+    auto unfolder = stormpy::bindings::bindTemplateClass<storm::pomdp::ObservationTraceUnfolder<ValueType>>(
+        m, "ObservationTraceUnfolder", stormpy::bindings::typeIndex<ValueType>(), "Unfolds observation traces in models");
     unfolder.def(py::init<storm::models::sparse::Pomdp<ValueType>, std::vector<ValueType> const &, std::shared_ptr<storm::expressions::ExpressionManager>,
                           storm::pomdp::ObservationTraceUnfolderOptions const &>(),
                  py::arg("model"), py::arg("risk"), py::arg("expression_manager"), py::arg("options"));
@@ -84,12 +94,12 @@ void define_transformations_int(py::module &m, std::string const &vtSuffix) {
     unfolder.def("extend", &storm::pomdp::ObservationTraceUnfolder<ValueType>::extend, py::arg("new_observation"));
 }
 
-template void define_transformations<double>(py::module &m, std::string const &vtSuffix);
-template void define_transformations<storm::RationalNumber>(py::module &m, std::string const &vtSuffix);
-template void define_transformations<storm::RationalFunction>(py::module &m, std::string const &vtSuffix);
+template void define_transformations<double>(py::module &m);
+template void define_transformations<storm::RationalNumber>(py::module &m);
+template void define_transformations<storm::RationalFunction>(py::module &m);
 
-template void define_transformations_int<double>(py::module &m, std::string const &vtSuffix);
-template void define_transformations_int<storm::RationalNumber>(py::module &m, std::string const &vtSuffix);
-template void define_transformations_int<storm::RationalFunction>(py::module &m, std::string const &vtSuffix);
-template void define_transformations_int<storm::Interval>(py::module &m, std::string const &vtSuffix);
-template void define_transformations_int<storm::RationalInterval>(py::module &m, std::string const &vtSuffix);
+template void define_transformations_int<double>(py::module &m);
+template void define_transformations_int<storm::RationalNumber>(py::module &m);
+template void define_transformations_int<storm::RationalFunction>(py::module &m);
+template void define_transformations_int<storm::Interval>(py::module &m);
+template void define_transformations_int<storm::RationalInterval>(py::module &m);

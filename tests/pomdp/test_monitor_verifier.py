@@ -69,9 +69,9 @@ class TestMonitorVerifier:
         mc = _build_simple_mc()
         monitor = _build_simple_monitor()
         expr_manager = stormpy.ExpressionManager()
-        options = stormpy.pomdp.GenerateMonitorVerifierDoubleOptions()
+        options = stormpy.pomdp.GenerateMonitorVerifierOptions[float]()
         options.use_restart_semantics = False
-        gen = stormpy.pomdp.GenerateMonitorVerifierDouble(mc, monitor, expr_manager, options)
+        gen = stormpy.pomdp.GenerateMonitorVerifier[float](mc, monitor, expr_manager, options)
         gen.set_risk([0.0, 1.0, 0.0])
         mv = gen.create_product()
 
@@ -90,9 +90,9 @@ class TestMonitorVerifier:
         mc = _build_simple_mc()
         monitor = _build_simple_monitor()
         expr_manager = stormpy.ExpressionManager()
-        options = stormpy.pomdp.GenerateMonitorVerifierDoubleOptions()
+        options = stormpy.pomdp.GenerateMonitorVerifierOptions[float]()
         options.use_restart_semantics = False
-        gen = stormpy.pomdp.GenerateMonitorVerifierDouble(mc, monitor, expr_manager, options)
+        gen = stormpy.pomdp.GenerateMonitorVerifier[float](mc, monitor, expr_manager, options)
         gen.set_risk([0.0, 1.0, 0.0])
         mv = gen.create_product()
 
@@ -107,9 +107,9 @@ class TestMonitorVerifier:
         mc = _build_simple_mc()
         monitor = _build_simple_monitor()
         expr_manager = stormpy.ExpressionManager()
-        options = stormpy.pomdp.GenerateMonitorVerifierDoubleOptions()
+        options = stormpy.pomdp.GenerateMonitorVerifierOptions[float]()
         options.use_restart_semantics = True
-        gen = stormpy.pomdp.GenerateMonitorVerifierDouble(mc, monitor, expr_manager, options)
+        gen = stormpy.pomdp.GenerateMonitorVerifier[float](mc, monitor, expr_manager, options)
         gen.set_risk([0.0, 1.0, 0.0])
         mv = gen.create_product()
 
@@ -123,9 +123,9 @@ class TestMonitorVerifier:
         mc = _build_simple_mc()
         monitor = _build_simple_monitor()
         expr_manager = stormpy.ExpressionManager()
-        options = stormpy.pomdp.GenerateMonitorVerifierDoubleOptions()
+        options = stormpy.pomdp.GenerateMonitorVerifierOptions[float]()
         options.use_restart_semantics = False
-        gen = stormpy.pomdp.GenerateMonitorVerifierDouble(mc, monitor, expr_manager, options)
+        gen = stormpy.pomdp.GenerateMonitorVerifier[float](mc, monitor, expr_manager, options)
         gen.set_risk([0.0, 1.0, 0.0])
         mv = gen.create_product()
 
@@ -142,9 +142,9 @@ class TestMonitorVerifier:
         mc = _build_simple_mc()
         monitor = _build_simple_monitor()
         expr_manager = stormpy.ExpressionManager()
-        options = stormpy.pomdp.GenerateMonitorVerifierDoubleOptions()
+        options = stormpy.pomdp.GenerateMonitorVerifierOptions[float]()
         options.use_restart_semantics = False
-        gen = stormpy.pomdp.GenerateMonitorVerifierDouble(mc, monitor, expr_manager, options)
+        gen = stormpy.pomdp.GenerateMonitorVerifier[float](mc, monitor, expr_manager, options)
         gen.set_risk([0.0, 1.0, 0.0])
         mv = gen.create_product()
 

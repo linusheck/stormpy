@@ -7,6 +7,8 @@
 #include <storm-pomdp/api/verification.h>
 #include <storm/adapters/RationalFunctionAdapter.h>
 
+#include "src/binding_type_index.h"
+
 template<typename ValueType>
 using Pomdp = storm::models::sparse::Pomdp<ValueType, typename storm::models::sparse::StandardRewardModel<ValueType>>;
 template<typename ValueType>
@@ -19,8 +21,10 @@ template<typename ValueType>
 using additionalCutoffValueType = std::vector<std::vector<std::unordered_map<uint64_t, ValueType>>>;
 
 template<typename ValueType>
-void define_belief_exploration(py::module& m, std::string const& vtSuffix) {
-    py::classh<BeliefExplorationPomdpModelChecker<ValueType>> belmc(m, ("BeliefExplorationModelChecker" + vtSuffix).c_str());
+void define_belief_exploration(py::module& m) {
+    auto const index = stormpy::bindings::typeIndex<ValueType>();
+    auto belmc = stormpy::bindings::bindTemplateClass<BeliefExplorationPomdpModelChecker<ValueType>>(m, "BeliefExplorationModelChecker", index,
+                                                                                                     "Model checker for POMDPs via belief exploration");
     belmc.def(py::init<std::shared_ptr<Pomdp<ValueType>>, Options<ValueType>>(), py::arg("model"), py::arg("options"));
 
     belmc.def(
@@ -52,10 +56,12 @@ void define_belief_exploration(py::module& m, std::string const& vtSuffix) {
     belmc.def("has_converged", &BeliefExplorationPomdpModelChecker<ValueType>::hasConverged);
     belmc.def("set_fsc_values", &BeliefExplorationPomdpModelChecker<ValueType>::setFMSchedValueList, py::arg("value_list"));
 
-    py::classh<typename storm::builder::BeliefMdpExplorer<Pomdp<ValueType>, ValueType>> belmdpexpl(m, ("BeliefMdpExplorer" + vtSuffix).c_str());
+    auto belmdpexpl = stormpy::bindings::bindTemplateClass<typename storm::builder::BeliefMdpExplorer<Pomdp<ValueType>, ValueType>>(
+        m, "BeliefMdpExplorer", index, "Explorer of the belief MDP");
     belmdpexpl.def("set_fsc_values", &storm::builder::BeliefMdpExplorer<Pomdp<ValueType>, ValueType>::setFMSchedValueList, py::arg("value_list"));
 
-    py::classh<Options<ValueType>> belexploptions(m, ("BeliefExplorationModelCheckerOptions" + vtSuffix).c_str());
+    auto belexploptions = stormpy::bindings::bindTemplateClass<Options<ValueType>>(m, "BeliefExplorationModelCheckerOptions", index,
+                                                                                   "Options for the belief exploration model checker");
     belexploptions.def(py::init<bool, bool>(), py::arg("discretize"), py::arg("unfold"));
     belexploptions.def_readwrite("use_state_elimination_cutoff", &Options<ValueType>::useStateEliminationCutoff);
     belexploptions.def_readwrite("size_threshold_init", &Options<ValueType>::sizeThresholdInit);
@@ -72,7 +78,8 @@ void define_belief_exploration(py::module& m, std::string const& vtSuffix) {
     belexploptions.def_readwrite("interactive_unfolding", &Options<ValueType>::interactiveUnfolding);
     belexploptions.def_readwrite("cut_zero_gap", &Options<ValueType>::cutZeroGap);
 
-    py::classh<typename BeliefExplorationPomdpModelChecker<ValueType>::Result> belexplres(m, ("BeliefExplorationPomdpModelCheckerResult" + vtSuffix).c_str());
+    auto belexplres = stormpy::bindings::bindTemplateClass<typename BeliefExplorationPomdpModelChecker<ValueType>::Result>(
+        m, "BeliefExplorationPomdpModelCheckerResult", index, "Result of belief exploration model checking");
     belexplres.def_readonly("induced_mc_from_scheduler", &BeliefExplorationPomdpModelChecker<ValueType>::Result::schedulerAsMarkovChain);
     belexplres.def_readonly("cutoff_schedulers", &BeliefExplorationPomdpModelChecker<ValueType>::Result::cutoffSchedulers);
     belexplres.def_readonly("lower_bound", &BeliefExplorationPomdpModelChecker<ValueType>::Result::lowerBound);
@@ -82,4 +89,4 @@ void define_belief_exploration(py::module& m, std::string const& vtSuffix) {
           py::arg("use_clipping"));
 }
 
-template void define_belief_exploration<double>(py::module& m, std::string const& vtSuffix);
+template void define_belief_exploration<double>(py::module& m);

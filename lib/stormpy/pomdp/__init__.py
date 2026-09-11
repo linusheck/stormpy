@@ -5,6 +5,46 @@ if not _config.STORM_WITH_POMDP:
 
 from . import _pomdp
 from ._pomdp import *
+from stormpy._template import TemplateClass, deduce_default as _deduce_default, deduce_from_first_argument as _deduce_from_first_argument
+from stormpy.storage import SparseDtmc as _SparseDtmc, SparsePomdp as _SparsePomdp
+
+BeliefSupportTracker = TemplateClass(
+    "stormpy.pomdp.BeliefSupportTracker", _pomdp, parameters=("ValueType",), deduce=_deduce_from_first_argument(_SparsePomdp, keyword="pomdp")
+)
+SparseBeliefState = TemplateClass("stormpy.pomdp.SparseBeliefState", _pomdp, parameters=("ValueType",), deduce=_deduce_default(float))
+NondeterministicBeliefTrackerSparseOptions = TemplateClass(
+    "stormpy.pomdp.NondeterministicBeliefTrackerSparseOptions", _pomdp, parameters=("ValueType",), deduce=_deduce_default(float)
+)
+NondeterministicBeliefTrackerSparse = TemplateClass(
+    "stormpy.pomdp.NondeterministicBeliefTrackerSparse", _pomdp, parameters=("ValueType",), deduce=_deduce_from_first_argument(_SparsePomdp, keyword="pomdp")
+)
+IterativeQualitativeSearchSolver = TemplateClass("stormpy.pomdp.IterativeQualitativeSearchSolver", _pomdp, parameters=("ValueType",))
+BeliefSupportWinningRegionQueryInterface = TemplateClass(
+    "stormpy.pomdp.BeliefSupportWinningRegionQueryInterface",
+    _pomdp,
+    parameters=("ValueType",),
+    deduce=_deduce_from_first_argument(_SparsePomdp, keyword="pomdp"),
+)
+BeliefExplorationModelChecker = TemplateClass(
+    "stormpy.pomdp.BeliefExplorationModelChecker", _pomdp, parameters=("ValueType",), deduce=_deduce_from_first_argument(_SparsePomdp, keyword="model")
+)
+BeliefMdpExplorer = TemplateClass("stormpy.pomdp.BeliefMdpExplorer", _pomdp, parameters=("ValueType",))
+BeliefExplorationModelCheckerOptions = TemplateClass(
+    "stormpy.pomdp.BeliefExplorationModelCheckerOptions", _pomdp, parameters=("ValueType",), deduce=_deduce_default(float)
+)
+BeliefExplorationPomdpModelCheckerResult = TemplateClass(
+    "stormpy.pomdp.BeliefExplorationPomdpModelCheckerResult", _pomdp, parameters=("ValueType",), deduce=_deduce_default(float)
+)
+MonitorVerifier = TemplateClass(
+    "stormpy.pomdp.MonitorVerifier", _pomdp, parameters=("ValueType",), deduce=_deduce_from_first_argument(_SparsePomdp, keyword="product")
+)
+GenerateMonitorVerifier = TemplateClass(
+    "stormpy.pomdp.GenerateMonitorVerifier", _pomdp, parameters=("ValueType",), deduce=_deduce_from_first_argument(_SparseDtmc, keyword="mc")
+)
+GenerateMonitorVerifierOptions = TemplateClass("stormpy.pomdp.GenerateMonitorVerifierOptions", _pomdp, parameters=("ValueType",), deduce=_deduce_default(float))
+ObservationTraceUnfolder = TemplateClass(
+    "stormpy.pomdp.ObservationTraceUnfolder", _pomdp, parameters=("ValueType",), deduce=_deduce_from_first_argument(_SparsePomdp, keyword="model")
+)
 
 
 def make_canonic(model):
@@ -63,16 +103,11 @@ def create_nondeterminstic_belief_tracker(model, reduction_timeout, track_timeou
     :param reduction_timeout: timeout in milliseconds for the reduction algorithm, 0 for no timeout.
     :return:
     """
-    if model.is_exact:
-        opts = NondeterministicBeliefTrackerExactSparseOptions()
-        opts.reduction_timeout = reduction_timeout
-        opts.track_timeout = track_timeout
-        return _pomdp.NondeterministicBeliefTrackerExactSparse(model, opts)
-    else:
-        opts = NondeterministicBeliefTrackerDoubleSparseOptions()
-        opts.reduction_timeout = reduction_timeout
-        opts.track_timeout = track_timeout
-        return _pomdp.NondeterministicBeliefTrackerDoubleSparse(model, opts)
+    vt = _SparsePomdp.parameters_of(model)[0]
+    opts = NondeterministicBeliefTrackerSparseOptions[vt]()
+    opts.reduction_timeout = reduction_timeout
+    opts.track_timeout = track_timeout
+    return NondeterministicBeliefTrackerSparse[vt](model, opts)
 
 
 def create_observation_trace_unfolder(model, risk_assessment, expr_manager, options=None):
@@ -87,7 +122,4 @@ def create_observation_trace_unfolder(model, risk_assessment, expr_manager, opti
     if options is None:
         options = ObservationTraceUnfolderOptions()
 
-    if model.is_exact:
-        return _pomdp.ObservationTraceUnfolderExact(model, risk_assessment, expr_manager, options)
-    else:
-        return _pomdp.ObservationTraceUnfolderDouble(model, risk_assessment, expr_manager, options)
+    return ObservationTraceUnfolder(model, risk_assessment, expr_manager, options)
