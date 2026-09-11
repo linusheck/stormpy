@@ -155,7 +155,7 @@ class TestSparseModelSimulator:
         for path in paths:
             assert path[0]["x"] == 1
             assert path[0]["y"] == 1
-            assert all(isinstance(p["x"], stormpy.utility.JsonContainerRational) for p in path[::2])
+            assert all(isinstance(p["x"], stormpy.utility.JsonContainer[stormpy.Rational]) for p in path[::2])
             assert all(p in ["north", "east", "south", "west"] for p in path[1::2])
             assert len(path) <= 41
 
@@ -200,6 +200,6 @@ class TestPrismSimulator:
         for path in paths:
             assert path[0]["x"] == 1
             assert path[0]["y"] == 1
-            assert all(isinstance(p["x"], stormpy.utility.JsonContainerDouble) for p in path[::2])
+            assert all(isinstance(p["x"], stormpy.utility.JsonContainer[float]) for p in path[::2])
             assert all(isinstance(p, int) for p in path[1::2])
             assert len(path) <= 41
