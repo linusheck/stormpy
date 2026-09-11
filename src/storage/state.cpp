@@ -1,6 +1,7 @@
 #include "state.h"
 
 #include <storm/adapters/IntervalAdapter.h>
+
 #include "src/binding_type_index.h"
 
 template<typename ValueType>

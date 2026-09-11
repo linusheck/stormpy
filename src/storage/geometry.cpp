@@ -2,8 +2,8 @@
 
 #include <storm/storage/geometry/Polytope.h>
 
-#include "src/helpers.h"
 #include "src/binding_type_index.h"
+#include "src/helpers.h"
 
 template<typename ValueType>
 void define_geometry(py::module& m) {

@@ -3,6 +3,7 @@
 #include <storm/adapters/IntervalAdapter.h>
 #include <storm/storage/MaximalEndComponent.h>
 #include <storm/storage/MaximalEndComponentDecomposition.h>
+
 #include "src/binding_type_index.h"
 
 using MEC = storm::storage::MaximalEndComponent;
@@ -20,8 +21,7 @@ void define_maximal_end_components(py::module& m) {
 
 template<typename ValueType>
 void define_maximal_end_component_decomposition(py::module& m) {
-    stormpy::bindings::bindTemplateClass<MECDecomposition<ValueType>>(m, "MaximalEndComponentDecomposition",
-                                                                      stormpy::bindings::typeIndex<ValueType>(),
+    stormpy::bindings::bindTemplateClass<MECDecomposition<ValueType>>(m, "MaximalEndComponentDecomposition", stormpy::bindings::typeIndex<ValueType>(),
                                                                       "Decomposition of maximal end components")
         .def(py::init<storm::models::sparse::NondeterministicModel<ValueType> const&>(), py::arg("model"), "Create MECs from model")
         .def_property_readonly("size", &MECDecomposition<ValueType>::size, "Number of MECs in the decomposition")

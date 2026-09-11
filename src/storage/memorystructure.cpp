@@ -6,16 +6,17 @@
 #include <storm/storage/memorystructure/MemoryStructureBuilder.h>
 #include <storm/storage/memorystructure/SparseModelMemoryProduct.h>
 #include <storm/storage/memorystructure/SparseModelMemoryProductReverseData.h>
+
 #include "src/binding_type_index.h"
 
 template<typename ValueType>
 void define_memorystructure_product_each(py::classh<storm::storage::MemoryStructure>& memoryStructure,
                                          py::classh<storm::storage::SparseModelMemoryProductReverseData>& reverseData) {
-    memoryStructure.def(
-        "product_model",
-        [](storm::storage::MemoryStructure& ms, storm::models::sparse::Model<ValueType> const& sparseModel) { return ms.product(sparseModel); });
-    reverseData.def("reverse_scheduler",
-                    &storm::storage::SparseModelMemoryProductReverseData::createMemorySchedulerFromProductScheduler<ValueType>, py::arg("product_scheduler"));
+    memoryStructure.def("product_model", [](storm::storage::MemoryStructure& ms, storm::models::sparse::Model<ValueType> const& sparseModel) {
+        return ms.product(sparseModel);
+    });
+    reverseData.def("reverse_scheduler", &storm::storage::SparseModelMemoryProductReverseData::createMemorySchedulerFromProductScheduler<ValueType>,
+                    py::arg("product_scheduler"));
 }
 
 void define_memorystructure_untyped(py::module& m) {
