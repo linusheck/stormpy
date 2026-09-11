@@ -4,8 +4,8 @@
 #include <storm/adapters/RationalFunctionAdapter.h>
 #include <storm/storage/Scheduler.h>
 
-#include "src/helpers.h"
 #include "src/binding_type_index.h"
+#include "src/helpers.h"
 
 template<typename ValueType>
 void define_scheduler(py::module& m) {

@@ -8,6 +8,7 @@
 #include <storm/storage/BitVector.h>
 #include <storm/storage/SparseMatrix.h>
 #include <storm/storage/sparse/ModelComponents.h>
+
 #include "src/binding_type_index.h"
 
 using StateLabeling = storm::models::sparse::StateLabeling;

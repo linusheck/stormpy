@@ -1,8 +1,8 @@
 #pragma once
 
+#include <storm/adapters/IntervalAdapter.h>
 #include <storm/adapters/RationalFunctionAdapter.h>
 #include <storm/adapters/RationalNumberAdapter.h>
-#include <storm/adapters/IntervalAdapter.h>
 #include <storm/models/ModelType.h>
 #include <storm/storage/dd/DdType.h>
 
