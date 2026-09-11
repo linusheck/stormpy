@@ -6,8 +6,8 @@
 #include <storm/storage/dd/DdManager.h>
 #include <storm/storage/dd/DdMetaVariable.h>
 
-#include "src/helpers.h"
 #include "src/binding_type_index.h"
+#include "src/helpers.h"
 
 template<storm::dd::DdType DdType>
 py::classh<storm::dd::Dd<DdType>> define_dd(py::module& m) {
@@ -48,10 +48,7 @@ void define_dd_typed(py::module& m, py::classh<storm::dd::Dd<DdType>> const& dd)
 }
 
 void define_dd_nt(py::module& m) {
-    py::native_enum<storm::dd::DdType>(m, "DdType", "enum.Enum")
-        .value("Sylvan", storm::dd::DdType::Sylvan)
-        .value("CUDD", storm::dd::DdType::CUDD)
-        .finalize();
+    py::native_enum<storm::dd::DdType>(m, "DdType", "enum.Enum").value("Sylvan", storm::dd::DdType::Sylvan).value("CUDD", storm::dd::DdType::CUDD).finalize();
     py::native_enum<storm::dd::MetaVariableType>(m, "DdMetaVariableType", "enum.Enum")
         .value("Int", storm::dd::MetaVariableType::Int)
         .value("Bool", storm::dd::MetaVariableType::Bool)

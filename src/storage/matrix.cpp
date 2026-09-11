@@ -6,8 +6,8 @@
 #include <storm/storage/SparseMatrix.h>
 #include <storm/utility/graph.h>
 
-#include "src/helpers.h"
 #include "src/binding_type_index.h"
+#include "src/helpers.h"
 
 template<typename ValueType>
 using SparseMatrix = storm::storage::SparseMatrix<ValueType>;
