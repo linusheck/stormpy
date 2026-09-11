@@ -130,7 +130,7 @@ class TestModelChecking:
         env = stormpy.Environment()
         env.solver_environment.minmax_solver_environment.method = stormpy.MinMaxMethod.value_iteration
 
-        task = stormpy.ExactCheckTask(formulas[0].raw_formula, only_initial_states=True)
+        task = stormpy.CheckTask[stormpy.Rational](formulas[0].raw_formula, only_initial_states=True)
         task.set_produce_schedulers()
         # Compute maximal
         task.set_uncertainty_resolution_mode(stormpy.UncertaintyResolutionMode.MAXIMIZE)
@@ -150,7 +150,7 @@ class TestModelChecking:
         env = stormpy.Environment()
         env.solver_environment.minmax_solver_environment.method = stormpy.MinMaxMethod.value_iteration
 
-        task = stormpy.ExactCheckTask(formulas[0].raw_formula, only_initial_states=True)
+        task = stormpy.CheckTask[stormpy.Rational](formulas[0].raw_formula, only_initial_states=True)
         task.set_produce_schedulers()
         # Compute maximal robust
         task.set_uncertainty_resolution_mode(stormpy.UncertaintyResolutionMode.ROBUST)
@@ -161,7 +161,7 @@ class TestModelChecking:
         result = stormpy.check_exact_interval_mdp(model, task, env)
         assert math.isclose(result.at(initial_state), 0.5, rel_tol=1e-4)
 
-        task = stormpy.ExactCheckTask(formulas[1].raw_formula, only_initial_states=True)
+        task = stormpy.CheckTask[stormpy.Rational](formulas[1].raw_formula, only_initial_states=True)
         task.set_produce_schedulers()
         # Compute minimal robust
         task.set_uncertainty_resolution_mode(stormpy.UncertaintyResolutionMode.ROBUST)
@@ -283,11 +283,11 @@ class TestModelChecking:
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         formulas = stormpy.parse_properties_for_prism_program('P=? [ F "one" ]', program)
         model = stormpy.build_symbolic_model(program, formulas)
-        assert isinstance(model, stormpy.SymbolicSylvanDtmc)
+        assert isinstance(model, stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, float])
         assert model.nr_states == 13
         assert model.nr_transitions == 20
         result = stormpy.check_model_dd(model, formulas[0])
-        assert type(result) is stormpy.SymbolicQuantitativeCheckResult
+        assert type(result) is stormpy.SymbolicQuantitativeCheckResult[float]
         assert result.min == 0.0
         assert result.max == 1.0
         filter = stormpy.create_filter_initial_states_symbolic(model)
@@ -299,11 +299,11 @@ class TestModelChecking:
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         formulas = stormpy.parse_properties_for_prism_program('P=? [ F "one" ]', program)
         model = stormpy.build_symbolic_model(program, formulas)
-        assert isinstance(model, stormpy.SymbolicSylvanDtmc)
+        assert isinstance(model, stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, float])
         assert model.nr_states == 13
         assert model.nr_transitions == 20
         result = stormpy.check_model_hybrid(model, formulas[0])
-        assert type(result) is stormpy.HybridQuantitativeCheckResult
+        assert type(result) is stormpy.HybridQuantitativeCheckResult[float]
         values = result.get_values()
         assert len(values) == 3
         assert math.isclose(values[0], 1 / 6)

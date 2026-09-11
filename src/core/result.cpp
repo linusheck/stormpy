@@ -10,6 +10,8 @@
 #include <storm/models/symbolic/StandardRewardModel.h>
 #include <storm/utility/ExtendedNumber.h>
 
+#include "src/binding_type_index.h"
+
 template<typename ValueType>
 std::shared_ptr<storm::modelchecker::QualitativeCheckResult> createFilterInitialStatesSparse(std::shared_ptr<storm::models::sparse::Model<ValueType>> model) {
     return std::make_unique<storm::modelchecker::ExplicitQualitativeCheckResult<ValueType>>(model->getInitialStates());
@@ -79,9 +81,10 @@ void define_result(py::module& m) {
 }
 
 template<typename ValueType>
-void define_typed_result(py::module& m, std::string const& vtSuffix) {
-    py::classh<storm::modelchecker::ExplicitQualitativeCheckResult<ValueType>, storm::modelchecker::QualitativeCheckResult>(
-        m, ("Explicit" + vtSuffix + "QualitativeCheckResult").c_str(), "Explicit qualitative model checking result")
+void define_typed_result(py::module& m) {
+    auto const index = stormpy::bindings::typeIndex<ValueType>();
+    stormpy::bindings::bindTemplateClass<storm::modelchecker::ExplicitQualitativeCheckResult<ValueType>, storm::modelchecker::QualitativeCheckResult>(
+        m, "ExplicitQualitativeCheckResult", index, "Explicit qualitative model checking result")
         .def(
             "at",
             [](storm::modelchecker::ExplicitQualitativeCheckResult<ValueType> const& result, storm::storage::sparse::state_type state) {
@@ -93,8 +96,9 @@ void define_typed_result(py::module& m, std::string const& vtSuffix) {
         .def_property_readonly(
             "scheduler", [](storm::modelchecker::ExplicitQualitativeCheckResult<ValueType> const& res) { return res.getScheduler(); }, "Get scheduler");
 
-    py::classh<storm::modelchecker::QuantitativeCheckResult<ValueType>, storm::modelchecker::CheckResult> quantitativeCheckResult(
-        m, ("_" + vtSuffix + "QuantitativeCheckResult").c_str(), "Abstract class for quantitative model checking results");
+    auto quantitativeCheckResult =
+        stormpy::bindings::bindTemplateClass<storm::modelchecker::QuantitativeCheckResult<ValueType>, storm::modelchecker::CheckResult>(
+            m, "QuantitativeCheckResult", index, "Abstract class for quantitative model checking results");
     quantitativeCheckResult
         .def_property_readonly(
             "min", [](storm::modelchecker::QuantitativeCheckResult<ValueType> const& res) { return storm::utility::narrow<ValueType>(res.getMin()); },
@@ -103,8 +107,8 @@ void define_typed_result(py::module& m, std::string const& vtSuffix) {
             "max", [](storm::modelchecker::QuantitativeCheckResult<ValueType> const& res) { return storm::utility::narrow<ValueType>(res.getMax()); },
             "Maximal value");
 
-    py::classh<storm::modelchecker::ExplicitQuantitativeCheckResult<ValueType>>(m, ("Explicit" + vtSuffix + "QuantitativeCheckResult").c_str(),
-                                                                                "Explicit quantitative model checking result", quantitativeCheckResult)
+    stormpy::bindings::bindTemplateClass<storm::modelchecker::ExplicitQuantitativeCheckResult<ValueType>>(
+        m, "ExplicitQuantitativeCheckResult", index, "Explicit quantitative model checking result", quantitativeCheckResult)
         .def(py::init<std::vector<ValueType>>(), py::arg("values"))
         .def(
             "at",
@@ -118,37 +122,43 @@ void define_typed_result(py::module& m, std::string const& vtSuffix) {
         .def_property_readonly(
             "scheduler", [](storm::modelchecker::ExplicitQuantitativeCheckResult<ValueType> const& res) { return res.getScheduler(); }, "get scheduler");
 
-    py::classh<storm::modelchecker::SymbolicQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType>>(
-        m, ("Symbolic" + vtSuffix + "QuantitativeCheckResult").c_str(), "Symbolic quantitative model checking result", quantitativeCheckResult)
+    stormpy::bindings::bindTemplateClass<storm::modelchecker::SymbolicQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType>>(
+        m, "SymbolicQuantitativeCheckResult", index, "Symbolic quantitative model checking result", quantitativeCheckResult)
         .def("clone",
              [](storm::modelchecker::SymbolicQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType> const& dd) {
                  return dd.clone()->template asSymbolicQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType>();
              })
         .def("get_values", &storm::modelchecker::SymbolicQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType>::getValueVector);
 
-    py::classh<storm::modelchecker::HybridQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType>>(
-        m, ("Hybrid" + vtSuffix + "QuantitativeCheckResult").c_str(), "Hybrid quantitative model checking result", quantitativeCheckResult)
+    stormpy::bindings::bindTemplateClass<storm::modelchecker::HybridQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType>>(
+        m, "HybridQuantitativeCheckResult", index, "Hybrid quantitative model checking result", quantitativeCheckResult)
         .def("get_values", &storm::modelchecker::HybridQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType>::getExplicitValueVector,
              "Get model checking result values for all states");
 
     if constexpr (std::is_same_v<ValueType, double> || std::is_same_v<ValueType, storm::RationalNumber>) {
-        py::classh<storm::modelchecker::ParetoCurveCheckResult<ValueType>, storm::modelchecker::CheckResult> pccheckresult(
-            m, (vtSuffix + "ParetoCurveCheckResult").c_str(), "Result for multiobjective model checking");
+        auto pccheckresult = stormpy::bindings::bindTemplateClass<storm::modelchecker::ParetoCurveCheckResult<ValueType>, storm::modelchecker::CheckResult>(
+            m, "ParetoCurveCheckResult", index, "Result for multiobjective model checking");
         pccheckresult.def("get_underapproximation", &storm::modelchecker::ParetoCurveCheckResult<ValueType>::getUnderApproximation)
             .def("get_overapproximation", &storm::modelchecker::ParetoCurveCheckResult<ValueType>::getOverApproximation);
 
-        py::classh<storm::modelchecker::ExplicitParetoCurveCheckResult<ValueType>> epccheckresult(
-            m, ("Explicit" + vtSuffix + "ParetoCurveCheckResult").c_str(), "Result for explicit multiobjective model checking", pccheckresult);
+        stormpy::bindings::bindTemplateClass<storm::modelchecker::ExplicitParetoCurveCheckResult<ValueType>>(
+            m, "ExplicitParetoCurveCheckResult", index, "Result for explicit multiobjective model checking", pccheckresult);
 
-        m.def(("create_filter_symbolic" + vtSuffix).c_str(), &createFilterSymbolic<storm::dd::DdType::Sylvan, ValueType>,
+        std::string suffix;
+        if constexpr (std::is_same_v<ValueType, double>) {
+            suffix = "";
+        } else if constexpr (std::is_same_v<ValueType, storm::RationalNumber>) {
+            suffix = "Exact";
+        }
+        m.def(("create_filter_symbolic" + suffix).c_str(), &createFilterSymbolic<storm::dd::DdType::Sylvan, ValueType>,
               "Creates a filter for the given states and a symbolic model", py::arg("model"), py::arg("states"));
-        m.def(("create_filter_initial_states_sparse" + vtSuffix).c_str(), &createFilterInitialStatesSparse<ValueType>,
+        m.def(("create_filter_initial_states_sparse" + suffix).c_str(), &createFilterInitialStatesSparse<ValueType>,
               "Create a filter for the initial states on a sparse model", py::arg("model"));
-        m.def(("create_filter_initial_states_symbolic" + vtSuffix).c_str(), &createFilterInitialStatesSymbolic<storm::dd::DdType::Sylvan, ValueType>,
+        m.def(("create_filter_initial_states_symbolic" + suffix).c_str(), &createFilterInitialStatesSymbolic<storm::dd::DdType::Sylvan, ValueType>,
               "Create a filter for the initial states on a symbolic model", py::arg("model"));
     }
 }
 
-template void define_typed_result<double>(py::module& m, std::string const& vtSuffix);
-template void define_typed_result<storm::RationalNumber>(py::module& m, std::string const& vtSuffix);
-template void define_typed_result<storm::RationalFunction>(py::module& m, std::string const& vtSuffix);
+template void define_typed_result<double>(py::module& m);
+template void define_typed_result<storm::RationalNumber>(py::module& m);
+template void define_typed_result<storm::RationalFunction>(py::module& m);
