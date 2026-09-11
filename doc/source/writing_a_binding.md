@@ -114,6 +114,13 @@ class TestAnimals:
         assert dog.bark(2) == "Bark Bark"
 ```
 
+After adding the binding and its tests, rebuild stormpy and run the tests from the repository root in your activated development environment:
+
+```bash
+python -m pip install -e '.[test]'
+python -m pytest tests/animal/test_animals.py
+```
+
 (binding-template-classes)=
 ## Adding bindings to template classes
 
@@ -146,7 +153,7 @@ Let's bind it generically! Define the binding like this:
 
 #include "src/core/common.h"
 
-template<typename ValueType> // <- this is added
+template<typename ValueType> // <- add this
 void define_dog(py::module& m);
 ```
 
@@ -157,14 +164,14 @@ void define_dog(py::module& m);
 #include <storm-animal/Dog.h>
 #include "src/binding_type_index.h"
 
-template<typename ValueType> // <- this is added
+template<typename ValueType> // <- add this
 void define_dog(py::module& m) {
     // next line calls a different binding function
     stormpy::bindings::bindTemplateClass<storm::animal::Dog<ValueType>>(
         m, "Dog", stormpy::bindings::typeIndex<ValueType>(), "A dog is an interesting animal")
-        .def(py::init<std::string, ValueType>(), py::arg("name"), py::arg("age"))
-        .def_property_readonly("is_happy", &storm::animal::Dog<ValueType>::isHappy, "Whether the dog is happy")
-        .def("bark", &storm::animal::Dog<ValueType>::bark, py::arg("number_of_barks"), "Make the dog bark the given number of times");
+        .def(py::init<std::string, ValueType>(), py::arg("name"), py::arg("age")) // Exposes the constructor
+        .def_property_readonly("is_happy", &storm::animal::Dog<ValueType>::isHappy, "Whether the dog is happy") // Creates a property calling this method
+        .def("bark", &storm::animal::Dog<ValueType>::bark, py::arg("number_of_barks"), "Make the dog bark the given number of times"); // Creates a method
 }
 
 // List all of the types you want to support
