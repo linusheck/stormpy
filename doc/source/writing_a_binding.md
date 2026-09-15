@@ -23,7 +23,7 @@ File paths below are relative to the stormpy repository root unless explicitly m
 Suppose that we want to bind the following class in Storm to Python:
 
 ```{code-block} cpp
-:caption: src/storm-animal/Dog.h (Storm repository)
+:caption: `src/storm-animal/Dog.h` (Storm repository)
 
 #include <cstdint>
 #include <string>
@@ -44,7 +44,7 @@ Let's create a new binding for dog by creating {file}`src/animal/dog.h` and {fil
 
 
 ```{code-block} cpp
-:caption: src/animal/dog.h
+:caption: `src/animal/dog.h`
 
 #pragma once
 
@@ -56,7 +56,7 @@ void define_dog(py::module& m);
 The following code applies if your `Dog` is not generic, i.e., is not a template class. If it _is_ a template class, see {ref}`binding-template-classes`.
 
 ```{code-block} cpp
-:caption: src/animal/dog.cpp
+:caption: `src/animal/dog.cpp`
 
 #include "dog.h"
 
@@ -75,7 +75,7 @@ That's done! Note that we use `py::classh` instead of `py::class_` to make use o
 We still need to include {file}`src/animal/dog.h` and call `define_dog` in {file}`src/mod_animal.cpp`:
 
 ```{code-block} cpp
-:caption: src/mod_animal.cpp
+:caption: `src/mod_animal.cpp`
 
 #include "animal/dog.h"
 
@@ -95,7 +95,7 @@ PYBIND11_MODULE(_animal, m) {
 The `Dog` is now defined in the path `stormpy.animal._animal.Dog`. We still need to re-export it to the public Python namespace by adding the following to {file}`lib/stormpy/animal/__init__.py`:
 
 ```{code-block} python
-:caption: lib/stormpy/animal/__init__.py
+:caption: `lib/stormpy/animal/__init__.py`
 
 from ._animal import Dog
 ```
@@ -105,7 +105,7 @@ from ._animal import Dog
 The last step is to add tests for your bindings. The tests are in {file}`tests/animal/` (files named `test_*.py`). Either create a new file or add your tests to an appropriate existing one. What an appropriate test is is usually more specific to what you are actually binding. For example:
 
 ```{code-block} python
-:caption: tests/animal/test_animals.py
+:caption: `tests/animal/test_animals.py`
 
 from stormpy.animal import Dog
 
@@ -129,7 +129,7 @@ pytest tests/animal/test_animals.py
 Suppose our `Dog` takes one template parameter `ValueType` and uses it for the age instead of `uint64_t`. Its declaration in {file}`src/storm-animal/Dog.h` in the Storm repository would now be:
 
 ```{code-block} cpp
-:caption: src/storm-animal/Dog.h (Storm repository)
+:caption: `src/storm-animal/Dog.h` (Storm repository)
 
 #include <cstdint>
 #include <string>
@@ -149,7 +149,7 @@ class Dog {
 Let's bind it generically! Define the binding like this:
 
 ```{code-block} cpp
-:caption: src/animal/dog.h
+:caption: `src/animal/dog.h`
 
 #pragma once
 
@@ -160,7 +160,7 @@ void define_dog(py::module& m);
 ```
 
 ```{code-block} cpp
-:caption: src/animal/dog.cpp
+:caption: `src/animal/dog.cpp`
 
 #include "dog.h"
 
@@ -187,7 +187,7 @@ In `mod_animal.cpp`, call `define_dog` on all `ValueType`s that you want to supp
 
 
 ```{code-block} cpp
-:caption: src/mod_animal.cpp
+:caption: `src/mod_animal.cpp`
 
 #include "animal/dog.h"
 
@@ -206,7 +206,7 @@ PYBIND11_MODULE(_animal, m) {
 Re-export it in Python as follows:
 
 ```{code-block} python
-:caption: lib/stormpy/animal/__init__.py
+:caption: `lib/stormpy/animal/__init__.py`
 
 from . import _animal
 from stormpy._template import TemplateClass
@@ -222,11 +222,13 @@ You can now instantiate typed dogs with `Dog[float]` and `Dog[RationalNumber]`.
 
 For our Dog, it would be redundant to construct it like this:
 
+```py
 d = Dog[float]("Bonn-Oberkassel dog", 14000.5)
 ```
 
 As `14000.5` is clearly a float, the following should work as well and automatically give us a `Dog[float]`:
 
+```py
 d = Dog("Bonn-Oberkassel dog", 14000.5)
 ```
 
@@ -236,7 +238,7 @@ However, in our case, the first argument does not provide the type, but the seco
 In {file}`lib/stormpy/animal/__init__.py`, replace the earlier `Dog` declaration with:
 
 ```{code-block} python
-:caption: lib/stormpy/animal/__init__.py
+:caption: `lib/stormpy/animal/__init__.py`
 
 from stormpy._template import TemplateClass
 
