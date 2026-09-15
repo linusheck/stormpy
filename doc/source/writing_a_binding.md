@@ -20,7 +20,7 @@ File paths below are relative to the stormpy repository root unless explicitly m
 
 ## Step 1: Creating a C++ binding
 
-Suppose that we want to bind the following class in Storm to Python:
+Suppose that we want to bind the following class in Storm to Python. Inspired by the [pybind11 tutorial](https://pybind11.readthedocs.io/en/stable/advanced/classes.html), we are going to add a dog:
 
 ```{code-block} cpp
 :caption: `src/storm-animal/Dog.h` (Storm repository)
