@@ -65,9 +65,9 @@ The following code applies if your `Dog` is not generic, i.e., is not a template
 // Define python bindings
 void define_dog(py::module& m) {
     py::classh<storm::animal::Dog>(m, "Dog", "A dog is an interesting animal")
-        .def(py::init<std::string, uint64_t>(), py::arg("name"), py::arg("age"))
-        .def_property_readonly("is_happy", &storm::animal::Dog::isHappy, "Whether the dog is happy")
-        .def("bark", &storm::animal::Dog::bark, py::arg("number_of_barks"), "Make the dog bark the given number of times");
+        .def(py::init<std::string, uint64_t>(), py::arg("name"), py::arg("age")) // Exposes the constructor
+        .def_property_readonly("is_happy", &storm::animal::Dog::isHappy, "Whether the dog is happy") // Creates a property calling this method
+        .def("bark", &storm::animal::Dog::bark, py::arg("number_of_barks"), "Make the dog bark the given number of times"); // Creates a method
 }
 ```
 
