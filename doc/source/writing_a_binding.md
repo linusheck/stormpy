@@ -18,6 +18,13 @@ The following tutorial teaches you how to write a binding for stormpy. It helps 
 
 File paths below are relative to the stormpy repository root unless explicitly marked as belonging to the Storm repository. C++ `#include` paths remain relative to their include search paths.
 
+## General architecture of bindings
+
+Stormpy employs a two-layer implementation of bindings. 
+
+- The bottom layer uses pybind11 to provide the bindings of the Storm side. All Storm bindings need to be declared on the C++ side in `src`. These bindings will be declared in stormpy as _private_ methods/classes in `_binding`. They are hidden from the public API.
+- The second (higher) layer provides the public Python API and makes use of the pybind11 layer. The public Python API is defined on the Python side in `lib/stormpy`, which re-exports the private bindings from C++ and/or defines new Python abstractions. The Python API then explicitly calls the private bindings.
+
 ## Step 1: Creating a C++ binding
 
 Suppose that we want to bind the following class in Storm to Python. Inspired by the [pybind11 tutorial](https://pybind11.readthedocs.io/en/stable/advanced/classes.html), we are going to add a dog:
