@@ -59,6 +59,7 @@ The following code applies if your `Dog` is not generic, i.e., is not a template
 :caption: src/animal/dog.cpp
 
 #include "dog.h"
+
 #include <storm-animal/Dog.h>
 
 // Define python bindings
@@ -70,7 +71,8 @@ void define_dog(py::module& m) {
 }
 ```
 
-That's done! We still need to include {file}`src/animal/dog.h` and call `define_dog` in {file}`src/mod_animal.cpp`:
+That's done! Note that we use `py::classh` instead of `py::class_` to make use of pybind11's [smart holder](https://pybind11.readthedocs.io/en/stable/advanced/smart_ptrs.html#py-smart-holder).
+We still need to include {file}`src/animal/dog.h` and call `define_dog` in {file}`src/mod_animal.cpp`:
 
 ```{code-block} cpp
 :caption: src/mod_animal.cpp
@@ -117,8 +119,8 @@ class TestAnimals:
 After adding the binding and its tests, rebuild stormpy and run the tests from the repository root in your activated development environment:
 
 ```bash
-python -m pip install -e '.[test]'
-python -m pytest tests/animal/test_animals.py
+pip install -e '.[test]'
+pytest tests/animal/test_animals.py
 ```
 
 (binding-template-classes)=
@@ -161,7 +163,9 @@ void define_dog(py::module& m);
 :caption: src/animal/dog.cpp
 
 #include "dog.h"
+
 #include <storm-animal/Dog.h>
+
 #include "src/binding_type_index.h"
 
 template<typename ValueType> // <- add this
@@ -174,12 +178,12 @@ void define_dog(py::module& m) {
         .def("bark", &storm::animal::Dog<ValueType>::bark, py::arg("number_of_barks"), "Make the dog bark the given number of times"); // Creates a method
 }
 
-// List all of the types you want to support
+// Explicitly instantiate all of the types you want to support
 template void define_dog<double>(py::module& m);
 template void define_dog<storm::RationalNumber>(py::module& m);
 ```
 
-Call `define_dog` on all `ValueType`s that you want to support:
+In `mod_animal.cpp`, call `define_dog` on all `ValueType`s that you want to support:
 
 
 ```{code-block} cpp
@@ -199,7 +203,7 @@ PYBIND11_MODULE(_animal, m) {
 }
 ```
 
-Now, re-export it as follows:
+Re-export it in Python as follows:
 
 ```{code-block} python
 :caption: lib/stormpy/animal/__init__.py
@@ -210,23 +214,24 @@ from stormpy._template import TemplateClass
 Dog = TemplateClass("stormpy.animal.Dog", _animal, parameters=("ValueType",))
 ```
 
-You can now instantiate typed dogs with `Dog[float]` and `Dog[RationalNumber]`.
+The first argument `stormpy.animal.Dog` corresponds to the full Python path of the class, the second argument `_animal` gives the containing module and the third argument `("ValueType",)` names all template parameters.
 
 ### Deduction guides
 
+You can now instantiate typed dogs with `Dog[float]` and `Dog[RationalNumber]`.
+
 For our Dog, it would be redundant to construct it like this:
 
-```
 d = Dog[float]("Bonn-Oberkassel dog", 14000.5)
 ```
 
-As 14000.5 is clearly a float, this should work too and automatically give us a `Dog[float]`:
+As `14000.5` is clearly a float, the following should work as well and automatically give us a `Dog[float]`:
 
-```
 d = Dog("Bonn-Oberkassel dog", 14000.5)
 ```
 
-You can do this by writing a _deduction guide_.
+By default, stormpy can automatically deduce the right type based on the first argument.
+However, in our case, the first argument does not provide the type, but the second argument does. We therefore need to provide a custom _deduction guide_ which returns the right type.
 
 In {file}`lib/stormpy/animal/__init__.py`, replace the earlier `Dog` declaration with:
 
