@@ -271,4 +271,6 @@ d = Dog(name="Bonn-Oberkassel dog", age=14000.5)
 assert type(d) is Dog[float]
 ```
 
-There are also some pre-defined deduction guides in {file}`lib/stormpy/_template.py`.
+There are also some pre-defined deduction guides in {file}`lib/stormpy/_template.py`:
+
+- `deduce_from_first_argument` deduces from the type of the first argument.
