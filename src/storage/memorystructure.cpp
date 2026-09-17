@@ -12,9 +12,10 @@
 template<typename ValueType>
 void define_memorystructure_product_each(py::classh<storm::storage::MemoryStructure>& memoryStructure,
                                          py::classh<storm::storage::SparseModelMemoryProductReverseData>& reverseData) {
-    memoryStructure.def("product_model", [](storm::storage::MemoryStructure& ms, storm::models::sparse::Model<ValueType> const& sparseModel) {
-        return ms.product(sparseModel);
-    });
+    memoryStructure.def(
+        "product_model",
+        [](storm::storage::MemoryStructure& ms, storm::models::sparse::Model<ValueType> const& sparseModel) { return ms.product(sparseModel); },
+        py::arg("model"));
     reverseData.def("reverse_scheduler", &storm::storage::SparseModelMemoryProductReverseData::createMemorySchedulerFromProductScheduler<ValueType>,
                     py::arg("product_scheduler"));
 }
