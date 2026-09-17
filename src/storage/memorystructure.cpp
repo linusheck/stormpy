@@ -32,7 +32,7 @@ void define_memorystructure_untyped(py::module& m) {
     define_memorystructure_product_each<storm::RationalFunction>(memoryStructure, memoryProductReverseData);
 }
 
-template<typename VT>
+template<typename ValueType>
 void define_memorystructure_typed(py::module& m) {
     typedef storm::storage::MemoryStructureBuilder<VT> MemoryStructureBuilder;
     auto const index = stormpy::bindings::typeIndex<VT>();
