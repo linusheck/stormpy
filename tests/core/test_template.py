@@ -19,6 +19,10 @@ def make_family(*, deduce=None) -> TemplateClass:
     return TemplateClass("test.Example", module, parameters=["kind"], deduce=deduce)
 
 
+def call_guide(guide, *args, **kwargs):
+    return guide(None, args, kwargs)
+
+
 def test_deduction_selects_exact_registered_subclass():
     family = make_family(deduce=deduce_from_first_argument())
     family.register("derived", DerivedImplementation)
@@ -82,30 +86,30 @@ def test_object_deduction_argument_selection():
     source = SimpleNamespace(kind=int)
     alternate = SimpleNamespace(kind=str)
 
-    assert guide(None, (source,), {"model": alternate}) is int
-    assert guide(None, (), {"model": alternate}) is str
+    assert call_guide(guide, source, model=alternate) is int
+    assert call_guide(guide, model=alternate) is str
     with pytest.raises(TypeError, match="missing argument.*model"):
-        guide(None, (), {})
-    assert guide(None, (), {"model": None}) is float
+        call_guide(guide)
+    assert call_guide(guide, model=None) is float
 
 
 def test_object_deduction_keyword_aliases():
     guide = deduce_from_object(type, keyword=("components", "other_model"))
 
-    assert guide(None, (), {"other_model": 1}) is int
-    assert guide(None, (), {"components": 1.0, "other_model": 1}) is float
-    assert guide(None, (), {"components": None, "other_model": 1}) is type(None)
-    assert guide(None, (1,), {"components": 1.0}) is int
+    assert call_guide(guide, other_model=1) is int
+    assert call_guide(guide, components=1.0, other_model=1) is float
+    assert call_guide(guide, components=None, other_model=1) is type(None)
+    assert call_guide(guide, 1, components=1.0) is int
 
 
 def test_object_deduction_second_argument():
     guide = deduce_from_object(type, keyword="model", position=1)
 
-    assert guide(None, (2, 1.0), {"model": 1}) is float
-    assert guide(None, (2,), {"model": 1.0}) is float
-    assert guide(None, (), {"model": 1.0}) is float
+    assert call_guide(guide, 2, 1.0, model=1) is float
+    assert call_guide(guide, 2, model=1.0) is float
+    assert call_guide(guide, model=1.0) is float
     with pytest.raises(TypeError, match="missing argument.*position 1.*model"):
-        guide(None, (2,), {})
+        call_guide(guide, 2)
 
 
 def test_object_deduction_rejects_misspelled_required_argument():
@@ -118,7 +122,7 @@ def test_object_deduction_rejects_misspelled_required_argument():
 def test_object_deduction_explicit_default_only_applies_to_missing_argument():
     guide = deduce_from_object(type, keyword="source", default=(float,))
 
-    assert guide(None, (), {}) == (float,)
-    assert guide(None, (), {"source": 1}) is int
-    assert guide(None, (None,), {}) is type(None)
-    assert guide(None, (), {"source": None}) is type(None)
+    assert call_guide(guide) == (float,)
+    assert call_guide(guide, source=1) is int
+    assert call_guide(guide, None) is type(None)
+    assert call_guide(guide, source=None) is type(None)
