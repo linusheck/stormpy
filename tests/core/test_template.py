@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from stormpy._template import TemplateClass, deduce_default, deduce_from_first_argument
+from stormpy._template import TemplateClass, deduce_default, deduce_from_first_argument, deduce_from_object
 
 
 class BaseImplementation:
@@ -58,3 +58,42 @@ def test_cannot_register_implementation_for_multiple_parameters():
 
     assert ("duplicate",) not in family.instantiations
     assert family.parameters_of(BaseImplementation()) == ("base",)
+
+
+def test_object_deduction_transforms_argument():
+    family = make_family(deduce=deduce_from_object(lambda obj: obj.kind, keyword="source"))
+    family.register("derived", DerivedImplementation)
+    source = SimpleNamespace(kind="derived")
+
+    for result in (family(source), family(source=source)):
+        assert type(result) is DerivedImplementation
+        assert result.source is source
+
+
+def test_object_deduction_argument_selection():
+    guide = deduce_from_object(lambda obj: float if obj is None else obj.kind, keyword="model")
+    source = SimpleNamespace(kind=int)
+    alternate = SimpleNamespace(kind=str)
+
+    assert guide(None, (source,), {"model": alternate}) is int
+    assert guide(None, (), {"model": alternate}) is str
+    assert guide(None, (), {}) is float
+    assert guide(None, (), {"model": None}) is float
+
+
+def test_object_deduction_keyword_aliases():
+    guide = deduce_from_object(type, keyword=("components", "other_model"))
+
+    assert guide(None, (), {"other_model": 1}) is int
+    assert guide(None, (), {"components": 1.0, "other_model": 1}) is float
+    assert guide(None, (), {"components": None, "other_model": 1}) is type(None)
+    assert guide(None, (1,), {"components": 1.0}) is int
+
+
+def test_object_deduction_second_argument():
+    guide = deduce_from_object(type, keyword="model", position=1)
+
+    assert guide(None, (2, 1.0), {"model": 1}) is float
+    assert guide(None, (2,), {"model": 1.0}) is float
+    assert guide(None, (), {"model": 1.0}) is float
+    assert guide(None, (2,), {}) is type(None)

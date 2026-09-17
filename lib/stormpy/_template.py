@@ -62,6 +62,23 @@ def deduce_default(*parameters: object) -> DeductionGuide:
     return deduction
 
 
+def deduce_from_object(get_type: Callable[[Any], object], *, keyword: str | tuple[str, ...] = (), position: int = 0) -> DeductionGuide:
+    """Apply ``get_type`` to the constructor argument at ``position``.
+
+    ``keyword`` supplies one name or ordered aliases for keyword calls. The
+    callback returns a parameter or tuple and receives ``None`` if omitted.
+    """
+    keywords = (keyword,) if isinstance(keyword, str) else keyword
+
+    def deduction(_family: TemplateClass, args: tuple[Any, ...], kwargs: Mapping[str, Any]) -> object:
+        instance = args[position] if len(args) > position else next((kwargs[name] for name in keywords if name in kwargs), None)
+        return get_type(instance)
+
+    deduction.__name__ = "deduce_from_object"
+    deduction.__qualname__ = "deduce_from_object"
+    return deduction
+
+
 def deduce_from_first_argument(source: "TemplateClass | None" = None, *, keyword: str | None = None) -> DeductionGuide:
     """Create a guide that copies template arguments from an instance.
 

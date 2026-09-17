@@ -2,7 +2,12 @@ import stormpy.utility
 from . import _storage
 from ._storage import *
 from deprecated.sphinx import deprecated
-from stormpy._template import TemplateClass, TemplateParameter as _TemplateParameter, deduce_default as _deduce_default
+from stormpy._template import (
+    TemplateClass,
+    TemplateParameter as _TemplateParameter,
+    deduce_default as _deduce_default,
+    deduce_from_object as _deduce_from_object,
+)
 
 SparseMatrixEntry = TemplateClass("stormpy.storage.SparseMatrixEntry", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SparseMatrixBuilder = TemplateClass("stormpy.storage.SparseMatrixBuilder", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
@@ -32,43 +37,53 @@ AddIterator = TemplateClass(
 )
 
 
-def _deduce_sparse_model_components(family, args, kwargs):
-    if args:
-        return SparseMatrix.parameters_of(args[0])
-    transition_matrix = kwargs.get("transition_matrix")
-    if transition_matrix is not None:
-        return SparseMatrix.parameters_of(transition_matrix)
-    return (float,)
-
-
 SparseModelComponents = TemplateClass(
     "stormpy.storage.SparseModelComponents",
     _storage,
     parameters=("ValueType",),
-    deduce=_deduce_sparse_model_components,
+    deduce=_deduce_from_object(lambda matrix: (float,) if matrix is None else SparseMatrix.parameters_of(matrix), keyword="transition_matrix"),
 )
 
 
-def _deduce_sparse_model(family, args, kwargs):
-    if args:
-        source = args[0]
-    else:
-        source = kwargs.get("components", kwargs.get("other_model"))
-        if source is None:
-            return (float,)
-    try:
-        return family.parameters_of(source)
-    except TypeError:
-        return SparseModelComponents.parameters_of(source)
-
+_model_parameters = lambda source: (float,) if source is None else SparseMatrix.parameters_of(source.transition_matrix)
 
 SparseModel = TemplateClass("stormpy.storage.SparseModel", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
-SparseDtmc = TemplateClass("stormpy.storage.SparseDtmc", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
-SparseMdp = TemplateClass("stormpy.storage.SparseMdp", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
-SparsePomdp = TemplateClass("stormpy.storage.SparsePomdp", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
-SparseCtmc = TemplateClass("stormpy.storage.SparseCtmc", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
-SparseMA = TemplateClass("stormpy.storage.SparseMA", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
-SparseSmg = TemplateClass("stormpy.storage.SparseSmg", _storage, parameters=("ValueType",), deduce=_deduce_sparse_model)
+SparseDtmc = TemplateClass(
+    "stormpy.storage.SparseDtmc",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_from_object(_model_parameters, keyword=("components", "other_model")),
+)
+SparseMdp = TemplateClass(
+    "stormpy.storage.SparseMdp",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_from_object(_model_parameters, keyword=("components", "other_model")),
+)
+SparsePomdp = TemplateClass(
+    "stormpy.storage.SparsePomdp",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_from_object(_model_parameters, keyword=("components", "other_model")),
+)
+SparseCtmc = TemplateClass(
+    "stormpy.storage.SparseCtmc",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_from_object(_model_parameters, keyword=("components", "other_model")),
+)
+SparseMA = TemplateClass(
+    "stormpy.storage.SparseMA",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_from_object(_model_parameters, keyword=("components", "other_model")),
+)
+SparseSmg = TemplateClass(
+    "stormpy.storage.SparseSmg",
+    _storage,
+    parameters=("ValueType",),
+    deduce=_deduce_from_object(_model_parameters, keyword=("components", "other_model")),
+)
 SparseRewardModel = TemplateClass("stormpy.storage.SparseRewardModel", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SymbolicModel = TemplateClass("stormpy.storage.SymbolicModel", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
 SymbolicDtmc = TemplateClass("stormpy.storage.SymbolicDtmc", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
@@ -78,49 +93,19 @@ SymbolicMA = TemplateClass("stormpy.storage.SymbolicMA", _storage, parameters=(_
 SymbolicRewardModel = TemplateClass("stormpy.storage.SymbolicRewardModel", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
 
 
-def _value_type_of_model(model):
-    if model.supports_uncertainty:
-        return stormpy.RationalInterval if model.is_exact else stormpy.Interval
-    if model.supports_parameters:
-        return stormpy.RationalFunction
-    if model.is_exact:
-        return stormpy.Rational
-    return float
-
-
-def _deduce_from_model(_family, args, kwargs):
-    if args:
-        model = args[0]
-    else:
-        model = kwargs.get("model")
-        if model is None:
-            return (float,)
-    return (_value_type_of_model(model),)
-
-
 MaximalEndComponentDecomposition = TemplateClass(
     "stormpy.storage.MaximalEndComponentDecomposition",
     _storage,
     parameters=("ValueType",),
-    deduce=_deduce_from_model,
+    deduce=_deduce_from_object(_model_parameters, keyword="model"),
 )
-
-
-def _deduce_memory_structure_builder(_family, args, kwargs):
-    if len(args) >= 2:
-        model = args[1]
-    else:
-        model = kwargs.get("model")
-        if model is None:
-            return (float,)
-    return (_value_type_of_model(model),)
 
 
 MemoryStructureBuilder = TemplateClass(
     "stormpy.storage.MemoryStructureBuilder",
     _storage,
     parameters=("ValueType",),
-    deduce=_deduce_memory_structure_builder,
+    deduce=_deduce_from_object(_model_parameters, keyword="model", position=1),
 )
 MemoryStructureProduct = TemplateClass("stormpy.storage.MemoryStructureProduct", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 
