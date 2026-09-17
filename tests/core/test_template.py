@@ -38,6 +38,13 @@ def test_default_deduction_selects_configured_instantiation():
     assert type(result) is BaseImplementation
 
 
+def test_default_deduction_rejects_unregistered_instantiation():
+    family = make_family(deduce=deduce_default("missing"))
+
+    with pytest.raises(TypeError, match=r"Example has no instantiation for \('missing',\)"):
+        family()
+
+
 def test_deduction_rejects_unregistered_subclass():
     class UnregisteredImplementation(BaseImplementation):
         pass
