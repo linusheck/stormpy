@@ -9,18 +9,29 @@ from stormpy._template import (
     deduce_from_object as _deduce_from_object,
 )
 
+# src/storage/matrix.cpp
 SparseMatrixEntry = TemplateClass("stormpy.storage.SparseMatrixEntry", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SparseMatrixBuilder = TemplateClass("stormpy.storage.SparseMatrixBuilder", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SparseMatrix = TemplateClass("stormpy.storage.SparseMatrix", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SparseMatrixRows = TemplateClass("stormpy.storage.SparseMatrixRows", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+
+# src/storage/state.cpp
 SparseModelStates = TemplateClass("stormpy.storage.SparseModelStates", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SparseModelState = TemplateClass("stormpy.storage.SparseModelState", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SparseModelActions = TemplateClass("stormpy.storage.SparseModelActions", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SparseModelAction = TemplateClass("stormpy.storage.SparseModelAction", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+
+# src/storage/scheduler.cpp
 Scheduler = TemplateClass("stormpy.storage.Scheduler", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SchedulerChoice = TemplateClass("stormpy.storage.SchedulerChoice", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+
+# src/storage/distribution.cpp
 Distribution = TemplateClass("stormpy.storage.Distribution", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+
+# src/storage/geometry.cpp
 Polytope = TemplateClass("stormpy.storage.Polytope", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
+
+# src/storage/dd.cpp
 DdMetaVariable = TemplateClass("stormpy.storage.DdMetaVariable", _storage, parameters=(_TemplateParameter("DdType", kind="value"),))
 DdManager = TemplateClass("stormpy.storage.DdManager", _storage, parameters=(_TemplateParameter("DdType", kind="value"),))
 Dd = TemplateClass("stormpy.storage.Dd", _storage, parameters=(_TemplateParameter("DdType", kind="value"),))
@@ -36,7 +47,7 @@ AddIterator = TemplateClass(
     parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"),
 )
 
-
+# src/storage/model_components.cpp
 SparseModelComponents = TemplateClass(
     "stormpy.storage.SparseModelComponents",
     _storage,
@@ -44,7 +55,7 @@ SparseModelComponents = TemplateClass(
     deduce=_deduce_from_object(SparseMatrix.parameters_of, keyword="transition_matrix", default=(float,)),
 )
 
-
+# src/storage/model.cpp
 _model_parameters = lambda source: SparseMatrix.parameters_of(source.transition_matrix)
 
 SparseModel = TemplateClass("stormpy.storage.SparseModel", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
@@ -92,7 +103,7 @@ SymbolicCtmc = TemplateClass("stormpy.storage.SymbolicCtmc", _storage, parameter
 SymbolicMA = TemplateClass("stormpy.storage.SymbolicMA", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
 SymbolicRewardModel = TemplateClass("stormpy.storage.SymbolicRewardModel", _storage, parameters=(_TemplateParameter("DdType", kind="value"), "ValueType"))
 
-
+# src/storage/decomposition.cpp
 MaximalEndComponentDecomposition = TemplateClass(
     "stormpy.storage.MaximalEndComponentDecomposition",
     _storage,
@@ -100,7 +111,7 @@ MaximalEndComponentDecomposition = TemplateClass(
     deduce=_deduce_from_object(_model_parameters, keyword="model"),
 )
 
-
+# src/storage/memorystructure.cpp
 MemoryStructureBuilder = TemplateClass(
     "stormpy.storage.MemoryStructureBuilder",
     _storage,
