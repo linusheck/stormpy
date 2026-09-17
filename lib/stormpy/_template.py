@@ -62,17 +62,31 @@ def deduce_default(*parameters: object) -> DeductionGuide:
     return deduction
 
 
-def deduce_from_object(get_type: Callable[[Any], object], *, keyword: str | tuple[str, ...] = (), position: int = 0) -> DeductionGuide:
-    """Apply ``get_type`` to the constructor argument at ``position``.
+def deduce_from_object(
+    get_type: Callable[[Any], object], *, keyword: str | tuple[str, ...] = (), position: int = 0, default: tuple[object, ...] | None = None
+) -> DeductionGuide:
+    """Create a guide that deduces template parameters from a constructor argument.
 
-    ``keyword`` supplies one name or ordered aliases for keyword calls. The
-    callback returns a parameter or tuple and receives ``None`` if omitted.
+    The guide selects the positional argument at the zero-based ``position``,
+    or the first supplied name in ``keyword`` if that argument is absent.
+    ``keyword`` accepts a single name or a tuple of names in precedence order.
+    It calls ``get_type`` with the selected argument. ``get_type`` must return
+    a template parameter or the complete parameter tuple.
+
+    If no matching argument is supplied, the guide returns ``default`` when
+    configured; otherwise it raises ``TypeError``.
     """
     keywords = (keyword,) if isinstance(keyword, str) else keyword
 
     def deduction(_family: TemplateClass, args: tuple[Any, ...], kwargs: Mapping[str, Any]) -> object:
-        instance = args[position] if len(args) > position else next((kwargs[name] for name in keywords if name in kwargs), None)
-        return get_type(instance)
+        if len(args) > position:
+            return get_type(args[position])
+        for name in keywords:
+            if name in kwargs:
+                return get_type(kwargs[name])
+        if default is not None:
+            return default
+        raise TypeError(f"Cannot deduce template parameters: missing argument at position {position} or keywords {keywords!r}")
 
     deduction.__name__ = "deduce_from_object"
     deduction.__qualname__ = "deduce_from_object"

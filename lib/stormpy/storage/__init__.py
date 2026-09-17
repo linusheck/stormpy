@@ -41,11 +41,11 @@ SparseModelComponents = TemplateClass(
     "stormpy.storage.SparseModelComponents",
     _storage,
     parameters=("ValueType",),
-    deduce=_deduce_from_object(lambda matrix: (float,) if matrix is None else SparseMatrix.parameters_of(matrix), keyword="transition_matrix"),
+    deduce=_deduce_from_object(SparseMatrix.parameters_of, keyword="transition_matrix", default=(float,)),
 )
 
 
-_model_parameters = lambda source: (float,) if source is None else SparseMatrix.parameters_of(source.transition_matrix)
+_model_parameters = lambda source: SparseMatrix.parameters_of(source.transition_matrix)
 
 SparseModel = TemplateClass("stormpy.storage.SparseModel", _storage, parameters=("ValueType",), deduce=_deduce_default(float))
 SparseDtmc = TemplateClass(

@@ -77,7 +77,8 @@ def test_object_deduction_argument_selection():
 
     assert guide(None, (source,), {"model": alternate}) is int
     assert guide(None, (), {"model": alternate}) is str
-    assert guide(None, (), {}) is float
+    with pytest.raises(TypeError, match="missing argument.*model"):
+        guide(None, (), {})
     assert guide(None, (), {"model": None}) is float
 
 
@@ -96,4 +97,21 @@ def test_object_deduction_second_argument():
     assert guide(None, (2, 1.0), {"model": 1}) is float
     assert guide(None, (2,), {"model": 1.0}) is float
     assert guide(None, (), {"model": 1.0}) is float
-    assert guide(None, (2,), {}) is type(None)
+    with pytest.raises(TypeError, match="missing argument.*position 1.*model"):
+        guide(None, (2,), {})
+
+
+def test_object_deduction_rejects_misspelled_required_argument():
+    family = make_family(deduce=deduce_from_object(lambda obj: obj.kind, keyword="source"))
+
+    with pytest.raises(TypeError, match="Cannot deduce template parameters: missing argument.*source"):
+        family(soruce=SimpleNamespace(kind="base"))
+
+
+def test_object_deduction_explicit_default_only_applies_to_missing_argument():
+    guide = deduce_from_object(type, keyword="source", default=(float,))
+
+    assert guide(None, (), {}) == (float,)
+    assert guide(None, (), {"source": 1}) is int
+    assert guide(None, (None,), {}) is type(None)
+    assert guide(None, (), {"source": None}) is type(None)
