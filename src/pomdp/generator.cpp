@@ -6,6 +6,8 @@
 #include <storm/storage/expressions/ExpressionManager.h>
 #include <string>
 
+#include "src/binding_type_index.h"
+
 template<typename ValueType>
 using GenerateMonitorVerifier = storm::generator::GenerateMonitorVerifier<ValueType>;
 template<typename ValueType>
@@ -18,9 +20,10 @@ template<typename ValueType>
 using GenerateMonitorVerifierOptions = typename storm::generator::GenerateMonitorVerifier<ValueType>::Options;
 
 template<typename ValueType>
-void define_verimon_generator(py::module &m, std::string const &vtSuffix) {
-    py::classh<storm::generator::MonitorVerifier<ValueType>> mv(m, ("MonitorVerifier" + vtSuffix).c_str(),
-                                                                "Container for monitor verifier POMDP with associated objects");
+void define_verimon_generator(py::module &m) {
+    auto const index = stormpy::bindings::typeIndex<ValueType>();
+    auto mv = stormpy::bindings::bindTemplateClass<storm::generator::MonitorVerifier<ValueType>>(
+        m, "MonitorVerifier", index, "Container for monitor verifier POMDP with associated objects");
     mv.def(py::init<const SparsePomdp<ValueType> &, const std::map<std::pair<uint32_t, bool>, uint32_t> &, const std::map<uint32_t, std::string> &>(),
            py::arg("product"), py::arg("observation_map"), py::arg("default_action_map"));
     mv.def("get_product", &storm::generator::MonitorVerifier<ValueType>::getProduct, py::return_value_policy::reference_internal);
@@ -28,16 +31,16 @@ void define_verimon_generator(py::module &m, std::string const &vtSuffix) {
     mv.def_property_readonly("default_action_map", &storm::generator::MonitorVerifier<ValueType>::getObservationDefaultAction,
                              py::return_value_policy::reference_internal);
 
-    py::classh<storm::generator::GenerateMonitorVerifier<ValueType>> gmv(m, ("GenerateMonitorVerifier" + vtSuffix).c_str(),
-                                                                         "Generator of POMDP used in verifying monitors against markov chains");
+    auto gmv = stormpy::bindings::bindTemplateClass<storm::generator::GenerateMonitorVerifier<ValueType>>(
+        m, "GenerateMonitorVerifier", index, "Generator of POMDP used in verifying monitors against markov chains");
     gmv.def(py::init<SparseDtmc<ValueType> const &, SparseMdp<ValueType> const &, std::shared_ptr<storm::expressions::ExpressionManager> &,
                      GenerateMonitorVerifierOptions<ValueType> const &>(),
             py::arg("mc"), py::arg("monitor"), py::arg("expr_manager"), py::arg("options"));
     gmv.def("create_product", &storm::generator::GenerateMonitorVerifier<ValueType>::createProduct, "Create the verification POMDP");
     gmv.def("set_risk", &storm::generator::GenerateMonitorVerifier<ValueType>::setRisk, py::arg("risk"));
 
-    py::classh<GenerateMonitorVerifierOptions<ValueType>> gmvopts(m, ("GenerateMonitorVerifier" + vtSuffix + "Options").c_str(),
-                                                                  "Options for corresponding generator");
+    auto gmvopts = stormpy::bindings::bindTemplateClass<GenerateMonitorVerifierOptions<ValueType>>(m, "GenerateMonitorVerifierOptions", index,
+                                                                                                   "Options for corresponding generator");
     gmvopts.def(py::init<>());
     gmvopts.def_readwrite("accepting_label", &GenerateMonitorVerifierOptions<ValueType>::acceptingLabel);
     gmvopts.def_readwrite("step_prefix", &GenerateMonitorVerifierOptions<ValueType>::stepPrefix);
@@ -45,5 +48,5 @@ void define_verimon_generator(py::module &m, std::string const &vtSuffix) {
     gmvopts.def_readwrite("use_restart_semantics", &GenerateMonitorVerifierOptions<ValueType>::useRestartSemantics);
 }
 
-template void define_verimon_generator<double>(py::module &m, std::string const &vtSuffix);
-template void define_verimon_generator<storm::RationalNumber>(py::module &m, std::string const &vtSuffix);
+template void define_verimon_generator<double>(py::module &m);
+template void define_verimon_generator<storm::RationalNumber>(py::module &m);
