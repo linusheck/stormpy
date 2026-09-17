@@ -59,6 +59,7 @@ PYBIND11_MODULE(_storage, m) {
     define_memorystructure_typed<double>(m);
     define_memorystructure_typed<storm::RationalNumber>(m);
     define_memorystructure_typed<storm::Interval>(m);
+    define_memorystructure_typed<storm::RationalInterval>(m);
     define_memorystructure_typed<storm::RationalFunction>(m);
     define_memorystructure_untyped(m);
     define_prism(m);

@@ -20,6 +20,18 @@ class TestMemoryStructure:
         memorystructure = self._build_memory_structure(model, goalstates)
         assert memorystructure.nr_states == 2
 
+    @pytest.mark.parametrize("keyword", [False, True])
+    def test_memory_structure_builder_exact_interval(self, keyword):
+        model = stormpy.build_exact_interval_model_from_drn(get_example_path("imdp", "tiny-01.drn"))
+        if keyword:
+            builder = stormpy.storage.MemoryStructureBuilder(nr_memory_states=1, model=model)
+        else:
+            builder = stormpy.storage.MemoryStructureBuilder(1, model)
+
+        assert type(builder) is stormpy.storage.MemoryStructureBuilder[stormpy.RationalInterval]
+        builder.set_transition(0, 0, stormpy.BitVector(model.nr_states, True))
+        assert builder.build().nr_states == 1
+
     def test_product_memorystructure(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         formulas = stormpy.parse_properties_for_prism_program('P=? [ F "one"|"two" ]', program)

@@ -34,10 +34,10 @@ void define_memorystructure_untyped(py::module& m) {
 
 template<typename ValueType>
 void define_memorystructure_typed(py::module& m) {
-    typedef storm::storage::MemoryStructureBuilder<VT> MemoryStructureBuilder;
-    auto const index = stormpy::bindings::typeIndex<VT>();
+    typedef storm::storage::MemoryStructureBuilder<ValueType> MemoryStructureBuilder;
+    auto const index = stormpy::bindings::typeIndex<ValueType>();
     auto msb = stormpy::bindings::bindTemplateClass<MemoryStructureBuilder>(m, "MemoryStructureBuilder", index, "Memory structure builder");
-    msb.def(py::init<uint_fast64_t, storm::models::sparse::Model<VT> const&, bool>(), py::arg("nr_memory_states"), py::arg("model"),
+    msb.def(py::init<uint_fast64_t, storm::models::sparse::Model<ValueType> const&, bool>(), py::arg("nr_memory_states"), py::arg("model"),
             py::arg("only_initial_states_relevant") = true);
     msb.def("build", &MemoryStructureBuilder::build);
     msb.def("set_label", &MemoryStructureBuilder::setLabel, py::arg("state"), py::arg("label"));
@@ -45,7 +45,7 @@ void define_memorystructure_typed(py::module& m) {
             py::arg("model_choices") = boost::none);
     msb.def("set_initial_memory_state", &MemoryStructureBuilder::setInitialMemoryState, py::arg("state"), py::arg("value"));
 
-    typedef storm::storage::SparseModelMemoryProduct<VT> MemoryStructureProduct;
+    typedef storm::storage::SparseModelMemoryProduct<ValueType> MemoryStructureProduct;
     auto msp = stormpy::bindings::bindTemplateClass<MemoryStructureProduct>(m, "MemoryStructureProduct", index, "Memory structure product");
     msp.def("build", &MemoryStructureProduct::build, py::arg("preserve_model_type") = false);
     msp.def("set_build_full_product", &MemoryStructureProduct::setBuildFullProduct,
@@ -56,4 +56,5 @@ void define_memorystructure_typed(py::module& m) {
 template void define_memorystructure_typed<double>(py::module& m);
 template void define_memorystructure_typed<storm::RationalNumber>(py::module& m);
 template void define_memorystructure_typed<storm::Interval>(py::module& m);
+template void define_memorystructure_typed<storm::RationalInterval>(py::module& m);
 template void define_memorystructure_typed<storm::RationalFunction>(py::module& m);
