@@ -655,6 +655,12 @@ def topological_sort(model, forward=True, initial=[]):
     :param initial: a list of states
     :return: A topological sort of the states
     """
+    if not model.is_sparse_model:
+        raise NotImplementedError("Topological sorting is only supported for sparse models.")
+    if model.supports_uncertainty:
+        raise NotImplementedError("Topological sorting of interval models is not supported.")
+    if model.is_exact and not model.supports_parameters:
+        raise NotImplementedError("Topological sorting of exact models is not supported.")
     matrix = model.transition_matrix if forward else model.backward_transition_matrix
     return storage._storage._topological_sort(matrix, initial)
 
