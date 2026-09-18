@@ -505,6 +505,8 @@ def check_model_sparse(model, property, only_initial_states=False, extract_sched
             raise NotImplementedError("Model checking of partially observable models is not supported for parametric models.")
         if model.supports_uncertainty:
             raise NotImplementedError("Model checking of partially observable models is not supported for interval models.")
+    elif model.supports_uncertainty:
+        raise NotImplementedError("Model checking of interval models is handled via dedicated methods.")
     elif formula.is_multi_objective_formula and not model.supports_parameters:
         return _core._multi_objective_model_checking(model, formula, environment=environment)
     task = CheckTask[storage.parameters_of_model(model)](formula, only_initial_states)
