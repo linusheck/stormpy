@@ -51,6 +51,48 @@ class TemplateMetadata:
 DeductionGuide: TypeAlias = Callable[["TemplateClass", tuple[Any, ...], Mapping[str, Any]], object]
 
 
+def deduce_default(*parameters: object) -> DeductionGuide:
+    """Create a guide that always selects the given template parameters."""
+
+    def deduction(_family: TemplateClass, _args: tuple[Any, ...], _kwargs: Mapping[str, Any]) -> object:
+        return parameters
+
+    deduction.__name__ = "deduce_default"
+    deduction.__qualname__ = "deduce_default"
+    return deduction
+
+
+def deduce_from_object(
+    get_type: Callable[[Any], object], *, keyword: str | tuple[str, ...] = (), position: int = 0, default: tuple[object, ...] | None = None
+) -> DeductionGuide:
+    """Create a guide that deduces template parameters from a constructor argument.
+
+    The guide selects the positional argument at the zero-based ``position``,
+    or the first supplied name in ``keyword`` if that argument is absent.
+    ``keyword`` accepts a single name or a tuple of names in precedence order.
+    It calls ``get_type`` with the selected argument. ``get_type`` must return
+    a template parameter or the complete parameter tuple.
+
+    If no matching argument is supplied, the guide returns ``default`` when
+    configured; otherwise it raises ``TypeError``.
+    """
+    keywords = (keyword,) if isinstance(keyword, str) else keyword
+
+    def deduction(_family: TemplateClass, args: tuple[Any, ...], kwargs: Mapping[str, Any]) -> object:
+        if len(args) > position:
+            return get_type(args[position])
+        for name in keywords:
+            if name in kwargs:
+                return get_type(kwargs[name])
+        if default is not None:
+            return default
+        raise TypeError(f"Cannot deduce template parameters: missing argument at position {position} or keywords {keywords!r}")
+
+    deduction.__name__ = "deduce_from_object"
+    deduction.__qualname__ = "deduce_from_object"
+    return deduction
+
+
 def deduce_from_first_argument(source: "TemplateClass | None" = None, *, keyword: str | None = None) -> DeductionGuide:
     """Create a guide that copies template arguments from an instance.
 

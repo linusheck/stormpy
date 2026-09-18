@@ -8,7 +8,7 @@ class TestMatrix:
     def test_matrix(self):
         model = stormpy.build_sparse_model_from_explicit(get_example_path("dtmc", "die.tra"), get_example_path("dtmc", "die.lab"))
         matrix = model.transition_matrix
-        assert type(matrix) is stormpy.storage.SparseMatrix
+        assert type(matrix) is stormpy.storage.SparseMatrix[float]
         assert matrix.nr_rows == model.nr_states
         assert matrix.nr_columns == model.nr_states
         assert matrix.nr_entries == 20
@@ -19,7 +19,7 @@ class TestMatrix:
     def test_backward_matrix(self):
         model = stormpy.build_sparse_model_from_explicit(get_example_path("dtmc", "die.tra"), get_example_path("dtmc", "die.lab"))
         matrix = model.backward_transition_matrix
-        assert type(matrix) is stormpy.storage.SparseMatrix
+        assert type(matrix) is stormpy.storage.SparseMatrix[float]
         assert matrix.nr_rows == model.nr_states
         assert matrix.nr_columns == model.nr_states
         assert matrix.nr_entries == 20
@@ -30,7 +30,7 @@ class TestMatrix:
     def test_matrix_row_groups(self):
         model = stormpy.build_sparse_model_from_explicit(get_example_path("mdp", "two_dice.tra"), get_example_path("mdp", "two_dice.lab"))
         matrix = model.transition_matrix
-        assert type(matrix) is stormpy.storage.SparseMatrix
+        assert type(matrix) is stormpy.storage.SparseMatrix[float]
         assert matrix.nr_rows == 254
         assert matrix.nr_columns == model.nr_states
         assert matrix.nr_entries == 436
@@ -156,7 +156,7 @@ class TestMatrix:
     def test_submatrix_no_groups(self):
         model = stormpy.build_sparse_model_from_explicit(get_example_path("mdp", "two_dice.tra"), get_example_path("mdp", "two_dice.lab"))
         matrix = model.transition_matrix
-        assert type(matrix) is stormpy.storage.SparseMatrix
+        assert type(matrix) is stormpy.storage.SparseMatrix[float]
         assert matrix.nr_rows == 254
         assert matrix.nr_columns == model.nr_states
         assert matrix.nr_entries == 436

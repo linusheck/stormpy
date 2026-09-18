@@ -7,7 +7,7 @@ class TestMaximalEndComponents:
         program = stormpy.parse_prism_program(get_example_path("mdp", "two_dice.nm"))
         model = stormpy.build_model(program)
 
-        decomposition = stormpy.MaximalEndComponentDecomposition_double(model)
+        decomposition = stormpy.MaximalEndComponentDecomposition(model)
         assert decomposition.size == 36
         for mec in decomposition:
             assert mec.size == 1
@@ -54,7 +54,7 @@ class TestMaximalEndComponents:
 
     def test_create_exact_interval_decomposition(self):
         model = stormpy.build_exact_interval_model_from_drn(get_example_path("imdp", "tiny-01.drn"))
-        assert type(model) is stormpy.SparseRationalIntervalMdp
+        assert type(model) is stormpy.SparseMdp[stormpy.RationalInterval]
         assert model.nr_states == 3
 
         decomposition = stormpy.get_maximal_end_components(model)
@@ -72,7 +72,7 @@ class TestECElimination:
         model = stormpy.build_model(program, formulas)
         transformer = stormpy.AddUncertaintyDouble(model)
         interval_model = transformer.transform(0.01)
-        assert type(interval_model) is stormpy.SparseIntervalMdp
+        assert type(interval_model) is stormpy.SparseMdp[stormpy.Interval]
         subsystem = stormpy.BitVector(interval_model.nr_states, True)
         possible_ec_rows = stormpy.BitVector(interval_model.nr_choices, True)
         add_sink_rows = subsystem
@@ -87,7 +87,7 @@ class TestECElimination:
         model = stormpy.build_sparse_exact_model(program, formulas)
         transformer = stormpy.AddUncertaintyExact(model)
         exact_interval_model = transformer.transform(stormpy.Rational("1/100"))
-        assert type(exact_interval_model) is stormpy.SparseRationalIntervalMdp
+        assert type(exact_interval_model) is stormpy.SparseMdp[stormpy.RationalInterval]
         subsystem = stormpy.BitVector(exact_interval_model.nr_states, True)
         possible_ec_rows = stormpy.BitVector(exact_interval_model.nr_choices, True)
         add_sink_rows = subsystem
