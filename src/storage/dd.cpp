@@ -48,7 +48,7 @@ void define_dd_typed(py::module& m, py::classh<storm::dd::Dd<DdType>> const& dd)
 }
 
 void define_dd_nt(py::module& m) {
-    m.attr("DdType") = py::type::of(py::cast(storm::dd::DdType::Sylvan));
+    m.attr("DdType") = py::module::import("stormpy._core").attr("DdType");
     py::native_enum<storm::dd::MetaVariableType>(m, "DdMetaVariableType", "enum.Enum")
         .value("INT", storm::dd::MetaVariableType::Int)
         .value("BOOL", storm::dd::MetaVariableType::Bool)
