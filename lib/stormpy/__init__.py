@@ -528,6 +528,8 @@ def check_model_dd(model, property, only_initial_states=False, environment=Envir
     :return: Model checking result.
     :rtype: CheckResult
     """
+    if model.is_exact and not model.supports_parameters:
+        raise NotImplementedError("Model checking of exact symbolic models is not supported by the dd engine.")
     formula = property.raw_formula if isinstance(property, Property) else property
     value_type = RationalFunction if model.supports_parameters else (Rational if model.is_exact else float)
     task = CheckTask[value_type](formula, only_initial_states)
@@ -543,6 +545,8 @@ def check_model_hybrid(model, property, only_initial_states=False, environment=E
     :return: Model checking result.
     :rtype: CheckResult
     """
+    if model.is_exact and not model.supports_parameters:
+        raise NotImplementedError("Model checking of exact symbolic models is not supported by the hybrid engine.")
     formula = property.raw_formula if isinstance(property, Property) else property
     value_type = RationalFunction if model.supports_parameters else (Rational if model.is_exact else float)
     task = CheckTask[value_type](formula, only_initial_states)
