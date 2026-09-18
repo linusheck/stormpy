@@ -18,7 +18,7 @@ PYBIND11_MODULE(_utility, m) {
     define_ksp(m);
     define_smt(m);
     define_chrono(m);
-    define_json<double>(m, "Double");
-    define_json<storm::RationalNumber>(m, "Rational");
-    define_kwek_mehlhorn<storm::RationalNumber>(m, "");
+    define_json<double>(m);
+    define_json<storm::RationalNumber>(m);
+    define_kwek_mehlhorn<storm::RationalNumber>(m);
 }
