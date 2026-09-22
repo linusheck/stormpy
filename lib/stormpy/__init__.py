@@ -528,7 +528,7 @@ def check_model_dd(model, property, only_initial_states=False, environment=Envir
     :rtype: CheckResult
     """
     formula = property.raw_formula if isinstance(property, Property) else property
-    value_type = RationalFunction if model.supports_parameters else Rational if model.is_exact else float
+    value_type = RationalFunction if model.supports_parameters else (Rational if model.is_exact else float)
     task = CheckTask[value_type](formula, only_initial_states)
     return _core._model_checking_dd_engine(model, task, environment=environment)
 
