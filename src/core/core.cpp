@@ -106,6 +106,18 @@ std::shared_ptr<storm::models::symbolic::Model<DdType, ValueType>> buildSymbolic
 }
 
 template<typename ValueType>
+void define_explicit_model_builder(py::module& m, std::string const& name) {
+    m.def(name.c_str(), &storm::api::makeExplicitModelBuilder<ValueType>, "Construct a builder instance", py::arg("model_description"),
+          py::arg("options"), py::arg("action_mask") = nullptr,
+          py::arg("exploration_options") = typename storm::builder::ExplicitModelBuilder<ValueType>::Options());
+
+    stormpy::bindings::bindTemplateClass<storm::builder::ExplicitModelBuilder<ValueType>>(
+        m, "ExplicitModelBuilder", stormpy::bindings::typeIndex<ValueType>(), "Model builder for sparse models")
+        .def("build", &storm::builder::ExplicitModelBuilder<ValueType>::build, "Build the model", py::call_guard<py::gil_scoped_release>())
+        .def("export_lookup", &storm::builder::ExplicitModelBuilder<ValueType>::exportExplicitStateLookup, "Export a lookup model");
+}
+
+template<typename ValueType>
 void define_build_sparse_model_defs(py::module& m) {
     std::string type;
     std::string desc;
@@ -150,35 +162,16 @@ void define_build_sparse_model_defs(py::module& m) {
         .def_readwrite("exploration_state_limit", &storm::builder::ExplicitModelBuilder<ValueType>::Options::explorationStateLimit,
                        "If set, no further states will be explored once the given number is exceeded.");
 
+    define_explicit_model_builder<ValueType>(m, "make_sparse_model_builder" + type);
+
+    m.def(("_build_symbolic_" + type + "model_from_symbolic_description").c_str(), &buildSymbolicModel<storm::dd::DdType::Sylvan, ValueType>,
+          ("Build the " + desc + "model in symbolic representation").c_str(), py::arg("model_description"),
+          py::arg("formulas") = std::vector<std::shared_ptr<storm::logic::Formula const>>(), py::arg("environment"));
+
     if constexpr (std::is_same_v<ValueType, double>) {
-        m.def("_build_symbolic_model_from_symbolic_description", &buildSymbolicModel<storm::dd::DdType::Sylvan, double>,
-              "Build the model in symbolic representation", py::arg("model_description"),
-              py::arg("formulas") = std::vector<std::shared_ptr<storm::logic::Formula const>>(), py::arg("environment"));
         m.def("build_sparse_model_from_explicit", &storm::api::buildExplicitModel<double>, "Build the model model from explicit input",
               py::arg("transition_file"), py::arg("labeling_file"), py::arg("state_reward_file") = "", py::arg("transition_reward_file") = "",
               py::arg("choice_labeling_file") = "", py::arg("options") = storm::parser::ExplicitModelParserOptions());
-        m.def("make_sparse_model_builder", &storm::api::makeExplicitModelBuilder<double>, "Construct a builder instance", py::arg("model_description"),
-              py::arg("options"), py::arg("action_mask") = nullptr,
-              py::arg("exploration_options") = typename storm::builder::ExplicitModelBuilder<ValueType>::Options());
-        stormpy::bindings::bindTemplateClass<storm::builder::ExplicitModelBuilder<double>>(m, "ExplicitModelBuilder", stormpy::bindings::typeIndex<double>(),
-                                                                                           "Model builder for sparse models")
-            .def("build", &storm::builder::ExplicitModelBuilder<double>::build, "Build the model", py::call_guard<py::gil_scoped_release>())
-            .def("export_lookup", &storm::builder::ExplicitModelBuilder<double>::exportExplicitStateLookup, "Export a lookup model");
-    } else if constexpr (std::is_same_v<ValueType, storm::RationalFunction>) {
-        m.def("_build_symbolic_parametric_model_from_symbolic_description", &buildSymbolicModel<storm::dd::DdType::Sylvan, storm::RationalFunction>,
-              "Build the parametric model in symbolic representation", py::arg("model_description"),
-              py::arg("formulas") = std::vector<std::shared_ptr<storm::logic::Formula const>>(), py::arg("environment"));
-        m.def("make_sparse_model_builder_parametric", &storm::api::makeExplicitModelBuilder<storm::RationalFunction>, "Construct a builder instance",
-              py::arg("model_description"), py::arg("options"), py::arg("action_mask") = nullptr,
-              py::arg("exploration_options") = typename storm::builder::ExplicitModelBuilder<ValueType>::Options());
-        stormpy::bindings::bindTemplateClass<storm::builder::ExplicitModelBuilder<storm::RationalFunction>>(
-            m, "ExplicitModelBuilder", stormpy::bindings::typeIndex<storm::RationalFunction>(), "Model builder for sparse models")
-            .def("build", &storm::builder::ExplicitModelBuilder<storm::RationalFunction>::build, "Build the model", py::call_guard<py::gil_scoped_release>())
-            .def("export_lookup", &storm::builder::ExplicitModelBuilder<storm::RationalFunction>::exportExplicitStateLookup, "Export a lookup model");
-    } else if constexpr (std::is_same_v<ValueType, storm::RationalNumber>) {
-        m.def("make_sparse_model_builder_exact", &storm::api::makeExplicitModelBuilder<storm::RationalNumber>, "Construct a builder instance",
-              py::arg("model_description"), py::arg("options"), py::arg("action_mask") = nullptr,
-              py::arg("exploration_options") = typename storm::builder::ExplicitModelBuilder<ValueType>::Options());
     }
 }
 
