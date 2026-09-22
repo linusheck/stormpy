@@ -1,7 +1,26 @@
+import pytest
 import stormpy
-from helpers.helper import get_example_path
+from helpers.helper import build_sparse_model, get_example_path
 
 import math
+
+
+@pytest.mark.parametrize("value_type", [float, stormpy.Rational, stormpy.RationalFunction, stormpy.Interval, stormpy.RationalInterval])
+def test_subsystem_and_end_component_overloads(value_type, tmp_path):
+    model = build_sparse_model(get_example_path("dtmc", "die.pm"), value_type)
+
+    states = stormpy.BitVector(model.nr_states, True)
+    choices = stormpy.BitVector(model.nr_choices, True)
+    subsystem = stormpy.construct_submodel(model, states, choices)
+    assert type(subsystem) is stormpy.SubsystemBuilderReturnType[value_type]
+    assert subsystem.model.nr_states == model.nr_states
+    result = stormpy.eliminate_ECs(model.transition_matrix, states, choices, states, True)
+    assert type(result) is stormpy.EndComponentEliminatorReturnType[value_type]
+    assert result.matrix.nr_columns == model.nr_states
+
+    output = tmp_path / "model.drn"
+    stormpy.export_to_drn(model, str(output))
+    assert f"@nr_states\n{model.nr_states}" in output.read_text()
 
 
 class TestTransformation:

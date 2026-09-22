@@ -1,9 +1,29 @@
+import pytest
 import stormpy
-from helpers.helper import get_example_path
+from helpers.helper import build_sparse_model, get_example_path
 
 from configurations import spot
 
 import math
+
+
+def test_symbolic_filter_template_and_shared_dd_type():
+    program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+    model = stormpy.build_symbolic_model(program)
+    result = stormpy.create_filter_initial_states_symbolic(model)
+
+    assert stormpy.DdType is stormpy.storage.DdType
+    assert type(result) is stormpy.SymbolicQualitativeCheckResult[stormpy.DdType.Sylvan]
+    assert stormpy.Bdd.parameters_of(result.get_truth_values()) == (stormpy.DdType.Sylvan,)
+
+
+@pytest.mark.parametrize("value_type", [float, stormpy.Rational, stormpy.RationalFunction])
+def test_initial_state_filter_overloads(value_type):
+    model = build_sparse_model(get_example_path("dtmc", "die.pm"), value_type)
+    result = stormpy.create_filter_initial_states_sparse(model)
+
+    assert type(result) is stormpy.ExplicitQualitativeCheckResult[value_type]
+    assert result.get_truth_values() == model.initial_states_as_bitvector
 
 
 class TestModelChecking:
