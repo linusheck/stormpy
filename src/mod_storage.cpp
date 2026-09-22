@@ -47,7 +47,6 @@ PYBIND11_MODULE(_storage, m) {
     define_sparse_matrix<storm::Interval>(m);
     define_sparse_matrix<storm::RationalInterval>(m);
     define_sparse_matrix<storm::RationalFunction>(m);
-    define_sparse_matrix_nt(m);
     define_symbolic_model<storm::dd::DdType::Sylvan, double>(m);
     define_symbolic_model<storm::dd::DdType::Sylvan, storm::RationalNumber>(m);
     define_symbolic_model<storm::dd::DdType::Sylvan, storm::RationalFunction>(m);
