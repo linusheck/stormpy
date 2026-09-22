@@ -41,13 +41,17 @@ def test_symbolic_filter_template_and_shared_dd_type():
     assert stormpy.Bdd.parameters_of(result.get_truth_values()) == (stormpy.DdType.Sylvan,)
 
 
-@pytest.mark.parametrize("exact", [False, True])
-def test_initial_state_filter_overloads(exact):
+@pytest.mark.parametrize("value_type", [float, stormpy.Rational, stormpy.RationalFunction])
+def test_initial_state_filter_overloads(value_type):
     program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-    model = stormpy.build_sparse_exact_model(program) if exact else stormpy.build_model(program)
+    if value_type is stormpy.Rational:
+        model = stormpy.build_sparse_exact_model(program)
+    elif value_type is stormpy.RationalFunction:
+        model = stormpy.build_parametric_model(program)
+    else:
+        model = stormpy.build_model(program)
     result = stormpy.create_filter_initial_states_sparse(model)
 
-    value_type = stormpy.Rational if exact else float
     assert type(result) is stormpy.ExplicitQualitativeCheckResult[value_type]
     assert result.get_truth_values() == model.initial_states_as_bitvector
 
