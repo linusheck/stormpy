@@ -264,7 +264,7 @@ void exportDRN(std::shared_ptr<storm::models::sparse::Model<ValueType>> model, s
 template<typename ValueType>
 void define_export_drn(py::module& m) {
     m.def("_export_to_drn", &exportDRN<ValueType>,
-          ("Export " + (std::is_same_v<ValueType, storm::RationalFunction> ? std::string("parametric ") : std::string()) + "model in DRN format").c_str(),
+          "Export model in DRN format",
           py::arg("model"), py::arg("file"), py::arg("options") = storm::io::DirectEncodingExporterOptions());
 }
 
