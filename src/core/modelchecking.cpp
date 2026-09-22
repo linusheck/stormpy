@@ -168,17 +168,15 @@ void define_modelchecking_typed(py::module& m) {
         m.def("_multi_objective_model_checking", &multiObjectiveModelChecking<ValueType>, "Run multi-objective model checking", py::arg("model"),
               py::arg("formula"), py::arg("environment"));
     }
-    if constexpr (std::is_same_v<ValueType, double> || std::is_same_v<ValueType, storm::RationalFunction>) {
-        m.def("_model_checking_dd_engine", &modelCheckingDdEngine<storm::dd::DdType::Sylvan, ValueType>, "Perform model checking using the dd engine",
-              py::arg("model"), py::arg("task"), py::arg("environment"));
-        m.def("_model_checking_hybrid_engine", &modelCheckingHybridEngine<storm::dd::DdType::Sylvan, ValueType>,
-              "Perform model checking using the hybrid engine", py::arg("model"), py::arg("task"), py::arg("environment"));
-        m.def("_compute_prob01states", &computeProb01<ValueType>, "Compute prob-0-1 states", py::arg("model"), py::arg("phi_states"), py::arg("psi_states"));
-        m.def("_compute_prob01states_min", &computeProb01min<ValueType>, "Compute prob-0-1 states (min)", py::arg("model"), py::arg("phi_states"),
-              py::arg("psi_states"));
-        m.def("_compute_prob01states_max", &computeProb01max<ValueType>, "Compute prob-0-1 states (max)", py::arg("model"), py::arg("phi_states"),
-              py::arg("psi_states"));
-    }
+    m.def("_model_checking_dd_engine", &modelCheckingDdEngine<storm::dd::DdType::Sylvan, ValueType>, "Perform model checking using the dd engine",
+          py::arg("model"), py::arg("task"), py::arg("environment"));
+    m.def("_model_checking_hybrid_engine", &modelCheckingHybridEngine<storm::dd::DdType::Sylvan, ValueType>, "Perform model checking using the hybrid engine",
+          py::arg("model"), py::arg("task"), py::arg("environment"));
+    m.def("_compute_prob01states", &computeProb01<ValueType>, "Compute prob-0-1 states", py::arg("model"), py::arg("phi_states"), py::arg("psi_states"));
+    m.def("_compute_prob01states_min", &computeProb01min<ValueType>, "Compute prob-0-1 states (min)", py::arg("model"), py::arg("phi_states"),
+          py::arg("psi_states"));
+    m.def("_compute_prob01states_max", &computeProb01max<ValueType>, "Compute prob-0-1 states (max)", py::arg("model"), py::arg("phi_states"),
+          py::arg("psi_states"));
 }
 
 void define_modelchecking(py::module& m) {
