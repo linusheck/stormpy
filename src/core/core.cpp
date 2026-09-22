@@ -107,12 +107,11 @@ std::shared_ptr<storm::models::symbolic::Model<DdType, ValueType>> buildSymbolic
 
 template<typename ValueType>
 void define_explicit_model_builder(py::module& m, std::string const& name) {
-    m.def(name.c_str(), &storm::api::makeExplicitModelBuilder<ValueType>, "Construct a builder instance", py::arg("model_description"),
-          py::arg("options"), py::arg("action_mask") = nullptr,
-          py::arg("exploration_options") = typename storm::builder::ExplicitModelBuilder<ValueType>::Options());
+    m.def(name.c_str(), &storm::api::makeExplicitModelBuilder<ValueType>, "Construct a builder instance", py::arg("model_description"), py::arg("options"),
+          py::arg("action_mask") = nullptr, py::arg("exploration_options") = typename storm::builder::ExplicitModelBuilder<ValueType>::Options());
 
-    stormpy::bindings::bindTemplateClass<storm::builder::ExplicitModelBuilder<ValueType>>(
-        m, "ExplicitModelBuilder", stormpy::bindings::typeIndex<ValueType>(), "Model builder for sparse models")
+    stormpy::bindings::bindTemplateClass<storm::builder::ExplicitModelBuilder<ValueType>>(m, "ExplicitModelBuilder", stormpy::bindings::typeIndex<ValueType>(),
+                                                                                          "Model builder for sparse models")
         .def("build", &storm::builder::ExplicitModelBuilder<ValueType>::build, "Build the model", py::call_guard<py::gil_scoped_release>())
         .def("export_lookup", &storm::builder::ExplicitModelBuilder<ValueType>::exportExplicitStateLookup, "Export a lookup model");
 }
@@ -263,9 +262,8 @@ void exportDRN(std::shared_ptr<storm::models::sparse::Model<ValueType>> model, s
 
 template<typename ValueType>
 void define_export_drn(py::module& m) {
-    m.def("_export_to_drn", &exportDRN<ValueType>,
-          "Export model in DRN format",
-          py::arg("model"), py::arg("file"), py::arg("options") = storm::io::DirectEncodingExporterOptions());
+    m.def("_export_to_drn", &exportDRN<ValueType>, "Export model in DRN format", py::arg("model"), py::arg("file"),
+          py::arg("options") = storm::io::DirectEncodingExporterOptions());
 }
 
 void define_export(py::module& m) {
