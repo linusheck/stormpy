@@ -543,7 +543,7 @@ def check_model_hybrid(model, property, only_initial_states=False, environment=E
     :rtype: CheckResult
     """
     formula = property.raw_formula if isinstance(property, Property) else property
-    value_type = RationalFunction if model.supports_parameters else Rational if model.is_exact else float
+    value_type = RationalFunction if model.supports_parameters else (Rational if model.is_exact else float)
     task = CheckTask[value_type](formula, only_initial_states)
     return _core._model_checking_hybrid_engine(model, task, environment=environment)
 
