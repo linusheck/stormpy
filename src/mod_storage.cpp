@@ -50,8 +50,6 @@ PYBIND11_MODULE(_storage, m) {
     define_symbolic_model<storm::dd::DdType::Sylvan, double>(m);
     define_symbolic_model<storm::dd::DdType::Sylvan, storm::RationalNumber>(m);
     define_symbolic_model<storm::dd::DdType::Sylvan, storm::RationalFunction>(m);
-    define_symbolic_model<storm::dd::DdType::Sylvan, storm::Interval>(m);
-    define_symbolic_model<storm::dd::DdType::Sylvan, storm::RationalInterval>(m);
     define_state<double>(m);
     define_state<storm::RationalNumber>(m);
     define_state<storm::Interval>(m);

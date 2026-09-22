@@ -163,9 +163,11 @@ void define_build_sparse_model_defs(py::module& m) {
 
     define_explicit_model_builder<ValueType>(m, "make_sparse_model_builder" + type);
 
-    m.def(("_build_symbolic_" + type + "model_from_symbolic_description").c_str(), &buildSymbolicModel<storm::dd::DdType::Sylvan, ValueType>,
-          ("Build the " + desc + "model in symbolic representation").c_str(), py::arg("model_description"),
-          py::arg("formulas") = std::vector<std::shared_ptr<storm::logic::Formula const>>(), py::arg("environment"));
+    if constexpr (!storm::IsIntervalType<ValueType>) {
+        m.def(("_build_symbolic_" + type + "model_from_symbolic_description").c_str(), &buildSymbolicModel<storm::dd::DdType::Sylvan, ValueType>,
+              ("Build the " + desc + "model in symbolic representation").c_str(), py::arg("model_description"),
+              py::arg("formulas") = std::vector<std::shared_ptr<storm::logic::Formula const>>(), py::arg("environment"));
+    }
 
     if constexpr (std::is_same_v<ValueType, double>) {
         m.def("build_sparse_model_from_explicit", &storm::api::buildExplicitModel<double>, "Build the model model from explicit input",
