@@ -155,7 +155,7 @@ void define_check_task(py::module& m) {
 }
 
 template<typename ValueType>
-void define_modelchecking_mdefs(py::module& m) {
+void define_modelchecking_typed(py::module& m) {
     m.def("_get_reachable_states", &getReachableStates<ValueType>, py::arg("model"), py::arg("initial_states"), py::arg("constraint_states"),
           py::arg("target_states"), py::arg("maximal_steps") = boost::none, py::arg("choice_filter") = boost::none);
     m.def("_model_checking_sparse_engine", &modelCheckingSparseEngine<ValueType>, "Perform model checking using the sparse engine", py::arg("model"),
@@ -197,10 +197,6 @@ void define_modelchecking(py::module& m) {
              py::overload_cast<boost::optional<std::vector<double>> const&>(&storm::modelchecker::ExplicitModelCheckerHint<double>::setResultHint),
              "result_hint"_a);
 
-    define_modelchecking_mdefs<double>(m);
-    define_modelchecking_mdefs<storm::RationalNumber>(m);
-    define_modelchecking_mdefs<storm::RationalFunction>(m);
-
     m.def("check_interval_dtmc", &checkIntervalDtmc, "Check interval DTMC");
     m.def("check_exact_interval_dtmc", &checkRationalIntervalDtmc, "Check exact interval DTMC");
     m.def("check_interval_mdp", &checkIntervalMdp, "Check interval MDP");
@@ -212,3 +208,7 @@ void define_modelchecking(py::module& m) {
 template void define_check_task<double>(py::module&);
 template void define_check_task<storm::RationalNumber>(py::module&);
 template void define_check_task<storm::RationalFunction>(py::module&);
+
+template void define_modelchecking_typed<double>(py::module&);
+template void define_modelchecking_typed<storm::RationalNumber>(py::module&);
+template void define_modelchecking_typed<storm::RationalFunction>(py::module&);

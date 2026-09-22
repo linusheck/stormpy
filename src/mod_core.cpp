@@ -38,6 +38,9 @@ PYBIND11_MODULE(_core, m) {
     define_check_task<double>(m);
     define_check_task<storm::RationalNumber>(m);
     define_check_task<storm::RationalFunction>(m);
+    define_modelchecking_typed<double>(m);
+    define_modelchecking_typed<storm::RationalNumber>(m);
+    define_modelchecking_typed<storm::RationalFunction>(m);
     define_modelchecking(m);
     define_multiobjective<double>(m);
     define_multiobjective<storm::RationalNumber>(m);

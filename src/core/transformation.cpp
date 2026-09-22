@@ -32,22 +32,7 @@ typename storm::transformer::EndComponentEliminator<ValueType>::EndComponentElim
     return storm::transformer::EndComponentEliminator<ValueType>::transform(matrix, subsystemStates, possibleECRows, addSinkRowStates, addSelfLoopAtSinkStates);
 }
 
-template<typename ValueType>
-void define_transformation_mdef(py::module& m) {
-    m.def("_transform_to_sparse_model", &storm::api::transformSymbolicToSparseModel<storm::dd::DdType::Sylvan, ValueType>,
-          "Transform a symbolic model into a sparse model", py::arg("model"),
-          py::arg("formulae") = std::vector<std::shared_ptr<storm::logic::Formula const>>());
-    m.def("_transform_to_discrete_time_model", &transformContinuousToDiscreteTimeSparseModel<ValueType>,
-          "Transform a continuous-time model into a discrete-time model", py::arg("model"),
-          py::arg("formulae") = std::vector<std::shared_ptr<storm::logic::Formula const>>());
-    m.def("_eliminate_non_markovian_chains", &storm::api::eliminateNonMarkovianChains<ValueType>,
-          "Eliminate chains of non-Markovian states in a Markov automaton", py::arg("ma"), py::arg("formulae"), py::arg("label_behavior"));
-}
-
 void define_transformation(py::module& m) {
-    define_transformation_mdef<double>(m);
-    define_transformation_mdef<storm::RationalFunction>(m);
-
     py::classh<storm::transformer::SubsystemBuilderOptions>(m, "SubsystemBuilderOptions", "Options for constructing the subsystem")
         .def(py::init<>())
         .def_readwrite("check_transitions_outside", &storm::transformer::SubsystemBuilderOptions::checkTransitionsOutside)
@@ -68,6 +53,15 @@ void define_transformation(py::module& m) {
 template<typename ValueType>
 void define_transformation_typed(py::module& m) {
     auto const index = stormpy::bindings::typeIndex<ValueType>();
+    m.def("_transform_to_sparse_model", &storm::api::transformSymbolicToSparseModel<storm::dd::DdType::Sylvan, ValueType>,
+          "Transform a symbolic model into a sparse model", py::arg("model"),
+          py::arg("formulae") = std::vector<std::shared_ptr<storm::logic::Formula const>>());
+    m.def("_transform_to_discrete_time_model", &transformContinuousToDiscreteTimeSparseModel<ValueType>,
+          "Transform a continuous-time model into a discrete-time model", py::arg("model"),
+          py::arg("formulae") = std::vector<std::shared_ptr<storm::logic::Formula const>>());
+    m.def("_eliminate_non_markovian_chains", &storm::api::eliminateNonMarkovianChains<ValueType>,
+          "Eliminate chains of non-Markovian states in a Markov automaton", py::arg("ma"), py::arg("formulae"), py::arg("label_behavior"));
+
     stormpy::bindings::bindTemplateClass<storm::transformer::SubsystemBuilderReturnType<ValueType>>(m, "SubsystemBuilderReturnType", index,
                                                                                                     "Result of the construction of a subsystem")
         .def_readonly("model", &storm::transformer::SubsystemBuilderReturnType<ValueType>::model, "the submodel")

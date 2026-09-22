@@ -4,5 +4,7 @@
 
 template<typename ValueType>
 void define_check_task(py::module& m);
+template<typename ValueType>
+void define_modelchecking_typed(py::module& m);
 
 void define_modelchecking(py::module& m);
