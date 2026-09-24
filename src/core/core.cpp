@@ -161,7 +161,7 @@ void define_build_sparse_model_defs(py::module& m) {
         .def_readwrite("exploration_state_limit", &storm::builder::ExplicitModelBuilder<ValueType>::Options::explorationStateLimit,
                        "If set, no further states will be explored once the given number is exceeded.");
 
-    define_explicit_model_builder<ValueType>(m, "make_sparse_model_builder" + type);
+    define_explicit_model_builder<ValueType>(m, type.empty() ? "make_sparse_model_builder" : "make_sparse_model_builder_" + type.substr(0, type.size() - 1));
 
     if constexpr (!storm::IsIntervalType<ValueType>) {
         m.def(("_build_symbolic_" + type + "model_from_symbolic_description").c_str(), &buildSymbolicModel<storm::dd::DdType::Sylvan, ValueType>,
