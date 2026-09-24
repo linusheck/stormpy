@@ -138,6 +138,9 @@ void define_typed_result(py::module& m) {
         .def("get_values", &storm::modelchecker::HybridQuantitativeCheckResult<storm::dd::DdType::Sylvan, ValueType>::getExplicitValueVector,
              "Get model checking result values for all states");
 
+    m.def("create_filter_initial_states_sparse", &createFilterInitialStatesSparse<ValueType>, "Create a filter for the initial states on a sparse model",
+          py::arg("model"));
+
     if constexpr (std::is_same_v<ValueType, double> || std::is_same_v<ValueType, storm::RationalNumber>) {
         auto pccheckresult = stormpy::bindings::bindTemplateClass<storm::modelchecker::ParetoCurveCheckResult<ValueType>, storm::modelchecker::CheckResult>(
             m, "ParetoCurveCheckResult", index, "Result for multiobjective model checking");
@@ -149,8 +152,6 @@ void define_typed_result(py::module& m) {
 
         m.def("create_filter_symbolic", &createFilterSymbolic<storm::dd::DdType::Sylvan, ValueType>,
               "Creates a filter for the given states and a symbolic model", py::arg("model"), py::arg("states"));
-        m.def("create_filter_initial_states_sparse", &createFilterInitialStatesSparse<ValueType>, "Create a filter for the initial states on a sparse model",
-              py::arg("model"));
         m.def("create_filter_initial_states_symbolic", &createFilterInitialStatesSymbolic<storm::dd::DdType::Sylvan, ValueType>,
               "Create a filter for the initial states on a symbolic model", py::arg("model"));
     }

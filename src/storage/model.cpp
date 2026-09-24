@@ -416,5 +416,3 @@ template void define_sparse_model<storm::RationalFunction>(py::module& m);
 template void define_symbolic_model<storm::dd::DdType::Sylvan, double>(py::module& m);
 template void define_symbolic_model<storm::dd::DdType::Sylvan, storm::RationalNumber>(py::module& m);
 template void define_symbolic_model<storm::dd::DdType::Sylvan, storm::RationalFunction>(py::module& m);
-template void define_symbolic_model<storm::dd::DdType::Sylvan, storm::Interval>(py::module& m);
-template void define_symbolic_model<storm::dd::DdType::Sylvan, storm::RationalInterval>(py::module& m);
