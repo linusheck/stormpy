@@ -9,6 +9,9 @@ import re
 import sys
 
 import stormpy
+from stormpy._template import TemplateClass
+
+import pathlib
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -76,9 +79,40 @@ def _filter_api_members(module, members):
     return [name for name in members if getattr(getattr(module_obj, name, None), "__module__", None) in accepted]
 
 
+def _template_families(module):
+    """Find public template families owned by a module, not re-exports."""
+    module_obj = sys.modules[module]
+    return sorted(
+        name for name, obj in vars(module_obj).items()
+        if isinstance(obj, TemplateClass) and obj.canonical_name == f"{module}.{name}"
+    )
+
+
+def _template_info(fullname):
+    module, _, name = fullname.rpartition(".")
+    metadata = getattr(sys.modules[module], name).metadata
+
+    def format_argument(arg):
+        if isinstance(arg, type):
+            return f"{arg.__module__}.{arg.__qualname__}" if arg.__module__ != "builtins" else arg.__qualname__
+        return f"{type(arg).__module__}.{type(arg).__qualname__}.{arg.name}" if hasattr(arg, "name") else repr(arg)
+
+    return {
+        "parameters": ", ".join(p.name for p in metadata.parameters),
+        "kinds": [(p.name, p.kind) for p in metadata.parameters],
+        "instantiations": [
+            (", ".join(format_argument(arg) for arg in inst.arguments), inst.native_name)
+            for inst in metadata.instantiations
+        ],
+        "deduction_guide": metadata.deduction_guide,
+    }
+
+
 # Variables (and callables) available in autosummary templates
 autosummary_context = {
     "filter_api_members": _filter_api_members,
+    "template_families": _template_families,
+    "template_info": _template_info,
 }
 
 # Wrap long signatures instead of scrolling them
