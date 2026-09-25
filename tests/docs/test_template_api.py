@@ -8,7 +8,6 @@ import stormpy
 import stormpy.dft
 from stormpy._template import TemplateClass
 
-
 _spec = importlib.util.spec_from_file_location("stormpy_templates", Path(__file__).parents[2] / "doc/source/_ext/stormpy_templates.py")
 docs = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(docs)
@@ -68,7 +67,12 @@ def test_overload_substitution_and_unrecognized_cpp_types():
     entries = []
     for inst in family.metadata.instantiations:
         typ = docs.argument_name(inst.arguments[0])
-        entries.append((inst, f"""shared(*args, **kwargs)\nOverloaded function.\n\n1. shared(self: {inst.native_name}, value: {typ}) -> {typ}\n\n2. shared(self: {inst.native_name}, value: int) -> storm::opaque<{typ}>\n\nShared method."""))
+        entries.append(
+            (
+                inst,
+                f"""shared(*args, **kwargs)\nOverloaded function.\n\n1. shared(self: {inst.native_name}, value: {typ}) -> {typ}\n\n2. shared(self: {inst.native_name}, value: int) -> storm::opaque<{typ}>\n\nShared method.""",
+            )
+        )
     variants = docs.generic_docs(family, entries, [family], "shared")
     assert all("1. shared(self: test.Example[ValueType], value: ValueType) -> ValueType" in text for _, text in variants)
     assert all("storm::opaque<" not in text for _, text in variants)
@@ -77,9 +81,12 @@ def test_overload_substitution_and_unrecognized_cpp_types():
 
 
 def test_unresolved_annotations_are_omitted_not_overloads():
-    assert docs._public_signature(
-        "run(self: stormpy._core._CheckResult, components: storm::Components<std::pair<int, int>>, limit: int = 5) -> storm::Result<int>"
-    ) == "run(self, components, limit: int = 5)"
+    assert (
+        docs._public_signature(
+            "run(self: stormpy._core._CheckResult, components: storm::Components<std::pair<int, int>>, limit: int = 5) -> storm::Result<int>"
+        )
+        == "run(self, components, limit: int = 5)"
+    )
     assert docs._public_signature("run(self: stormpy.storage.SparseMdp[ValueType]) -> float") == "run(self: stormpy.storage.SparseMdp[ValueType]) -> float"
 
 
