@@ -185,7 +185,9 @@ def test_builtin_deduction_sources_are_exposed_as_metadata():
 
     module = SimpleNamespace(_template_instantiations={"Example": {("base",): BaseImplementation}})
     from_object = _TemplateClass(
-        "test.Example", module, parameters=["kind"],
+        "test.Example",
+        module,
+        parameters=["kind"],
         deduce=_deduce_from_object(lambda value: value, keyword=("model", "source"), position=1),
     )
     assert from_object.metadata.deduction_source == DeductionSource(1, ("model", "source"))

@@ -123,7 +123,10 @@ def generic_docs(family, entries, families, name):
                     replacements[spelling] = (param.name, spelling)
         for other in families:
             for spec in other.metadata.instantiations:
-                params = [next((param.name for value, param in zip(inst.arguments, family.metadata.parameters) if value is arg), argument_name(arg)) for arg in spec.arguments]
+                params = [
+                    next((param.name for value, param in zip(inst.arguments, family.metadata.parameters) if value is arg), argument_name(arg))
+                    for arg in spec.arguments
+                ]
                 replacements[spec.native_name] = (
                     f"{other.canonical_name}[{', '.join(params)}]",
                     f"{other.canonical_name}[{', '.join(argument_name(arg) for arg in spec.arguments)}]",
@@ -137,14 +140,13 @@ def generic_docs(family, entries, families, name):
             other_lines = [
                 other_doc.splitlines()[i]
                 for other_inst, other_doc in entries
-                if other_inst != inst and len(other_doc.splitlines()) > i
-                and i in signature_lines(other_doc, name)
+                if other_inst != inst and len(other_doc.splitlines()) > i and i in signature_lines(other_doc, name)
             ]
             blocks = [SequenceMatcher(None, line, other, autojunk=False).get_matching_blocks() for other in other_lines]
 
             def replace(match):
                 token = match.group()
-                self_type = token == inst.native_name and re.search(r"\bself:\s*$", line[:match.start()])
+                self_type = token == inst.native_name and re.search(r"\bself:\s*$", line[: match.start()])
                 varies = any(not any(b.a <= match.start() and match.end() <= b.a + b.size for b in group) for group in blocks)
                 generic, fixed = replacements[token]
                 return generic if self_type or varies else fixed
@@ -159,17 +161,14 @@ def generic_docs(family, entries, families, name):
 
 def constructors(family, families):
     """Return common class signatures, or signatures grouped by specialization."""
-    entries = [
-        (inst, member_doc(inspect.getattr_static(inst.implementation, "__init__")))
-        for inst in family.metadata.instantiations
-    ]
+    entries = [(inst, member_doc(inspect.getattr_static(inst.implementation, "__init__"))) for inst in family.metadata.instantiations]
     entries = [(inst, doc) for inst, doc in entries if doc != inspect.getdoc(object.__init__)]
     groups = {}
     for inst, doc in generic_docs(family, entries, families, "__init__"):
         signatures = []
         for i in signature_lines(doc, "__init__"):
             line = re.sub(r"^\d+\. ", "", doc.splitlines()[i])
-            args = _split_arguments(line[line.index("(") + 1:line.rindex(")")])
+            args = _split_arguments(line[line.index("(") + 1 : line.rindex(")")])
             if args and args[0].split(":", 1)[0] == "self":
                 args.pop(0)
             signatures.append(f"({', '.join(args)})")
@@ -248,10 +247,7 @@ def render_members(family, families):
 
 def template_families(module):
     """Public families owned by this module, excluding re-exports."""
-    return sorted(
-        name for name, obj in vars(sys.modules[module]).items()
-        if isinstance(obj, TemplateClass) and obj.canonical_name == f"{module}.{name}"
-    )
+    return sorted(name for name, obj in vars(sys.modules[module]).items() if isinstance(obj, TemplateClass) and obj.canonical_name == f"{module}.{name}")
 
 
 def template_info(fullname):
@@ -265,8 +261,10 @@ def template_info(fullname):
             descriptions.setdefault(description, []).append(", ".join(argument_name(arg) for arg in inst.arguments))
     families = {
         id(obj): obj
-        for module_name, module_obj in list(sys.modules.items()) if module_name.startswith("stormpy") and module_obj is not None
-        for obj in vars(module_obj).values() if isinstance(obj, TemplateClass)
+        for module_name, module_obj in list(sys.modules.items())
+        if module_name.startswith("stormpy") and module_obj is not None
+        for obj in vars(module_obj).values()
+        if isinstance(obj, TemplateClass)
     }
     common_constructors, constructor_variants = constructors(family, families.values())
     return {
