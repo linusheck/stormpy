@@ -20,19 +20,12 @@ using MatrixEntry = storm::storage::MatrixEntry<entry_index<ValueType>, ValueTyp
 using RationalFunction = storm::RationalFunction;
 using row_index = unsigned int;
 
-void define_sparse_matrix_nt(py::module& m) {
-    m.def(
-        "_topological_sort_double",
-        [](SparseMatrix<double>& matrix, std::vector<uint64_t> initial) { return storm::utility::graph::getTopologicalSort(matrix, initial); }, "matrix"_a,
-        "initial"_a, "get topological sort w.r.t. a transition matrix");
-    m.def(
-        "_topological_sort_rf",
-        [](SparseMatrix<storm::RationalFunction>& matrix, std::vector<uint64_t> initial) { return storm::utility::graph::getTopologicalSort(matrix, initial); },
-        "matrix"_a, "initial"_a, "get topological sort w.r.t. a transition matrix");
-}
-
 template<typename ValueType>
 void define_sparse_matrix(py::module& m) {
+    m.def(
+        "_topological_sort",
+        [](SparseMatrix<ValueType>& matrix, std::vector<uint64_t> initial) { return storm::utility::graph::getTopologicalSort(matrix, initial); }, "matrix"_a,
+        "initial"_a, "get topological sort w.r.t. a transition matrix");
     auto const index = stormpy::bindings::typeIndex<ValueType>();
     // MatrixEntry
     stormpy::bindings::bindTemplateClass<MatrixEntry<ValueType>>(m, "SparseMatrixEntry", index, "Entry of sparse matrix")

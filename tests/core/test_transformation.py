@@ -1,7 +1,26 @@
+import pytest
 import stormpy
-from helpers.helper import get_example_path
+from helpers.helper import build_sparse_model, get_example_path
 
 import math
+
+
+@pytest.mark.parametrize("value_type", [float, stormpy.Rational, stormpy.RationalFunction, stormpy.Interval, stormpy.RationalInterval])
+def test_subsystem_and_end_component_overloads(value_type, tmp_path):
+    model = build_sparse_model(get_example_path("dtmc", "die.pm"), value_type)
+
+    states = stormpy.BitVector(model.nr_states, True)
+    choices = stormpy.BitVector(model.nr_choices, True)
+    subsystem = stormpy.construct_submodel(model, states, choices)
+    assert type(subsystem) is stormpy.SubsystemBuilderReturnType[value_type]
+    assert subsystem.model.nr_states == model.nr_states
+    result = stormpy.eliminate_ECs(model.transition_matrix, states, choices, states, True)
+    assert type(result) is stormpy.EndComponentEliminatorReturnType[value_type]
+    assert result.matrix.nr_columns == model.nr_states
+
+    output = tmp_path / "model.drn"
+    stormpy.export_to_drn(model, str(output))
+    assert f"@nr_states\n{model.nr_states}" in output.read_text()
 
 
 class TestTransformation:
@@ -151,7 +170,7 @@ class TestAddUncertainty:
         model = stormpy.build_model(program)
         assert type(model) is stormpy.SparseDtmc[float]
         assert model.nr_states == 13
-        transformer = stormpy.AddUncertaintyDouble(model)
+        transformer = stormpy.AddUncertainty[float](model)
         interval_model = transformer.transform(0.1)
         assert type(interval_model) is stormpy.SparseDtmc[stormpy.Interval]
         assert interval_model.nr_states == 13
@@ -165,7 +184,7 @@ class TestAddUncertainty:
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         model = stormpy.build_sparse_exact_model(program)
         assert type(model) is stormpy.SparseDtmc[stormpy.Rational]
-        transformer = stormpy.AddUncertaintyExact(model)
+        transformer = stormpy.AddUncertainty[stormpy.Rational](model)
         interval_model = transformer.transform(stormpy.Rational("1/10"))
         assert type(interval_model) is stormpy.SparseDtmc[stormpy.RationalInterval]
         assert interval_model.nr_states == model.nr_states

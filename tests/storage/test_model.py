@@ -5,6 +5,13 @@ from helpers.helper import get_example_path
 import pytest
 
 
+def test_parameters_of_model():
+    program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+    model = stormpy.build_sparse_exact_model(program)
+
+    assert stormpy.storage.parameters_of_model(model) == (stormpy.Rational,)
+
+
 class TestSparseModel:
     def test_build_dtmc_from_prism_program(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
