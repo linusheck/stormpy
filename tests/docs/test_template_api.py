@@ -60,6 +60,7 @@ def test_non_template_docstring_is_unchanged():
 def test_constructor_descriptions_in_class_body():
     family = make_family()
     for inst in family.metadata.instantiations:
+
         def constructor(self):
             pass
 
@@ -74,6 +75,7 @@ def test_constructor_descriptions_in_class_body():
 def test_constructor_descriptions_preserve_specialization_differences():
     family = make_family()
     for inst in family.metadata.instantiations:
+
         def constructor(self):
             pass
 
@@ -168,6 +170,7 @@ def test_real_constructor_overloads_are_not_dropped():
 def test_object_defaults_do_not_split_generic_signatures():
     family = make_family()
     for index, inst in enumerate(family.metadata.instantiations):
+
         def constructor(self):
             pass
 
