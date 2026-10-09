@@ -45,6 +45,18 @@ def test_shared_and_fixed_types_and_conditional_members():
     assert "Available only for: ``Example[float]``." in output
 
 
+def test_template_docstring_uses_native_description():
+    lines = ["Native C++ template family exposed as a subscriptable Python object."]
+    docs.template_docstring(None, "class", "stormpy.dft.DFT", stormpy.dft.DFT, None, lines)
+    assert lines == ["Dynamic Fault Tree"]
+
+
+def test_non_template_docstring_is_unchanged():
+    lines = ["Ordinary class description."]
+    docs.template_docstring(None, "class", "Example", object, None, lines)
+    assert lines == ["Ordinary class description."]
+
+
 def test_public_aliases():
     assert docs.argument_name(stormpy.Rational) == "stormpy.Rational"
     assert docs.argument_name(stormpy.Interval) == "stormpy.Interval"
