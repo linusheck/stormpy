@@ -300,11 +300,7 @@ def template_docstring(app, what, name, obj, options, lines):
     """Use native family descriptions, not the template wrapper's docstring."""
     if not isinstance(obj, _TemplateClass):
         return
-    descriptions = dict.fromkeys(
-        description
-        for inst in obj.metadata.instantiations
-        if (description := inspect.getdoc(inst.implementation))
-    )
+    descriptions = dict.fromkeys(description for inst in obj.metadata.instantiations if (description := inspect.getdoc(inst.implementation)))
     lines[:] = "\n\n".join(descriptions).splitlines()
 
 
