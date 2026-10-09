@@ -3,7 +3,7 @@
 {%- set functions = filter_api_members(fullname, functions) -%}
 {%- set classes = filter_api_members(fullname, classes) -%}
 {%- set exceptions = filter_api_members(fullname, exceptions) -%}
-{%- set families = template_families(fullname) -%}
+{%- set classes = (classes + template_families(fullname)) | unique | sort | list -%}
 {{ fullname | escape | underline}}
 
 .. automodule:: {{ fullname }}
@@ -38,23 +38,12 @@
 
    .. autosummary::
       :toctree:
-      :template: autosummary/class.rst
+      :template: autosummary/apiclass.rst
    {% for item in classes %}
       {{ item }}
    {%- endfor %}
    {% endif %}
    {%- endblock %}
-
-   {%- if families %}
-   .. rubric:: Template classes
-
-   .. autosummary::
-      :toctree:
-      :template: autosummary/templateclass.rst
-   {% for item in families %}
-      {{ item }}
-   {%- endfor %}
-   {% endif %}
 
    {%- block exceptions %}
    {%- if exceptions %}

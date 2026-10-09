@@ -74,6 +74,7 @@ def _filter_api_members(module, members):
     the pages of the modules in _MEMBER_MODULES (which re-export members of
     other modules) only list the members defined in the given modules.
     """
+    members = [name for name in members if not name.startswith("_")]
     accepted = _MEMBER_MODULES.get(module)
     if accepted is None:
         return members
