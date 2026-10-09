@@ -11,7 +11,7 @@ import sys
 from difflib import SequenceMatcher
 
 import stormpy
-from stormpy._template import TemplateClass
+from stormpy._template import _TemplateClass
 
 
 def argument_name(argument):
@@ -247,7 +247,7 @@ def render_members(family, families):
 
 def template_families(module):
     """Public families owned by this module, excluding re-exports."""
-    return sorted(name for name, obj in vars(sys.modules[module]).items() if isinstance(obj, TemplateClass) and obj.canonical_name == f"{module}.{name}")
+    return sorted(name for name, obj in vars(sys.modules[module]).items() if isinstance(obj, _TemplateClass) and obj.canonical_name == f"{module}.{name}")
 
 
 def template_info(fullname):
@@ -264,7 +264,7 @@ def template_info(fullname):
         for module_name, module_obj in list(sys.modules.items())
         if module_name.startswith("stormpy") and module_obj is not None
         for obj in vars(module_obj).values()
-        if isinstance(obj, TemplateClass)
+        if isinstance(obj, _TemplateClass)
     }
     common_constructors, constructor_variants = constructors(family, families.values())
     return {

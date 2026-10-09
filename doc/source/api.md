@@ -12,7 +12,6 @@ Work in progress!
    stormpy.storage
    stormpy.logic
    stormpy.dft
-   stormpy.dft.developer
    stormpy.gspn
    stormpy.pars
    stormpy.pomdp

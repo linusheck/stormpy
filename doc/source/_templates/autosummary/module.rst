@@ -1,7 +1,7 @@
 {#- Only list the members that belong to this module (see filter_api_members in conf.py) -#}
 {%- set attributes = filter_api_members(fullname, attributes) -%}
 {%- set functions = filter_api_members(fullname, functions) -%}
-{%- set classes = filter_api_members(fullname, classes) | reject('equalto', 'TemplateClass') | list -%}
+{%- set classes = filter_api_members(fullname, classes) -%}
 {%- set exceptions = filter_api_members(fullname, exceptions) -%}
 {%- set families = template_families(fullname) -%}
 {{ fullname | escape | underline}}

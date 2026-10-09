@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import stormpy
 import stormpy.dft
-from stormpy._template import TemplateClass
+from stormpy._template import _TemplateClass
 
 _spec = importlib.util.spec_from_file_location("stormpy_templates", Path(__file__).parents[2] / "doc/source/_ext/stormpy_templates.py")
 docs = importlib.util.module_from_spec(_spec)
@@ -32,7 +32,7 @@ def make_family():
     Integral.__module__ = "test"
     Integral.__name__ = "_Integral"
     module = SimpleNamespace(_template_instantiations={"Example": {(float,): Floating, (int,): Integral}})
-    return TemplateClass("test.Example", module, parameters=["ValueType"])
+    return _TemplateClass("test.Example", module, parameters=["ValueType"])
 
 
 def test_shared_and_fixed_types_and_conditional_members():
@@ -102,8 +102,8 @@ def test_constructor_deduction_descriptions():
     fallback = docs.deduction_description(stormpy.storage.SparseModelComponents)
     assert "``transition_matrix``" in fallback
     assert "If none is supplied, ``SparseModelComponents[float]``" in fallback
-    assert "first positional constructor argument" in docs.deduction_description(stormpy.dft.DFTSimulator)
-    assert "``dft``" in docs.deduction_description(stormpy.dft.DFTSimulator)
+    assert "first positional constructor argument" in docs.deduction_description(stormpy.dft.developer.DFTTraceSimulator)
+    assert "``dft``" in docs.deduction_description(stormpy.dft.developer.DFTTraceSimulator)
     assert docs.deduction_description(stormpy.storage.Add) is None
 
 
@@ -120,10 +120,23 @@ def test_real_constructor_overloads_are_not_dropped():
 
 
 def test_object_defaults_do_not_split_generic_signatures():
-    family = stormpy.dft.ExplicitDFTModelBuilder
+    family = make_family()
+    for index, inst in enumerate(family.metadata.instantiations):
+        def constructor(self):
+            pass
+
+        constructor.__doc__ = f"__init__(self: {inst.native_name}, options: test._Options = <test._Options object at 0x{index + 1:x}>) -> None"
+        inst.implementation.__init__ = constructor
+    signatures, variants = docs.constructors(family, [family])
+    assert signatures == ("(options = ...)",)
+    assert variants == []
+
+
+def test_developer_dft_builder_constructor():
+    family = stormpy.dft.developer.ExplicitDFTModelBuilder
     output = docs.render_members(family, [family])
     signatures, variants = docs.constructors(family, [family])
-    assert signatures == ("(dft, symmetries = ...)",)
+    assert signatures == ("(env, dft, symmetries)",)
     assert variants == []
     assert "ExplicitDFTModelBuilder.__init__" not in output
     assert "object at 0x" not in output
