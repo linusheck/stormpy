@@ -279,6 +279,20 @@ def template_info(fullname):
     }
 
 
+def template_docstring(app, what, name, obj, options, lines):
+    """Use native family descriptions, not the template wrapper's docstring."""
+    if not isinstance(obj, _TemplateClass):
+        return
+    descriptions = dict.fromkeys(
+        description
+        for inst in obj.metadata.instantiations
+        if (description := inspect.getdoc(inst.implementation))
+    )
+    lines[:] = "\n\n".join(descriptions).splitlines()
+
+
 def setup(app):
     """Register the project-local Sphinx extension."""
+    app.setup_extension("sphinx.ext.autodoc")
+    app.connect("autodoc-process-docstring", template_docstring)
     return {"parallel_read_safe": True, "parallel_write_safe": True}
