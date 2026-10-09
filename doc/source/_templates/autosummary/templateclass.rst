@@ -23,7 +23,16 @@
    * ``{{ objname }}[{{ args }}]``
    {%- endfor %}
 
+   {% if info.constructor_descriptions or info.deduction or info.constructor_variants %}
+   .. rubric:: Construction
+
+   {% for description, specializations in info.constructor_descriptions %}
+   {% if specializations %}For {{ specializations | join(', ') }}:{% endif %}
+   {{ description | indent(3) }}
+   {% endfor %}
+
    {% if info.deduction %}{{ info.deduction }}{% endif %}
+   {% endif %}
 
    {% if info.constructor_variants %}
    Constructor signatures vary by specialization:
