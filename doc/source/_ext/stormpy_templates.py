@@ -187,6 +187,22 @@ def constructors(family, families):
     return (), variants
 
 
+def constructor_descriptions(family, families):
+    """Include __init__ prose in the class body, like autoclass_content='both'."""
+    entries = [(inst, member_doc(inspect.getattr_static(inst.implementation, "__init__"))) for inst in family.metadata.instantiations]
+    entries = [(inst, doc) for inst, doc in entries if doc != inspect.getdoc(object.__init__)]
+    descriptions = {}
+    for inst, doc in generic_docs(family, entries, families, "__init__"):
+        indexes = set(signature_lines(doc, "__init__"))
+        description = "\n".join(line for i, line in enumerate(doc.splitlines()) if i not in indexes).strip()
+        if description:
+            descriptions.setdefault(description, []).append(specialization_name(family, inst))
+    return [
+        (description, specializations if len(specializations) != len(family.metadata.instantiations) else [])
+        for description, specializations in descriptions.items()
+    ]
+
+
 def render_members(family, families):
     """Render the union of specialization members, marking conditional ones."""
     instantiations = family.metadata.instantiations
@@ -270,6 +286,7 @@ def template_info(fullname):
     return {
         "constructors": common_constructors,
         "constructor_variants": constructor_variants,
+        "constructor_descriptions": constructor_descriptions(family, families.values()),
         "descriptions": list(descriptions.items()),
         "deduction": deduction_description(family),
         "parameters": ", ".join(p.name for p in metadata.parameters),

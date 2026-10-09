@@ -57,6 +57,40 @@ def test_non_template_docstring_is_unchanged():
     assert lines == ["Ordinary class description."]
 
 
+def test_constructor_descriptions_in_class_body():
+    family = make_family()
+    for inst in family.metadata.instantiations:
+        def constructor(self):
+            pass
+
+        typ = docs.argument_name(inst.arguments[0])
+        constructor.__doc__ = f"__init__(self: {inst.native_name}, value: {typ}) -> None\n\nCreate an example.\n\n:param value: Initial value."
+        inst.implementation.__init__ = constructor
+    assert docs.constructor_descriptions(family, [family]) == [("Create an example.\n\n:param value: Initial value.", [])]
+    assert docs.constructors(family, [family]) == (("(value: ValueType)",), [])
+    assert "Example.__init__" not in docs.render_members(family, [family])
+
+
+def test_constructor_descriptions_preserve_specialization_differences():
+    family = make_family()
+    for inst in family.metadata.instantiations:
+        def constructor(self):
+            pass
+
+        typ = docs.argument_name(inst.arguments[0])
+        constructor.__doc__ = f"__init__(self: {inst.native_name}) -> None\n\nCreate the {typ} specialization."
+        inst.implementation.__init__ = constructor
+    assert docs.constructor_descriptions(family, [family]) == [
+        ("Create the float specialization.", ["Example[float]"]),
+        ("Create the int specialization.", ["Example[int]"]),
+    ]
+
+
+def test_inherited_object_constructor_description_is_omitted():
+    family = make_family()
+    assert docs.constructor_descriptions(family, [family]) == []
+
+
 def test_public_aliases():
     assert docs.argument_name(stormpy.Rational) == "stormpy.Rational"
     assert docs.argument_name(stormpy.Interval) == "stormpy.Interval"
