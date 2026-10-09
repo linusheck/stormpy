@@ -1,9 +1,9 @@
+import math
 import os
 import pytest
 
 import stormpy
 from helpers.helper import get_example_path
-
 from configurations import dft
 
 
@@ -14,12 +14,12 @@ class TestDft:
 
         concrete_type = stormpy.dft.DFT[float]
         assert type(dft) is concrete_type
-        assert concrete_type is stormpy.dft._dft._DFT_Double
+        assert concrete_type is stormpy.dft.developer._DFT_Double
 
         metadata = stormpy.dft.DFT.metadata
         assert metadata.canonical_name == "stormpy.dft.DFT"
         assert tuple(parameter.name for parameter in metadata.parameters) == ("ValueType",)
-        assert metadata.instantiations[0].native_name.startswith("stormpy.dft._dft._DFT_")
+        assert metadata.instantiations[0].native_name == "stormpy.dft.developer._dft._DFT_Double"
         assert repr(stormpy.dft.DFT) == "<template class stormpy.dft.DFT>"
 
         explicit_copy = stormpy.dft.DFT[float](dft)
@@ -29,8 +29,8 @@ class TestDft:
         assert type(inferred_copy) is concrete_type
         assert type(keyword_inferred_copy) is concrete_type
 
-        builder = stormpy.dft.ExplicitDFTModelBuilder(stormpy.dft.DftEnvironment(), dft)
-        assert type(builder) is stormpy.dft.ExplicitDFTModelBuilder[float]
+        builder = stormpy.dft.developer.ExplicitDFTModelBuilder(stormpy.dft.DftEnvironment(), dft, stormpy.dft.developer.DftSymmetries())
+        assert type(builder) is stormpy.dft.developer.ExplicitDFTModelBuilder[float]
 
     def test_parametric_dft(self):
         from stormpy import pycarl
@@ -39,19 +39,19 @@ class TestDft:
         env = stormpy.dft.DftEnvironment()
         generic_dft = stormpy.dft.load_parametric_dft_json_file(get_example_path("dft", "and.json"))
         assert type(generic_dft) is stormpy.dft.DFT[stormpy.RationalFunction]
-        assert stormpy.dft.DFT[stormpy.RationalFunction] is stormpy.dft._dft._DFT_RationalFunction
+        assert stormpy.dft.DFT[stormpy.RationalFunction] is stormpy.dft.developer._DFT_RationalFunction
 
-        builder = stormpy.dft.ExplicitDFTModelBuilder(env, generic_dft)
-        assert type(builder) is stormpy.dft.ExplicitDFTModelBuilder[stormpy.RationalFunction]
+        builder = stormpy.dft.developer.ExplicitDFTModelBuilder(env, generic_dft, stormpy.dft.developer.DftSymmetries())
+        assert type(builder) is stormpy.dft.developer.ExplicitDFTModelBuilder[stormpy.RationalFunction]
 
         model = stormpy.dft.build_model(env, generic_dft)
         assert model.supports_parameters
 
         dft = stormpy.dft.load_parametric_dft_galileo_file(get_example_path("dft", "symmetry_param.dft"))
         assert dft.nr_elements() == 7
-        assert dft.nr_be() == 4
-        assert dft.nr_dynamic() == 0
-        parameters = stormpy.dft.get_parameters(dft)
+        assert dft.nr_basic_elements() == 4
+        assert dft.nr_dynamic_elements() == 0
+        parameters = dft.get_parameters()
         param_names = [x.name for x in parameters]
         assert "x" in param_names
         assert "y" in param_names
@@ -63,10 +63,11 @@ class TestDftElement:
         dft = stormpy.dft.load_dft_json_file(get_example_path("dft", "and.json"))
         tle = dft.top_level_element
         assert dft.nr_elements() == 3
-        assert dft.nr_be() == 2
-        assert dft.nr_dynamic() == 0
+        assert dft.nr_basic_elements() == 2
+        assert dft.nr_dynamic_elements() == 0
         assert tle.id == 2
         assert tle.name == "A"
+        assert tle.type == stormpy.dft.DFTElementType.AND
         b = dft.get_element(0)
         assert b.id == 0
         assert b.name == "B"
@@ -78,11 +79,16 @@ class TestDftElement:
             d = dft.get_element_by_name("D")
         assert "InvalidArgumentException" in str(exception.value)
 
+    def test_element_type_spare(self):
+        dft = stormpy.dft.load_dft_galileo_file(get_example_path("dft", "hecs.dft"))
+        spare = dft.get_element_by_name("n137")
+        assert spare.type == stormpy.dft.DFTElementType.SPARE
+
 
 @dft
 class TestDftSymmetries:
     def test_symmetries_none(self):
-        symmetries = stormpy.dft.DftSymmetries()
+        symmetries = stormpy.dft.developer.DftSymmetries()
         assert len(symmetries) == 0
 
     def test_symmetries_small(self):

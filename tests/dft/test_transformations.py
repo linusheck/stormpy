@@ -1,8 +1,8 @@
-import stormpy
-from helpers.helper import get_example_path
-from stormpy import pycarl
-
 import math
+
+import stormpy
+from stormpy import pycarl
+from helpers.helper import get_example_path
 from configurations import dft
 
 
@@ -12,18 +12,18 @@ class TestTransformations:
         pycarl.clear_pools()
         dft = stormpy.dft.load_parametric_dft_galileo_file(get_example_path("dft", "symmetry_param.dft"))
         assert dft.nr_elements() == 7
-        assert dft.nr_be() == 4
+        assert dft.nr_basic_elements() == 4
 
-        instantiator_type = stormpy.dft.DFTInstantiator[stormpy.RationalFunction, float]
-        instantiator = stormpy.dft.DFTInstantiator(dft)
+        instantiator_type = stormpy.dft.DftInstantiator[stormpy.RationalFunction, float]
+        instantiator = stormpy.dft.DftInstantiator(dft)
         assert type(instantiator) is instantiator_type
-        assert instantiator_type is stormpy.dft._dft._DFTInstantiator_RationalFunction_Double
+        assert instantiator_type is stormpy.dft.developer._DftInstantiator_RationalFunction_Double
         x = pycarl.variable_with_name("x")
         y = pycarl.variable_with_name("y")
         valuation = {x: stormpy.RationalFunctionCoefficient("5"), y: stormpy.RationalFunctionCoefficient("0.01")}
         inst_dft = instantiator.instantiate(valuation)
         assert inst_dft.nr_elements() == 7
-        assert inst_dft.nr_be() == 4
+        assert inst_dft.nr_basic_elements() == 4
         elem = inst_dft.get_element_by_name("C")
         assert str(elem) == "{C} BE(exp 5, 0.05)"
         elem = inst_dft.get_element_by_name("D")

@@ -44,7 +44,7 @@ After loading the DFT, we can display some common statistics about the model:
 
 ```{code-cell} python3
 print("DFT with {} elements.".format(dft.nr_elements()))
-print("DFT has {} BEs and {} dynamic elements.".format(dft.nr_be(), dft.nr_dynamic()))
+print("DFT has {} BEs and {} dynamic elements.".format(dft.nr_basic_elements(), dft.nr_dynamic_elements()))
 ```
 
 ## Analyzing DFTs
@@ -59,7 +59,7 @@ In our example we compute the Mean-time-to-failure (MTTF):
 formula_str = 'T=? [ F "failed" ]'
 formulas = stormpy.parse_properties(formula_str)
 env = stormpy.dft.DftEnvironment()
-results = stormpy.dft.analyze_dft(env, dft, [formulas[0].raw_formula])
+results = stormpy.dft.analyze_dft(env, dft, formulas)
 result = results[0]
 print("MTTF: {:.2f}".format(result))
 ```
