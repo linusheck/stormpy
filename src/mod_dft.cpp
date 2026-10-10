@@ -18,6 +18,8 @@ PYBIND11_MODULE(_dft, m) {
     options.disable_function_signatures();
 #endif
 
+    using namespace stormpy::dft;
+
     define_api_io_input(m);
     define_api_io_output(m);
     define_api_analysis(m);

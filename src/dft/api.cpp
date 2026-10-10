@@ -7,6 +7,10 @@
 #include <storm/adapters/RationalFunctionAdapter.h>
 #include <storm/utility/ExtendedNumber.h>
 
+namespace stormpy::dft {
+
+namespace {
+
 // Thin wrapper for DFT analysis
 template<typename ValueType>
 std::vector<py::object> analyzeDFT(storm::dft::DftEnvironment const& env, storm::dft::storage::DFT<ValueType> const& dft,
@@ -32,6 +36,8 @@ std::vector<py::object> analyzeDFT(storm::dft::DftEnvironment const& env, storm:
     }
     return results;
 }
+
+}  // namespace
 
 void define_api_io_input(py::module& m) {
     // Load DFT input
@@ -82,3 +88,5 @@ template void define_api_analysis_typed<double>(py::module& m);
 template void define_api_analysis_typed<storm::RationalFunction>(py::module& m);
 template void define_api_transformation_typed<double>(py::module& m);
 template void define_api_transformation_typed<storm::RationalFunction>(py::module& m);
+
+}  // namespace stormpy::dft
