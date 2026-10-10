@@ -5,7 +5,8 @@
 #include <storm-dft/api/transformation.h>
 #include <storm-dft/environment/DftEnvironment.h>
 #include <storm/adapters/RationalFunctionAdapter.h>
-#include <storm/utility/ExtendedNumber.h>
+
+#include "src/numbers.h"
 
 namespace stormpy::dft {
 
@@ -24,11 +25,11 @@ std::vector<py::object> analyzeDFT(storm::dft::DftEnvironment const& env, storm:
     class AnalysisResultVisitor : public boost::static_visitor<py::object> {
        public:
         py::object operator()(typename Checker::ExtendedValueType const& exact) const {
-            return py::cast(storm::utility::narrow<ValueType>(exact));
+            return py::cast(exact);
         }
 
         py::object operator()(typename Checker::approximation_result const& approx) const {
-            return py::cast(std::make_pair(storm::utility::narrow<ValueType>(approx.first), storm::utility::narrow<ValueType>(approx.second)));
+            return py::cast(approx);
         }
     } visitor;
     for (auto const& result : dftResults) {
