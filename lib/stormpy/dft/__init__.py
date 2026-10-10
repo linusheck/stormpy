@@ -8,6 +8,7 @@ from collections.abc import Iterable
 
 from . import developer
 from stormpy import Property, RationalFunction
+from stormpy.core._common import _formulas
 from stormpy.exceptions import StormError, StormWarning
 from stormpy.storage import SparseCtmc, SparseMA
 
@@ -99,7 +100,7 @@ def analyze_dft(
     return developer.analyze_dft(
         env,
         dft,
-        [(prop.raw_formula if isinstance(prop, Property) else prop) for prop in properties],
+        _formulas(properties),
         relevant_events if relevant_events is not None else developer.RelevantEvents(),
     )
 

@@ -9,6 +9,8 @@ from . import _pars
 from ._pars import *
 
 from stormpy import ModelType
+from stormpy.core._common import _formula
+from stormpy.exceptions import StormError
 from stormpy._template import _TemplateClass, _TemplateParameter
 
 _pars._set_up()
@@ -55,7 +57,7 @@ def simplify_model(model, formula):
     """
     Simplify parametric model preserving the given formula by eliminating states with constant outgoing probabilities.
     :param model: Model.
-    :param formula: Formula.
+    :param formula: Property or formula to preserve.
     :return: Tuple of simplified model and simplified formula.
     """
     if model.model_type == ModelType.DTMC:
@@ -63,7 +65,7 @@ def simplify_model(model, formula):
     elif model.model_type == ModelType.MDP:
         simplifier = _pars._SparseParametricMdpSimplifier(model)
     else:
-        raise stormpy.exceptions.StormError("Model type {} cannot be simplified.".format(model.model_type))
-    if not simplifier.simplify(formula):
-        raise stormpy.exceptions.StormError("Model could not be simplified")
+        raise StormError("Model type {} cannot be simplified.".format(model.model_type))
+    if not simplifier.simplify(_formula(formula)):
+        raise StormError("Model could not be simplified")
     return simplifier.simplified_model, simplifier.simplified_formula

@@ -7,7 +7,7 @@ The naming of functions and classes of the bindings mirrors the corresponding ``
 """
 
 from stormpy.info import _config
-from stormpy import Property
+from stormpy.core._common import _formulas
 from stormpy.exceptions import StormError
 import warnings
 
@@ -87,4 +87,4 @@ DftInstantiator = _TemplateClass(
 
 # Add additional functions
 def compute_relevant_events(properties, *args, **kwargs):
-    return _dft.compute_relevant_events([(prop.raw_formula if isinstance(prop, Property) else prop) for prop in properties], *args, **kwargs)
+    return _dft.compute_relevant_events(_formulas(properties), *args, **kwargs)
