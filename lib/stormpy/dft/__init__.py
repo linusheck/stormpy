@@ -79,6 +79,23 @@ def check_dft_validity(dft: DFT) -> bool:
 
 
 # API functions
+def compute_relevant_events(
+    properties: Iterable[Property], additional_relevant_names: Iterable[str] = (), *, add_labels_claiming: bool = False
+) -> RelevantEvents:
+    """
+    Compute the relevant events for the analysis of a DFT.
+
+    All events occurring in the properties (via labels such as ``"A_failed"``) are relevant.
+    The top-level event is always relevant.
+
+    :param properties: Properties whose events are relevant.
+    :param additional_relevant_names: (optional) Names of further elements which should be relevant.
+    :param add_labels_claiming: Whether labels representing claiming operations are added to the model.
+    :return: The relevant events.
+    """
+    return developer.compute_relevant_events(_formulas(properties), list(additional_relevant_names), add_labels_claiming)
+
+
 def analyze_dft(
     env: DftEnvironment,
     dft: DFT,
@@ -91,7 +108,7 @@ def analyze_dft(
     :param env: Environment configuring the analysis.
     :param dft: DFT.
     :param properties: Properties to check.
-    :param relevant_events: (optional) relevant events which should be observed.
+    :param relevant_events: (optional) relevant events which should be observed, see :func:`compute_relevant_events`.
     :return: List of results corresponding to the given properties.
         Each entry is a single value for exact analysis, or a tuple (lower, upper) for approximate analysis.
         For approximate analysis, the difference between the bounds satisfies the (relative) error given by env.analysis_environment.approximation_error.
@@ -167,6 +184,7 @@ __all__ = [
     "export_dft_json_file",
     "export_dft_json_string",
     # Analysis
+    "compute_relevant_events",
     "check_dft_validity",
     "prepare_for_analysis",
     "analyze_dft",

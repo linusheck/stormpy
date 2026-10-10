@@ -7,7 +7,6 @@ The naming of functions and classes of the bindings mirrors the corresponding ``
 """
 
 from stormpy.info import _config
-from stormpy.core._common import _formulas
 from stormpy.exceptions import StormError
 import warnings
 
@@ -83,8 +82,3 @@ DftInstantiator = _TemplateClass(
     parameters=("SourceValueType", "TargetValueType"),
     deduce=_deduce_dft_instantiator,
 )
-
-
-# Add additional functions
-def compute_relevant_events(properties, *args, **kwargs):
-    return _dft.compute_relevant_events(_formulas(properties), *args, **kwargs)
