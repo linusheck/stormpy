@@ -138,3 +138,45 @@ def prepare_for_analysis(dft: DFT) -> DFT:
     """
     developer.compute_dependency_conflicts(dft, use_smt=False)
     return developer.transform_dft(dft, unique_constant_be=True, binary_fdeps=True, exponential_distributions=True)
+
+
+__all__ = [
+    # DFT data structures
+    "DFT",
+    "DFTElementType",
+    "DFTElement",
+    "DFTBE",
+    "DFTDependency",
+    "DFTState",
+    "DftInstantiator",
+    "DftSymmetries",
+    "RelevantEvents",
+    # Environments
+    "DftEnvironment",
+    "AnalysisEnvironment",
+    "ModelBuilderEnvironment",
+    "TransformationEnvironment",
+    "ApproximationHeuristic",
+    # Input/output
+    "load_dft_galileo_file",
+    "load_parametric_dft_galileo_file",
+    "load_dft_json_file",
+    "load_dft_json_string",
+    "load_parametric_dft_json_file",
+    "load_parametric_dft_json_string",
+    "export_dft_json_file",
+    "export_dft_json_string",
+    # Analysis
+    "check_dft_validity",
+    "prepare_for_analysis",
+    "analyze_dft",
+    "build_model",
+    # Modules
+    "DftIndependentModule",
+    "modules",
+    "modules_json",
+    # Simulation
+    "DFTSimulator",
+    "SimulationStepResult",
+    "SimulationTraceResult",
+]
