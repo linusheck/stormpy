@@ -2,12 +2,24 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterable
+from typing import TypeAlias
 
 from stormpy import storage
 from stormpy._config import Rational, RationalFunction
 from stormpy.developer import Property
 from stormpy.exceptions import StormError
+
+# File paths can be given as strings or path-like objects (e.g. pathlib.Path)
+PathLike: TypeAlias = "str | os.PathLike[str]"
+
+
+def _path(path: PathLike) -> str:
+    """Convert a path given as string or path-like object (e.g. pathlib.Path) into a string."""
+    if not isinstance(path, (str, os.PathLike)):
+        raise TypeError(f"Expected a path as string or path-like object, got {type(path)}.")
+    return os.fspath(path)
 
 
 def _value_type_of_model(model) -> type:

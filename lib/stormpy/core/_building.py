@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from stormpy import developer, storage
-from stormpy.core._common import _formulas
+from stormpy.core._common import PathLike, _formulas, _path
 from stormpy._config import Interval, Rational, RationalFunction, RationalInterval
 from stormpy._template import _deduce_default, _template_function
 from stormpy.developer import (
@@ -112,33 +112,34 @@ def build_symbolic_model(
 
 
 @_template_function("stormpy.build_model_from_drn", parameters=("ValueType",), instantiations=_VALUE_TYPES, deduce=_deduce_default(float))
-def build_model_from_drn(value_type: type, path: str, *, options: DirectEncodingParserOptions | None = None):
+def build_model_from_drn(value_type: type, path: PathLike, *, options: DirectEncodingParserOptions | None = None):
     """
     Build a model in sparse representation from a file in the explicit DRN format.
 
     The value type of the model is selected via subscript, e.g. ``build_model_from_drn[stormpy.Rational](path)``:
     float (default), Rational (exact), RationalFunction (parametric), Interval or RationalInterval (exact interval).
 
-    :param path: Path to the DRN file.
+    :param path: Path to the DRN file (string or path-like object).
     :param options: (optional) Options for the DRN parser.
     :return: The model in sparse representation.
     :raises TypeError: If the value type is not supported.
     """
     build = developer.build_explicit_drn_model[value_type]
-    return build(path, options if options is not None else DirectEncodingParserOptions())
+    return build(_path(path), options if options is not None else DirectEncodingParserOptions())
 
 
 def build_model_from_explicit(
-    transitions: str,
-    labeling: str,
+    transitions: PathLike,
+    labeling: PathLike,
     *,
-    state_rewards: str | None = None,
-    transition_rewards: str | None = None,
-    choice_labeling: str | None = None,
+    state_rewards: PathLike | None = None,
+    transition_rewards: PathLike | None = None,
+    choice_labeling: PathLike | None = None,
     options: ExplicitModelParserOptions | None = None,
 ):
     """
     Build a model in sparse representation from files in the explicit format (.tra, .lab, ...).
+    All paths can be given as strings or path-like objects.
 
     :param transitions: Path to the file containing the transitions (.tra).
     :param labeling: Path to the file containing the state labeling (.lab).
@@ -149,24 +150,24 @@ def build_model_from_explicit(
     :return: The model in sparse representation.
     """
     model = developer.build_explicit_model(
-        transitions,
-        labeling,
-        state_rewards,
-        transition_rewards,
-        choice_labeling,
+        _path(transitions),
+        _path(labeling),
+        _path(state_rewards) if state_rewards is not None else None,
+        _path(transition_rewards) if transition_rewards is not None else None,
+        _path(choice_labeling) if choice_labeling is not None else None,
         options if options is not None else ExplicitModelParserOptions(),
     )
     return model
 
 
-def build_model_from_umb(path: str, *, options: storage.UmbImportOptions | None = None):
+def build_model_from_umb(path: PathLike, *, options: storage.UmbImportOptions | None = None):
     """
     Build a model in sparse representation from a UMB archive.
 
-    :param path: Path to the UMB archive.
+    :param path: Path to the UMB archive (string or path-like object).
     :param options: (optional) Options controlling the value type and which parts of the model are built.
     :return: The model in sparse representation.
     """
     options = options if options is not None else storage.UmbImportOptions()
-    umb = storage.import_umb(path, options)
+    umb = storage.import_umb(_path(path), options)
     return storage.sparse_model_from_umb(umb, options)

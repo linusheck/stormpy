@@ -6,6 +6,7 @@ from collections.abc import Iterable, Mapping
 
 from stormpy import developer, storage
 from stormpy._config import Rational
+from stormpy.core._common import PathLike, _path
 from stormpy.developer import Property, SymbolicModelDescription
 from stormpy.exceptions import StormError
 
@@ -14,27 +15,27 @@ PrismProgram = storage.PrismProgram
 JaniModel = storage.JaniModel
 
 
-def parse_prism_program(path: str, *, prism_compatibility: bool = False, simplify: bool = True) -> PrismProgram:
+def parse_prism_program(path: PathLike, *, prism_compatibility: bool = False, simplify: bool = True) -> PrismProgram:
     """
     Parse a Prism program from file.
 
-    :param path: Path to the Prism file.
+    :param path: Path to the Prism file (string or path-like object).
     :param prism_compatibility: If True, the parser is more lenient and accepts all models accepted by the original Prism model checker.
     :param simplify: If True, the program is simplified after parsing.
     :return: The Prism program.
     """
-    return developer.parse_program(path, prism_compatibility=prism_compatibility, simplify=simplify)
+    return developer.parse_program(_path(path), prism_compatibility=prism_compatibility, simplify=simplify)
 
 
-def parse_jani_model(path: str, *, property_filter: Iterable[str] | None = None) -> tuple[JaniModel, list[Property]]:
+def parse_jani_model(path: PathLike, *, property_filter: Iterable[str] | None = None) -> tuple[JaniModel, list[Property]]:
     """
     Parse a Jani model and the properties contained in it from file.
 
-    :param path: Path to the Jani file.
+    :param path: Path to the Jani file (string or path-like object).
     :param property_filter: (optional) Names of the properties to parse. If None, all properties are parsed.
     :return: Tuple of the Jani model and the list of properties.
     """
-    return developer.parse_jani_model(path, property_filter=list(property_filter) if property_filter is not None else None)
+    return developer.parse_jani_model(_path(path), property_filter=list(property_filter) if property_filter is not None else None)
 
 
 def parse_jani_model_from_string(json_string: str, *, property_filter: Iterable[str] | None = None) -> tuple[JaniModel, list[Property]]:

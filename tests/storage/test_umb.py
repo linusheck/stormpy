@@ -98,6 +98,12 @@ class TestUmbModel:
         umb = stormpy.storage.sparse_model_to_umb(dtmc)
         umb.validate_or_throw()  # should not raise
 
+    def test_export_and_build_from_path(self, dtmc, tmp_path):
+        path = tmp_path / "model.umb"
+        stormpy.export_to_umb(dtmc, path)
+        model2 = stormpy.build_model_from_umb(path)
+        assert model2.nr_states == dtmc.nr_states
+
 
 class TestUmbConvenienceFunctions:
     def test_export_and_build_dtmc(self, dtmc, tmp_umb):

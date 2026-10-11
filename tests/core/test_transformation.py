@@ -20,7 +20,7 @@ def test_subsystem_and_end_component_overloads(value_type, tmp_path):
     assert result.matrix.nr_columns == model.nr_states
 
     output = tmp_path / "model.drn"
-    stormpy.export_to_drn(model, str(output))
+    stormpy.export_to_drn(model, output)
     assert f"@nr_states\n{model.nr_states}" in output.read_text()
 
 
@@ -166,11 +166,11 @@ class TestTransformation:
         options = stormpy.DirectEncodingExporterOptions()
         options.output_precision = 1
         output = tmp_path / "model.drn"
-        stormpy.export_to_drn(model, str(output), options=options)
+        stormpy.export_to_drn(model, output, options=options)
         content = output.read_text()
         assert "0.8\n" in content
         assert "0.833" not in content
-        assert stormpy.build_model_from_drn(str(output)).nr_states == model.nr_states
+        assert stormpy.build_model_from_drn(output).nr_states == model.nr_states
 
 
 class TestECElimination:

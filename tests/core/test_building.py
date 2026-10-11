@@ -1,3 +1,4 @@
+import pathlib
 import pytest
 import stormpy
 import stormpy.examples
@@ -151,3 +152,9 @@ class TestBuilding:
         model = stormpy.build_symbolic_model(jani_model)
         assert type(model) is stormpy.SymbolicMA[stormpy.DdType.Sylvan, float]
         assert model.model_type == stormpy.ModelType.MA
+
+    def test_build_from_path(self):
+        model = stormpy.build_model_from_drn(pathlib.Path(get_example_path("ctmc", "dft.drn")))
+        assert model.nr_states == 16
+        model = stormpy.build_model_from_explicit(pathlib.Path(get_example_path("dtmc", "die.tra")), pathlib.Path(get_example_path("dtmc", "die.lab")))
+        assert model.nr_states == 13

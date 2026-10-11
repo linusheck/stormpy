@@ -8,7 +8,8 @@ from collections.abc import Iterable
 
 from . import developer
 from stormpy import Property, RationalFunction
-from stormpy.core._common import _formulas
+from stormpy.core._common import PathLike, _formulas, _path
+from stormpy._template import _deduce_default, _template_function
 from stormpy.exceptions import StormError, StormWarning
 from stormpy.storage import SparseCtmc, SparseMA
 
@@ -44,12 +45,50 @@ DftSymmetries = developer.DftSymmetries
 
 # Import functions from developer
 # Templated functions
-load_dft_galileo_file = developer.load_dft_galileo_file.publish_as("stormpy.dft.load_dft_galileo_file")
-load_dft_json_file = developer.load_dft_json_file.publish_as("stormpy.dft.load_dft_json_file")
 load_dft_json_string = developer.load_dft_json_string.publish_as("stormpy.dft.load_dft_json_string")
 # Additional functions
-export_dft_json_file = developer.export_dft_json_file
 export_dft_json_string = developer.export_dft_json_string
+
+
+@_template_function("stormpy.dft.load_dft_galileo_file", parameters=("ValueType",), instantiations=(float, RationalFunction), deduce=_deduce_default(float))
+def load_dft_galileo_file(value_type: type, path: PathLike) -> DFT:
+    """
+    Load a DFT from a file in the Galileo format.
+
+    The value type of the DFT is selected via subscript, e.g. ``load_dft_galileo_file[stormpy.RationalFunction](path)``:
+    float (default) or RationalFunction (parametric).
+
+    :param path: Path to the Galileo file (string or path-like object).
+    :return: The DFT.
+    :raises TypeError: If the value type is not supported.
+    """
+    return developer.load_dft_galileo_file[value_type](_path(path))
+
+
+@_template_function("stormpy.dft.load_dft_json_file", parameters=("ValueType",), instantiations=(float, RationalFunction), deduce=_deduce_default(float))
+def load_dft_json_file(value_type: type, path: PathLike) -> DFT:
+    """
+    Load a DFT from a file in the JSON format.
+
+    The value type of the DFT is selected via subscript, e.g. ``load_dft_json_file[stormpy.RationalFunction](path)``:
+    float (default) or RationalFunction (parametric).
+
+    :param path: Path to the JSON file (string or path-like object).
+    :return: The DFT.
+    :raises TypeError: If the value type is not supported.
+    """
+    return developer.load_dft_json_file[value_type](_path(path))
+
+
+def export_dft_json_file(dft: DFT, path: PathLike) -> None:
+    """
+    Export a DFT to a file in the JSON format.
+
+    :param dft: DFT.
+    :param path: Path of the output file (string or path-like object).
+    """
+    developer.export_dft_json_file(dft, _path(path))
+
 
 # Additional Python classes and functions
 # Require some of the public classes and need to be imported after them

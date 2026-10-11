@@ -1,3 +1,4 @@
+import pathlib
 import pytest
 import os
 
@@ -51,6 +52,14 @@ class TestDftLoad:
         parameter_names = {parameter.name for parameter in dft.get_parameters()}
         assert parameter_names == {"x"}
 
+    def test_load_from_path(self):
+        dft = stormpy.dft.load_dft_json_file(pathlib.Path(get_example_path("dft", "and.json")))
+        assert dft.nr_elements() == 3
+        dft = stormpy.dft.load_dft_galileo_file[stormpy.RationalFunction](pathlib.Path(get_example_path("dft", "symmetry_param.dft")))
+        assert type(dft) is stormpy.dft.DFT[stormpy.RationalFunction]
+        with pytest.raises(TypeError):
+            stormpy.dft.load_dft_json_file(42)
+
 
 @dft
 class TestDftExport:
@@ -65,12 +74,12 @@ class TestDftExport:
         assert dft2.nr_basic_elements() == 13
         assert dft2.nr_dynamic_elements() == 2
 
-    def test_export_dft_json_file(self, tmpdir):
+    def test_export_dft_json_file(self, tmp_path):
         dft = stormpy.dft.load_dft_galileo_file(get_example_path("dft", "hecs.dft"))
         assert dft.nr_elements() == 23
         assert dft.nr_basic_elements() == 13
         assert dft.nr_dynamic_elements() == 2
-        export_file = os.path.join(str(tmpdir), "hecs.json")
+        export_file = tmp_path / "hecs.json"
         stormpy.dft.export_dft_json_file(dft, export_file)
         dft2 = stormpy.dft.load_dft_json_file(export_file)
         assert dft2.nr_elements() == 23
@@ -91,12 +100,12 @@ class TestDftExport:
         assert dft2.nr_dynamic_elements() == dft.nr_dynamic_elements()
         assert {parameter.name for parameter in dft2.get_parameters()} == parameter_names
 
-    def test_export_parametric_dft_json_file(self, tmpdir):
+    def test_export_parametric_dft_json_file(self, tmp_path):
         dft = stormpy.dft.load_dft_galileo_file[stormpy.RationalFunction](get_example_path("dft", "symmetry_param.dft"))
         parameter_names = {parameter.name for parameter in dft.get_parameters()}
         assert parameter_names == {"x", "y"}
 
-        export_file = os.path.join(str(tmpdir), "symmetry_param.json")
+        export_file = tmp_path / "symmetry_param.json"
         stormpy.dft.export_dft_json_file(dft, export_file)
         dft2 = stormpy.dft.load_dft_json_file[stormpy.RationalFunction](export_file)
 
@@ -112,7 +121,8 @@ class TestDftExport:
 
     def test_load_published_template_function(self):
         assert repr(stormpy.dft.load_dft_json_file) == "<template function stormpy.dft.load_dft_json_file>"
-        assert stormpy.dft.load_dft_json_file[stormpy.RationalFunction] is stormpy.dft.developer.load_dft_json_file[stormpy.RationalFunction]
+        dft = stormpy.dft.load_dft_json_file[stormpy.RationalFunction](get_example_path("dft", "and.json"))
+        assert type(dft) is stormpy.dft.DFT[stormpy.RationalFunction]
 
     def test_load_developer_template_function(self):
         dft = stormpy.dft.developer.load_dft_json_file[stormpy.RationalFunction](get_example_path("dft", "and.json"))

@@ -1,3 +1,4 @@
+import pathlib
 import pytest
 import stormpy
 from stormpy.exceptions import StormError
@@ -60,6 +61,14 @@ class TestParsePrismProgram:
         assert program.model_type == stormpy.storage.PrismModelType.DTMC
         assert program.has_undefined_constants
         assert program.undefined_constants_are_graph_preserving
+
+    def test_parse_from_path(self):
+        program = stormpy.parse_prism_program(pathlib.Path(get_example_path("dtmc", "die.pm")))
+        assert program.nr_modules == 1
+        jani_model, properties = stormpy.parse_jani_model(pathlib.Path(get_example_path("dtmc", "die.jani")))
+        assert len(properties) > 0
+        with pytest.raises(TypeError):
+            stormpy.parse_prism_program(42)
 
 
 class TestParseJaniModel:
