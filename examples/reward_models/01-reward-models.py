@@ -23,7 +23,7 @@ def example_reward_models_01():
         print(reward)
     assert not model.reward_models[reward_model_name].has_transition_rewards
 
-    model = stormpy.build_model_from_drn[stormpy.RationalFunction](stormpy.examples.files.drn_pdtmc_die)
+    model = stormpy.build_model_from_drn[stormpy.numbers.RationalFunction](stormpy.examples.files.drn_pdtmc_die)
     assert len(model.reward_models) == 1
     assert reward_model_name == "coin_flips"
 

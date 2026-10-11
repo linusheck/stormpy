@@ -106,14 +106,14 @@ class TestMatrix:
     def test_change_parametric_matrix_modelchecking(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         formulas = stormpy.parse_properties("P=? [ F s=5 ]", program)
-        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalFunction](program, formulas)
         initial_state = model.initial_states[0]
         assert initial_state == 0
         matrix = model.transition_matrix
         # Check matrix
-        one_pol = stormpy.RationalFunctionCoefficient(1)
-        one_pol = stormpy.Polynomial(one_pol)
-        one = stormpy.RationalFunction(one_pol, one_pol)
+        one_pol = stormpy.numbers.RationalFunctionCoefficient(1)
+        one_pol = stormpy.numbers.Polynomial(one_pol)
+        one = stormpy.numbers.RationalFunction(one_pol, one_pol)
         for e in matrix:
             assert e.value() == one or len(e.value().gather_variables()) > 0
         # First model checking
@@ -122,9 +122,9 @@ class TestMatrix:
         assert len(ratFunc.gather_variables()) > 0
 
         # Change probabilities
-        two_pol = stormpy.RationalFunctionCoefficient(2)
-        two_pol = stormpy.Polynomial(two_pol)
-        new_val = stormpy.RationalFunction(one_pol, two_pol)
+        two_pol = stormpy.numbers.RationalFunctionCoefficient(2)
+        two_pol = stormpy.numbers.Polynomial(two_pol)
+        new_val = stormpy.numbers.RationalFunction(one_pol, two_pol)
         for e in matrix:
             if len(e.value().gather_variables()) > 0:
                 e.set_value(new_val)

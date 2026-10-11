@@ -6,7 +6,7 @@ from enum import Enum
 
 from stormpy import developer, storage
 from stormpy.core._common import _formula, _value_type_of_model
-from stormpy._config import Interval, Rational, RationalInterval
+from stormpy.numbers import Interval, Rational, RationalInterval
 from stormpy.developer import (
     CheckResult,
     CheckTask,

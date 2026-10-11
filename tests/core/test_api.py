@@ -34,6 +34,15 @@ class TestPublicApi:
             "prob01min_states",
             "make_weighted_objective_mdp_model_checker",
             "eliminate_end_components",
+            # Number types moved to stormpy.numbers
+            "pycarl",
+            "Interval",
+            "Polynomial",
+            "Rational",
+            "RationalFunction",
+            "RationalFunctionCoefficient",
+            "RationalInterval",
+            "RawPolynomial",
             "EndComponentEliminatorReturnType",
             "parse_properties_for_prism_program",
             "SparseMatrixBuilder",
@@ -127,10 +136,10 @@ class TestDeveloperBindings:
         assert "template function" in repr(stormpy.developer.build_sparse_model)
         model = stormpy.developer.build_sparse_model(program, formulas)
         assert type(model) is stormpy.SparseDtmc[float]
-        exact_model = stormpy.developer.build_sparse_model[stormpy.Rational](program, formulas)
-        assert type(exact_model) is stormpy.SparseDtmc[stormpy.Rational]
-        assert (stormpy.Interval,) in stormpy.developer.build_sparse_model.instantiations
+        exact_model = stormpy.developer.build_sparse_model[stormpy.numbers.Rational](program, formulas)
+        assert type(exact_model) is stormpy.SparseDtmc[stormpy.numbers.Rational]
+        assert (stormpy.numbers.Interval,) in stormpy.developer.build_sparse_model.instantiations
         with pytest.raises(TypeError):
-            stormpy.developer.build_symbolic_model[stormpy.Interval](program, formulas)
-        drn_model = stormpy.developer.build_explicit_drn_model[stormpy.Rational](get_example_path("ctmc", "dft.drn"))
-        assert type(drn_model) is stormpy.SparseCtmc[stormpy.Rational]
+            stormpy.developer.build_symbolic_model[stormpy.numbers.Interval](program, formulas)
+        drn_model = stormpy.developer.build_explicit_drn_model[stormpy.numbers.Rational](get_example_path("ctmc", "dft.drn"))
+        assert type(drn_model) is stormpy.SparseCtmc[stormpy.numbers.Rational]

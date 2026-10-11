@@ -22,13 +22,13 @@ class TestMemoryStructure:
 
     @pytest.mark.parametrize("keyword", [False, True])
     def test_memory_structure_builder_exact_interval(self, keyword):
-        model = stormpy.build_model_from_drn[stormpy.RationalInterval](get_example_path("imdp", "tiny-01.drn"))
+        model = stormpy.build_model_from_drn[stormpy.numbers.RationalInterval](get_example_path("imdp", "tiny-01.drn"))
         if keyword:
             builder = stormpy.storage.MemoryStructureBuilder(nr_memory_states=1, model=model)
         else:
             builder = stormpy.storage.MemoryStructureBuilder(1, model)
 
-        assert type(builder) is stormpy.storage.MemoryStructureBuilder[stormpy.RationalInterval]
+        assert type(builder) is stormpy.storage.MemoryStructureBuilder[stormpy.numbers.RationalInterval]
         builder.set_transition(0, 0, stormpy.BitVector(model.nr_states, True))
         assert builder.build().nr_states == 1
 

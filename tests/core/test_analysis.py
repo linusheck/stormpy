@@ -17,6 +17,6 @@ class TestAnalysis:
     def test_create_weight_vector_checker_unsupported(self):
         program = stormpy.parse_prism_program(get_example_path("mdp", "multiobjective1.nm"))
         properties = stormpy.parse_properties('multi(Pmax=? [ F<=3 s=2 ],R{"rew"}max=? [ F s=2 ])', program)
-        model = stormpy.build_model[stormpy.Interval](program, properties)
+        model = stormpy.build_model[stormpy.numbers.Interval](program, properties)
         with pytest.raises(StormError):
             stormpy.create_weight_vector_checker(model, properties[0])

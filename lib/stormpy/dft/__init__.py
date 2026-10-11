@@ -7,7 +7,8 @@ import warnings
 from collections.abc import Iterable
 
 from . import developer
-from stormpy import Property, RationalFunction
+from stormpy import Property
+from stormpy.numbers import RationalFunction
 from stormpy.core._common import PathLike, _formulas, _path
 from stormpy._template import _deduce_default, _template_function
 from stormpy.exceptions import StormError, StormWarning
@@ -55,7 +56,7 @@ def load_dft_galileo_file(value_type: type, path: PathLike) -> DFT:
     """
     Load a DFT from a file in the Galileo format.
 
-    The value type of the DFT is selected via subscript, e.g. ``load_dft_galileo_file[stormpy.RationalFunction](path)``:
+    The value type of the DFT is selected via subscript, e.g. ``load_dft_galileo_file[stormpy.numbers.RationalFunction](path)``:
     float (default) or RationalFunction (parametric).
 
     :param path: Path to the Galileo file (string or path-like object).
@@ -70,7 +71,7 @@ def load_dft_json_file(value_type: type, path: PathLike) -> DFT:
     """
     Load a DFT from a file in the JSON format.
 
-    The value type of the DFT is selected via subscript, e.g. ``load_dft_json_file[stormpy.RationalFunction](path)``:
+    The value type of the DFT is selected via subscript, e.g. ``load_dft_json_file[stormpy.numbers.RationalFunction](path)``:
     float (default) or RationalFunction (parametric).
 
     :param path: Path to the JSON file (string or path-like object).

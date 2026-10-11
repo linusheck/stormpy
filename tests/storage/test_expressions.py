@@ -36,7 +36,7 @@ class TestExpressions:
 
     def test_rational_expression(self):
         manager = stormpy.storage.ExpressionManager()
-        expression = manager.create_rational(stormpy.Rational(0.2))
+        expression = manager.create_rational(stormpy.numbers.Rational(0.2))
         assert expression.is_literal()
         assert not expression.contains_variables()
         assert not expression.has_boolean_type()

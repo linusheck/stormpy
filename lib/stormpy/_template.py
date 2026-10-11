@@ -122,7 +122,7 @@ def _deduce_from_first_argument(source: "_TemplateClass | None" = None, *, keywo
 def _format_parameter(parameter: object) -> str:
     """Format a template parameter for messages.
 
-    Types exported by :mod:`stormpy` are shown with their public name (e.g. ``RationalInterval``),
+    Types exported by :mod:`stormpy.numbers` or :mod:`stormpy` are shown with their public name (e.g. ``RationalInterval``),
     builtin types with their name and other types with their qualified name. Values are shown via ``repr``.
     """
     if not isinstance(parameter, type):
@@ -131,9 +131,10 @@ def _format_parameter(parameter: object) -> str:
         return parameter.__name__
     import stormpy
 
-    for name in getattr(stormpy, "__all__", ()):
-        if getattr(stormpy, name, None) is parameter:
-            return name
+    for module in (getattr(stormpy, "numbers", None), stormpy):
+        for name in getattr(module, "__all__", ()):
+            if getattr(module, name, None) is parameter:
+                return name
     return f"{parameter.__module__}.{parameter.__qualname__}"
 
 

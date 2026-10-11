@@ -23,28 +23,28 @@ struct BindingValueTypeArgument<double> {
 template<>
 struct BindingValueTypeArgument<storm::RationalNumber> {
     static TemplateArgument get() {
-        return {pybind11::module_::import("stormpy").attr("Rational"), "Rational"};
+        return {pybind11::module_::import("stormpy.numbers").attr("Rational"), "Rational"};
     }
 };
 
 template<>
 struct BindingValueTypeArgument<storm::RationalFunction> {
     static TemplateArgument get() {
-        return {pybind11::module_::import("stormpy").attr("RationalFunction"), "RationalFunction"};
+        return {pybind11::module_::import("stormpy.numbers").attr("RationalFunction"), "RationalFunction"};
     }
 };
 
 template<>
 struct BindingValueTypeArgument<storm::Interval> {
     static TemplateArgument get() {
-        return {pybind11::module_::import("stormpy").attr("Interval"), "Interval"};
+        return {pybind11::module_::import("stormpy.numbers").attr("Interval"), "Interval"};
     }
 };
 
 template<>
 struct BindingValueTypeArgument<storm::RationalInterval> {
     static TemplateArgument get() {
-        return {pybind11::module_::import("stormpy").attr("RationalInterval"), "RationalInterval"};
+        return {pybind11::module_::import("stormpy.numbers").attr("RationalInterval"), "RationalInterval"};
     }
 };
 

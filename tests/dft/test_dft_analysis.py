@@ -54,12 +54,12 @@ class TestAnalysis:
     def test_explicit_model_builder_unsupported_value_type(self):
         double_dft = stormpy.dft.load_dft_json_file(get_example_path("dft", "and.json"))
         with pytest.raises(TypeError, match="ExplicitDFTModelBuilder has no instantiation"):
-            stormpy.dft.developer.ExplicitDFTModelBuilder[stormpy.Rational](double_dft)
+            stormpy.dft.developer.ExplicitDFTModelBuilder[stormpy.numbers.Rational](double_dft)
 
     def test_explicit_model_builder_mismatched_dft_type(self):
         double_dft = stormpy.dft.load_dft_json_file(get_example_path("dft", "and.json"))
         with pytest.raises(TypeError, match="incompatible constructor arguments"):
-            stormpy.dft.developer.ExplicitDFTModelBuilder[stormpy.RationalFunction](double_dft)
+            stormpy.dft.developer.ExplicitDFTModelBuilder[stormpy.numbers.RationalFunction](double_dft)
 
     def test_explicit_model_builder_approximation(self):
         dft = stormpy.dft.load_dft_galileo_file(get_example_path("dft", "rc.dft"))

@@ -6,7 +6,9 @@ import math
 from stormpy.exceptions import StormError
 
 
-@pytest.mark.parametrize("value_type", [float, stormpy.Rational, stormpy.RationalFunction, stormpy.Interval, stormpy.RationalInterval])
+@pytest.mark.parametrize(
+    "value_type", [float, stormpy.numbers.Rational, stormpy.numbers.RationalFunction, stormpy.numbers.Interval, stormpy.numbers.RationalInterval]
+)
 def test_subsystem_and_end_component_overloads(value_type, tmp_path):
     model = build_sparse_model(get_example_path("dtmc", "die.pm"), value_type)
 
@@ -42,18 +44,18 @@ class TestTransformation:
 
     def test_transform_symbolic_parametric_dtmc_to_sparse(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "parametric_die.pm"))
-        model = stormpy.build_symbolic_model[stormpy.RationalFunction](program)
+        model = stormpy.build_symbolic_model[stormpy.numbers.RationalFunction](program)
         assert model.nr_states == 13
         assert model.nr_transitions == 20
         assert model.model_type == stormpy.ModelType.DTMC
         assert model.supports_parameters
-        assert type(model) is stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, stormpy.RationalFunction]
+        assert type(model) is stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, stormpy.numbers.RationalFunction]
         symbolic_model = stormpy.transform_to_sparse_model(model)
         assert symbolic_model.nr_states == 13
         assert symbolic_model.nr_transitions == 20
         assert symbolic_model.model_type == stormpy.ModelType.DTMC
         assert symbolic_model.supports_parameters
-        assert type(symbolic_model) is stormpy.SparseDtmc[stormpy.RationalFunction]
+        assert type(symbolic_model) is stormpy.SparseDtmc[stormpy.numbers.RationalFunction]
 
     def test_transform_continuous_to_discrete_time_model_ctmc(self):
         ctmc = stormpy.build_model_from_drn(get_example_path("ctmc", "dft.drn"))
@@ -199,7 +201,7 @@ class TestAddUncertainty:
         assert model.nr_states == 13
         transformer = stormpy.developer.AddUncertainty[float](model)
         interval_model = transformer.transform(0.1)
-        assert type(interval_model) is stormpy.SparseDtmc[stormpy.Interval]
+        assert type(interval_model) is stormpy.SparseDtmc[stormpy.numbers.Interval]
         assert interval_model.nr_states == 13
         assert interval_model.nr_transitions == model.nr_transitions
         for row in range(interval_model.nr_states):
@@ -209,11 +211,11 @@ class TestAddUncertainty:
 
     def test_add_uncertainty_exact_dtmc(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-        model = stormpy.build_model[stormpy.Rational](program)
-        assert type(model) is stormpy.SparseDtmc[stormpy.Rational]
-        transformer = stormpy.developer.AddUncertainty[stormpy.Rational](model)
-        interval_model = transformer.transform(stormpy.Rational("1/10"))
-        assert type(interval_model) is stormpy.SparseDtmc[stormpy.RationalInterval]
+        model = stormpy.build_model[stormpy.numbers.Rational](program)
+        assert type(model) is stormpy.SparseDtmc[stormpy.numbers.Rational]
+        transformer = stormpy.developer.AddUncertainty[stormpy.numbers.Rational](model)
+        interval_model = transformer.transform(stormpy.numbers.Rational("1/10"))
+        assert type(interval_model) is stormpy.SparseDtmc[stormpy.numbers.RationalInterval]
         assert interval_model.nr_states == model.nr_states
         assert interval_model.nr_transitions == model.nr_transitions
         for row in range(interval_model.nr_states):
@@ -224,38 +226,38 @@ class TestAddUncertainty:
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         model = stormpy.build_model(program)
         interval_model = stormpy.add_uncertainty(model, 0.1)
-        assert type(interval_model) is stormpy.SparseDtmc[stormpy.Interval]
-        exact_model = stormpy.build_model[stormpy.Rational](program)
-        exact_interval_model = stormpy.add_uncertainty(exact_model, stormpy.Rational("1/10"))
-        assert type(exact_interval_model) is stormpy.SparseDtmc[stormpy.RationalInterval]
+        assert type(interval_model) is stormpy.SparseDtmc[stormpy.numbers.Interval]
+        exact_model = stormpy.build_model[stormpy.numbers.Rational](program)
+        exact_interval_model = stormpy.add_uncertainty(exact_model, stormpy.numbers.Rational("1/10"))
+        assert type(exact_interval_model) is stormpy.SparseDtmc[stormpy.numbers.RationalInterval]
         with pytest.raises(StormError):
             stormpy.add_uncertainty(interval_model, 0.1)
 
 
 class TestSubsystemCreation:
     def test_for_interval_mdp(self):
-        model = stormpy.build_model_from_drn[stormpy.Interval](get_example_path("imdp", "tiny-01.drn"))
-        assert type(model) is stormpy.SparseMdp[stormpy.Interval]
+        model = stormpy.build_model_from_drn[stormpy.numbers.Interval](get_example_path("imdp", "tiny-01.drn"))
+        assert type(model) is stormpy.SparseMdp[stormpy.numbers.Interval]
         assert model.nr_states == 3
         states = stormpy.BitVector(model.nr_states, True)
         states.set(2, False)
         options = stormpy.SubsystemBuilderOptions()
         options.fix_deadlocks = True
         result = stormpy.build_submodel(model, states, stormpy.BitVector(model.nr_choices, True), keep_unreachable_states=True, options=options)
-        assert type(result.model) is stormpy.SparseMdp[stormpy.Interval]
+        assert type(result.model) is stormpy.SparseMdp[stormpy.numbers.Interval]
         assert result.model.nr_states == 2
         assert result.model.nr_transitions == 2
 
     def test_for_exact_interval_mdp(self):
-        model = stormpy.build_model_from_drn[stormpy.RationalInterval](get_example_path("imdp", "tiny-01.drn"))
-        assert type(model) is stormpy.SparseMdp[stormpy.RationalInterval]
+        model = stormpy.build_model_from_drn[stormpy.numbers.RationalInterval](get_example_path("imdp", "tiny-01.drn"))
+        assert type(model) is stormpy.SparseMdp[stormpy.numbers.RationalInterval]
         assert model.nr_states == 3
         states = stormpy.BitVector(model.nr_states, True)
         states.set(2, False)
         options = stormpy.SubsystemBuilderOptions()
         options.fix_deadlocks = True
         result = stormpy.build_submodel(model, states, stormpy.BitVector(model.nr_choices, True), keep_unreachable_states=True, options=options)
-        assert type(result.model) is stormpy.SparseMdp[stormpy.RationalInterval]
+        assert type(result.model) is stormpy.SparseMdp[stormpy.numbers.RationalInterval]
         assert result.model.nr_states == 2
         assert result.model.nr_transitions == 2
 

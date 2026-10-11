@@ -1,7 +1,6 @@
 import stormpy
 import stormpy.info
 import stormpy.pars
-from stormpy import pycarl
 
 import stormpy.examples
 import stormpy.examples.files
@@ -9,23 +8,23 @@ import stormpy.examples.files
 
 def example_building_models_02():
     def make_factorized_rf(var, cache):
-        num = stormpy.Polynomial(stormpy.RawPolynomial(var), cache)
-        denom = stormpy.Polynomial(stormpy.RationalFunctionCoefficient(1))
-        return stormpy.RationalFunction(num, denom)
+        num = stormpy.numbers.Polynomial(stormpy.numbers.RawPolynomial(var), cache)
+        denom = stormpy.numbers.Polynomial(stormpy.numbers.RationalFunctionCoefficient(1))
+        return stormpy.numbers.RationalFunction(num, denom)
 
         # And the parametric
 
     path = stormpy.examples.files.drn_pdtmc_die
-    model = stormpy.build_model_from_drn[stormpy.RationalFunction](path)
+    model = stormpy.build_model_from_drn[stormpy.numbers.RationalFunction](path)
 
     parameters = model.collect_all_parameters()
     bar_parameters = dict()
     for p in parameters:
         # Ensure that variables with that name are not recognized by pycarl.
-        assert pycarl.variable_with_name(p.name + "_bar").is_no_variable
-        bar_parameters[p] = pycarl.Variable(p.name + "_bar")
+        assert stormpy.numbers.variable_with_name(p.name + "_bar").is_no_variable
+        bar_parameters[p] = stormpy.numbers.Variable(p.name + "_bar")
 
-    substitutions = dict([[stormpy.RawPolynomial(1) - p, bar_parameters[p]] for p in parameters])
+    substitutions = dict([[stormpy.numbers.RawPolynomial(1) - p, bar_parameters[p]] for p in parameters])
     print(substitutions)
 
     matrix = model.transition_matrix

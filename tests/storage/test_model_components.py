@@ -813,25 +813,25 @@ class TestSparseModelComponents:
         import stormpy.pars
 
         if stormpy.info.storm_ratfunc_use_cln():
-            from stormpy.pycarl import cln as pc
+            from stormpy.numbers.developer import cln as pc
         else:
-            from stormpy.pycarl import gmp as pc
+            from stormpy.numbers.developer import gmp as pc
 
         def create_polynomial(pol):
-            num = pc.create_factorized_polynomial(stormpy.RawPolynomial(pol))
-            return stormpy.RationalFunction(num)
+            num = pc.create_factorized_polynomial(stormpy.numbers.RawPolynomial(pol))
+            return stormpy.numbers.RationalFunction(num)
 
         def create_number(num):
-            num = stormpy.Polynomial(stormpy.RationalFunctionCoefficient(num))
-            return stormpy.RationalFunction(num)
+            num = stormpy.numbers.Polynomial(stormpy.numbers.RationalFunctionCoefficient(num))
+            return stormpy.numbers.RationalFunction(num)
 
-        from stormpy.pycarl import Variable
+        from stormpy.numbers.developer import Variable
 
         nr_states = 13
         nr_choices = 13
 
         # transition_matrix
-        builder = stormpy.storage.SparseMatrixBuilder[stormpy.RationalFunction](
+        builder = stormpy.storage.SparseMatrixBuilder[stormpy.numbers.RationalFunction](
             rows=0, columns=0, entries=0, force_dimensions=False, has_custom_row_grouping=False, row_groups=0
         )
 
@@ -881,16 +881,16 @@ class TestSparseModelComponents:
         reward_models = {}
         # Create a vector representing the state-action rewards
         action_reward = [one, one, one, one, one, one, one, zero, zero, zero, zero, zero, zero]
-        reward_models["coin_flips"] = stormpy.storage.SparseRewardModel[stormpy.RationalFunction](optional_state_action_reward_vector=action_reward)
+        reward_models["coin_flips"] = stormpy.storage.SparseRewardModel[stormpy.numbers.RationalFunction](optional_state_action_reward_vector=action_reward)
 
         # Construct components
-        components = stormpy.storage.SparseModelComponents[stormpy.RationalFunction](
+        components = stormpy.storage.SparseModelComponents[stormpy.numbers.RationalFunction](
             transition_matrix=transition_matrix, state_labeling=state_labeling, reward_models=reward_models
         )
         # Build parametric DTMC
-        dtmc = stormpy.storage.SparseDtmc[stormpy.RationalFunction](components)
+        dtmc = stormpy.storage.SparseDtmc[stormpy.numbers.RationalFunction](components)
 
-        assert type(dtmc) is stormpy.SparseDtmc[stormpy.RationalFunction]
+        assert type(dtmc) is stormpy.SparseDtmc[stormpy.numbers.RationalFunction]
         assert dtmc.supports_parameters
         assert dtmc.has_parameters
 
@@ -900,7 +900,7 @@ class TestSparseModelComponents:
         assert dtmc.nr_transitions == 20
         assert dtmc.transition_matrix.nr_entries == dtmc.nr_transitions
         for e in dtmc.transition_matrix:
-            assert type(e.value()) is stormpy.RationalFunction
+            assert type(e.value()) is stormpy.numbers.RationalFunction
         for state in dtmc.states:
             assert len(state.actions) <= 1
 

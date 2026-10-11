@@ -4,8 +4,8 @@ This module provides the public API for the core functionality of Storm:
 parsing symbolic models and properties, building models, model checking and transforming models.
 """
 
-# Value types (needed by the native modules and therefore imported first)
-from ._config import Interval, Polynomial, Rational, RationalFunction, RationalFunctionCoefficient, RationalInterval, RawPolynomial
+# Number types (needed by the native modules and therefore imported first)
+from . import numbers
 
 from . import developer
 from . import exceptions
@@ -103,14 +103,6 @@ from .core._io import export_to_drn, export_to_umb
 from .core._settings import reset_timeout, set_log_level, set_timeout
 
 __all__ = [
-    # Value types
-    "Interval",
-    "Polynomial",
-    "Rational",
-    "RationalFunction",
-    "RationalFunctionCoefficient",
-    "RationalInterval",
-    "RawPolynomial",
     # Re-exports from stormpy.storage
     "BitVector",
     "DdType",

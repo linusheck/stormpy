@@ -42,11 +42,20 @@ class TestBuilding:
         assert model.state_valuations.get_value(id, d_var) == 3
 
     @pytest.mark.parametrize(
-        "value_type", [float, stormpy.Rational, pytest.param(stormpy.RationalFunction, marks=pars), stormpy.Interval, stormpy.RationalInterval]
+        "value_type",
+        [
+            float,
+            stormpy.numbers.Rational,
+            pytest.param(stormpy.numbers.RationalFunction, marks=pars),
+            stormpy.numbers.Interval,
+            stormpy.numbers.RationalInterval,
+        ],
     )
     def test_build_model_value_types(self, value_type):
         program = stormpy.parse_prism_program(
-            get_example_path("idtmc", "die-intervals.pm") if value_type in (stormpy.Interval, stormpy.RationalInterval) else get_example_path("dtmc", "die.pm")
+            get_example_path("idtmc", "die-intervals.pm")
+            if value_type in (stormpy.numbers.Interval, stormpy.numbers.RationalInterval)
+            else get_example_path("dtmc", "die.pm")
         )
         model = stormpy.build_model[value_type](program)
         assert type(model) is stormpy.SparseDtmc[value_type]
@@ -109,8 +118,8 @@ class TestBuilding:
 
     @pars
     def test_build_parametric_model_from_drn(self):
-        model = stormpy.build_model_from_drn[stormpy.RationalFunction](get_example_path("pdtmc", "die.drn"))
-        assert type(model) is stormpy.SparseDtmc[stormpy.RationalFunction]
+        model = stormpy.build_model_from_drn[stormpy.numbers.RationalFunction](get_example_path("pdtmc", "die.drn"))
+        assert type(model) is stormpy.SparseDtmc[stormpy.numbers.RationalFunction]
         assert model.has_parameters
 
     def test_build_model_from_explicit_with_rewards(self):
@@ -118,7 +127,7 @@ class TestBuilding:
         assert type(model) is stormpy.SparseDtmc[float]
         assert model.nr_states == 13
 
-    @pytest.mark.parametrize("value_type", [float, stormpy.Rational, pytest.param(stormpy.RationalFunction, marks=pars)])
+    @pytest.mark.parametrize("value_type", [float, stormpy.numbers.Rational, pytest.param(stormpy.numbers.RationalFunction, marks=pars)])
     def test_build_symbolic_model_value_types(self, value_type):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         model = stormpy.build_symbolic_model[value_type](program)
@@ -128,7 +137,7 @@ class TestBuilding:
     def test_build_symbolic_model_interval(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         with pytest.raises(TypeError, match="Supported are: float, Rational, RationalFunction"):
-            stormpy.build_symbolic_model[stormpy.Interval](program)
+            stormpy.build_symbolic_model[stormpy.numbers.Interval](program)
 
     def test_direct_encoding_parser_options(self):
         assert not stormpy.build_model_from_drn(stormpy.examples.files.drn_pomdp_maze).has_choice_labeling()

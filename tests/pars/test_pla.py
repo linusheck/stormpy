@@ -21,7 +21,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P<=0.84 [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalFunction](program, formulas)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         assert model.model_type == stormpy.ModelType.DTMC
@@ -44,7 +44,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P<=0.84 [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalFunction](program, formulas)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         assert model.model_type == stormpy.ModelType.DTMC
@@ -61,17 +61,17 @@ class TestPLA:
             else:
                 assert False
         region_valuation = dict()
-        region_valuation[pL] = (stormpy.RationalFunctionCoefficient(0.7), stormpy.RationalFunctionCoefficient(0.9))
-        region_valuation[pK] = (stormpy.RationalFunctionCoefficient(0.75), stormpy.RationalFunctionCoefficient(0.95))
+        region_valuation[pL] = (stormpy.numbers.RationalFunctionCoefficient(0.7), stormpy.numbers.RationalFunctionCoefficient(0.9))
+        region_valuation[pK] = (stormpy.numbers.RationalFunctionCoefficient(0.75), stormpy.numbers.RationalFunctionCoefficient(0.95))
         region = stormpy.pars.ParameterRegion(region_valuation)
         result = checker.check_region(env, region)
         assert result == stormpy.pars.RegionResult.ALL_SAT
-        region_valuation[pL] = (stormpy.RationalFunctionCoefficient(0.4), stormpy.RationalFunctionCoefficient(0.65))
+        region_valuation[pL] = (stormpy.numbers.RationalFunctionCoefficient(0.4), stormpy.numbers.RationalFunctionCoefficient(0.65))
         region = stormpy.pars.ParameterRegion(region_valuation)
         result = checker.check_region(env, region, stormpy.pars.RegionResultHypothesis.UNKNOWN, True)
         assert result == stormpy.pars.RegionResult.EXISTS_BOTH
-        region_valuation[pK] = (stormpy.RationalFunctionCoefficient(0.2), stormpy.RationalFunctionCoefficient(0.715))
-        region_valuation[pL] = (stormpy.RationalFunctionCoefficient(0.1), stormpy.RationalFunctionCoefficient(0.73))
+        region_valuation[pK] = (stormpy.numbers.RationalFunctionCoefficient(0.2), stormpy.numbers.RationalFunctionCoefficient(0.715))
+        region_valuation[pL] = (stormpy.numbers.RationalFunctionCoefficient(0.1), stormpy.numbers.RationalFunctionCoefficient(0.73))
         region = stormpy.pars.ParameterRegion(region_valuation)
         result = checker.check_region(env, region)
         assert result == stormpy.pars.RegionResult.ALL_VIOLATED
@@ -80,7 +80,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         checker = stormpy.pars.create_region_checker(env, model, formulas[0].get_raw_formula())
@@ -97,7 +97,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         checker = stormpy.pars.DtmcParameterLiftingModelChecker()
@@ -112,7 +112,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         checker = stormpy.pars.DtmcParameterLiftingModelChecker()
@@ -127,7 +127,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         checker = stormpy.pars.DtmcParameterLiftingModelChecker()
@@ -143,7 +143,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         parameters = model.collect_all_parameters()
@@ -151,9 +151,9 @@ class TestPLA:
         region = stormpy.pars.ParameterRegion.create_from_string("0.7<=pL<=0.9,0.75<=pK<=0.95", parameters)
 
         refinement_checker = stormpy.pars.create_region_refinement_checker(env, model, formulas[0].get_raw_formula())
-        precision = stormpy.RationalFunctionCoefficient(1e-6)
+        precision = stormpy.numbers.RationalFunctionCoefficient(1e-6)
         value, point = refinement_checker.compute_extremum(env, region, stormpy.OptimizationDirection.MAXIMIZE, precision, False)
-        assert isinstance(value, stormpy.RationalFunctionCoefficient)
+        assert isinstance(value, stormpy.numbers.RationalFunctionCoefficient)
         assert isinstance(point, dict)
         assert len(point) == 2
         assert 0.83 <= float(value) <= 0.84

@@ -43,8 +43,8 @@ class TestDftLoad:
         json_node_c = '{"data": {"id":"6", "name":"Z", "type":"and", "children":["0", "1"], "label":"Z"}, "group":"nodes", "classes":"and"}'
         json_string = '{"toplevel": "6", "parameters": ["x"], "nodes": [' + json_node_a + "," + json_node_b + "," + json_node_c + "]}"
         # Load
-        dft = stormpy.dft.load_dft_json_string[stormpy.RationalFunction](json_string)
-        assert type(dft) is stormpy.dft.DFT[stormpy.RationalFunction]
+        dft = stormpy.dft.load_dft_json_string[stormpy.numbers.RationalFunction](json_string)
+        assert type(dft) is stormpy.dft.DFT[stormpy.numbers.RationalFunction]
         assert dft.nr_elements() == 3
         assert dft.nr_basic_elements() == 2
         assert dft.nr_dynamic_elements() == 0
@@ -55,8 +55,8 @@ class TestDftLoad:
     def test_load_from_path(self):
         dft = stormpy.dft.load_dft_json_file(pathlib.Path(get_example_path("dft", "and.json")))
         assert dft.nr_elements() == 3
-        dft = stormpy.dft.load_dft_galileo_file[stormpy.RationalFunction](pathlib.Path(get_example_path("dft", "symmetry_param.dft")))
-        assert type(dft) is stormpy.dft.DFT[stormpy.RationalFunction]
+        dft = stormpy.dft.load_dft_galileo_file[stormpy.numbers.RationalFunction](pathlib.Path(get_example_path("dft", "symmetry_param.dft")))
+        assert type(dft) is stormpy.dft.DFT[stormpy.numbers.RationalFunction]
         with pytest.raises(TypeError):
             stormpy.dft.load_dft_json_file(42)
 
@@ -87,29 +87,29 @@ class TestDftExport:
         assert dft2.nr_dynamic_elements() == 2
 
     def test_export_parametric_dft_json_string(self):
-        dft = stormpy.dft.load_dft_galileo_file[stormpy.RationalFunction](get_example_path("dft", "symmetry_param.dft"))
+        dft = stormpy.dft.load_dft_galileo_file[stormpy.numbers.RationalFunction](get_example_path("dft", "symmetry_param.dft"))
         parameter_names = {parameter.name for parameter in dft.get_parameters()}
         assert parameter_names == {"x", "y"}
 
         json_string = stormpy.dft.export_dft_json_string(dft)
-        dft2 = stormpy.dft.load_dft_json_string[stormpy.RationalFunction](json_string)
+        dft2 = stormpy.dft.load_dft_json_string[stormpy.numbers.RationalFunction](json_string)
 
-        assert type(dft2) is stormpy.dft.DFT[stormpy.RationalFunction]
+        assert type(dft2) is stormpy.dft.DFT[stormpy.numbers.RationalFunction]
         assert dft2.nr_elements() == dft.nr_elements()
         assert dft2.nr_basic_elements() == dft.nr_basic_elements()
         assert dft2.nr_dynamic_elements() == dft.nr_dynamic_elements()
         assert {parameter.name for parameter in dft2.get_parameters()} == parameter_names
 
     def test_export_parametric_dft_json_file(self, tmp_path):
-        dft = stormpy.dft.load_dft_galileo_file[stormpy.RationalFunction](get_example_path("dft", "symmetry_param.dft"))
+        dft = stormpy.dft.load_dft_galileo_file[stormpy.numbers.RationalFunction](get_example_path("dft", "symmetry_param.dft"))
         parameter_names = {parameter.name for parameter in dft.get_parameters()}
         assert parameter_names == {"x", "y"}
 
         export_file = tmp_path / "symmetry_param.json"
         stormpy.dft.export_dft_json_file(dft, export_file)
-        dft2 = stormpy.dft.load_dft_json_file[stormpy.RationalFunction](export_file)
+        dft2 = stormpy.dft.load_dft_json_file[stormpy.numbers.RationalFunction](export_file)
 
-        assert type(dft2) is stormpy.dft.DFT[stormpy.RationalFunction]
+        assert type(dft2) is stormpy.dft.DFT[stormpy.numbers.RationalFunction]
         assert dft2.nr_elements() == dft.nr_elements()
         assert dft2.nr_basic_elements() == dft.nr_basic_elements()
         assert dft2.nr_dynamic_elements() == dft.nr_dynamic_elements()
@@ -117,14 +117,14 @@ class TestDftExport:
 
     def test_load_unsupported_value_type(self):
         with pytest.raises(TypeError, match="Supported are: float, "):
-            stormpy.dft.load_dft_json_file[stormpy.Rational](get_example_path("dft", "and.json"))
+            stormpy.dft.load_dft_json_file[stormpy.numbers.Rational](get_example_path("dft", "and.json"))
 
     def test_load_published_template_function(self):
         assert repr(stormpy.dft.load_dft_json_file) == "<template function stormpy.dft.load_dft_json_file>"
-        dft = stormpy.dft.load_dft_json_file[stormpy.RationalFunction](get_example_path("dft", "and.json"))
-        assert type(dft) is stormpy.dft.DFT[stormpy.RationalFunction]
+        dft = stormpy.dft.load_dft_json_file[stormpy.numbers.RationalFunction](get_example_path("dft", "and.json"))
+        assert type(dft) is stormpy.dft.DFT[stormpy.numbers.RationalFunction]
 
     def test_load_developer_template_function(self):
-        dft = stormpy.dft.developer.load_dft_json_file[stormpy.RationalFunction](get_example_path("dft", "and.json"))
-        assert type(dft) is stormpy.dft.DFT[stormpy.RationalFunction]
+        dft = stormpy.dft.developer.load_dft_json_file[stormpy.numbers.RationalFunction](get_example_path("dft", "and.json"))
+        assert type(dft) is stormpy.dft.DFT[stormpy.numbers.RationalFunction]
         assert type(stormpy.dft.developer.load_dft_json_file(get_example_path("dft", "and.json"))) is stormpy.dft.DFT[float]

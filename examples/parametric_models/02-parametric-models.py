@@ -1,12 +1,12 @@
 import stormpy
 import stormpy.info
 import stormpy.pars
-from stormpy.pycarl.formula import FormulaType, Relation
+from stormpy.numbers.developer.formula import FormulaType, Relation
 
 if stormpy.info.storm_ratfunc_use_cln():
-    from stormpy.pycarl.cln import formula
+    from stormpy.numbers.developer.cln import formula
 else:
-    from stormpy.pycarl.gmp import formula
+    from stormpy.numbers.developer.gmp import formula
 
 import stormpy.examples
 import stormpy.examples.files
@@ -18,7 +18,7 @@ def example_parametric_models_02():
 
     formula_str = "P=? [F s=7 & d=2]"
     properties = stormpy.parse_properties(formula_str, prism_program)
-    model = stormpy.build_model[stormpy.RationalFunction](prism_program, properties)
+    model = stormpy.build_model[stormpy.numbers.RationalFunction](prism_program, properties)
 
     initial_state = model.initial_states[0]
     result = stormpy.model_checking(model, properties[0])

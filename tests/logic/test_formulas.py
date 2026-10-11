@@ -48,17 +48,17 @@ class TestFormulas:
         prop = 'P<0.4 [F "one"]'
         formula = stormpy.parse_properties(prop)[0].get_raw_formula()
         assert formula.has_bound
-        assert formula.threshold == stormpy.Rational("0.4")
+        assert formula.threshold == stormpy.numbers.Rational("0.4")
         assert formula.comparison_type == stormpy.logic.ComparisonType.LESS
 
     def test_set_bounds(self):
         prop = 'P<0.4 [F "one"]'
         formula = stormpy.parse_properties(prop)[0].get_raw_formula()
         expression_manager = stormpy.storage.ExpressionManager()
-        rational = stormpy.Rational("0.2")
+        rational = stormpy.numbers.Rational("0.2")
         expression = expression_manager.create_rational(rational)
         formula.set_bound(stormpy.logic.ComparisonType.GEQ, expression)
-        assert formula.threshold == stormpy.Rational("0.2")
+        assert formula.threshold == stormpy.numbers.Rational("0.2")
         assert formula.comparison_type == stormpy.logic.ComparisonType.GEQ
         assert str(formula) == 'P>=1/5 [F "one"]'
 
@@ -94,7 +94,7 @@ class TestFormulas:
         assert type(subformula) == stormpy.logic.DiscountedTotalRewardFormula
         assert subformula.is_discounted_total_reward_formula
         assert subformula.discount_factor_double == pytest.approx(0.9)
-        assert subformula.discount_factor_rational == stormpy.Rational("0.9")
+        assert subformula.discount_factor_rational == stormpy.numbers.Rational("0.9")
 
     def test_discounted_cumulative_reward_formula(self):
         formula_str = 'R{"reward"}max=? [C<=10 discount=0.9]'
@@ -105,5 +105,5 @@ class TestFormulas:
         assert type(subformula) == stormpy.logic.DiscountedCumulativeRewardFormula
         assert subformula.is_discounted_cumulative_reward_formula
         assert subformula.discount_factor_double == pytest.approx(0.9)
-        assert subformula.discount_factor_rational == stormpy.Rational("0.9")
+        assert subformula.discount_factor_rational == stormpy.numbers.Rational("0.9")
         assert not subformula.is_discounted_total_reward_formula

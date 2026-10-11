@@ -147,7 +147,7 @@ def build_parametric_sparse_matrix(array, row_group_indices=[]):
     :param List[double] row_group_indices: List containing the starting row of each row group in ascending order.
     :return: Parametric sparse matrix.
     """
-    return _build_sparse_matrix(SparseMatrixBuilder[stormpy.RationalFunction], array, row_group_indices=row_group_indices)
+    return _build_sparse_matrix(SparseMatrixBuilder[stormpy.numbers.RationalFunction], array, row_group_indices=row_group_indices)
 
 
 def _build_sparse_matrix(builder_class, array, row_group_indices=[]):

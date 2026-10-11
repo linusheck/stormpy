@@ -7,9 +7,9 @@ import pytest
 
 def test_parameters_of_model():
     program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-    model = stormpy.build_model[stormpy.Rational](program)
+    model = stormpy.build_model[stormpy.numbers.Rational](program)
 
-    assert stormpy.storage.parameters_of_model(model) == (stormpy.Rational,)
+    assert stormpy.storage.parameters_of_model(model) == (stormpy.numbers.Rational,)
 
 
 class TestSparseModel:
@@ -333,7 +333,7 @@ class TestSymbolicSylvanModel:
             model = stormpy.build_symbolic_model(program, formulas)
 
     def test_build_ipomdp(self):
-        model = stormpy.build_model_from_drn[stormpy.Interval](get_example_path("ipomdp", "tiny-01.drn"))
+        model = stormpy.build_model_from_drn[stormpy.numbers.Interval](get_example_path("ipomdp", "tiny-01.drn"))
         assert model.nr_states == 4
         assert model.nr_choices == 5
         assert model.nr_transitions == 8
@@ -348,10 +348,10 @@ class TestSymbolicSylvanModel:
                 assert transition.value().upper() == 0.8
 
         assert model.model_type == stormpy.ModelType.POMDP
-        assert type(model) is stormpy.SparsePomdp[stormpy.Interval]
+        assert type(model) is stormpy.SparsePomdp[stormpy.numbers.Interval]
 
     def test_build_exact_ipomdp(self):
-        model = stormpy.build_model_from_drn[stormpy.RationalInterval](get_example_path("ipomdp", "tiny-01.drn"))
+        model = stormpy.build_model_from_drn[stormpy.numbers.RationalInterval](get_example_path("ipomdp", "tiny-01.drn"))
         assert model.nr_states == 4
         assert model.nr_choices == 5
         assert model.nr_transitions == 8
@@ -359,11 +359,11 @@ class TestSymbolicSylvanModel:
 
         for transition in model.transition_matrix.row_iter(0, 0):
             if transition.column == 1:
-                assert transition.value().lower() == stormpy.Rational("1/5")
-                assert transition.value().upper() == stormpy.Rational("7/10")
+                assert transition.value().lower() == stormpy.numbers.Rational("1/5")
+                assert transition.value().upper() == stormpy.numbers.Rational("7/10")
             elif transition.column == 2:
-                assert transition.value().lower() == stormpy.Rational("3/10")
-                assert transition.value().upper() == stormpy.Rational("4/5")
+                assert transition.value().lower() == stormpy.numbers.Rational("3/10")
+                assert transition.value().upper() == stormpy.numbers.Rational("4/5")
 
         assert model.model_type == stormpy.ModelType.POMDP
-        assert type(model) is stormpy.SparsePomdp[stormpy.RationalInterval]
+        assert type(model) is stormpy.SparsePomdp[stormpy.numbers.RationalInterval]

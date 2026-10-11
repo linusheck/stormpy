@@ -18,7 +18,7 @@ def test_symbolic_filter_template_and_shared_dd_type():
     assert stormpy.storage.Bdd.parameters_of(result.get_truth_values_vector()) == (stormpy.DdType.Sylvan,)
 
 
-@pytest.mark.parametrize("value_type", [float, stormpy.Rational, stormpy.RationalFunction])
+@pytest.mark.parametrize("value_type", [float, stormpy.numbers.Rational, stormpy.numbers.RationalFunction])
 def test_initial_state_filter_overloads(value_type):
     model = build_sparse_model(get_example_path("dtmc", "die.pm"), value_type)
     result = stormpy.create_filter_initial_states(model)
@@ -27,7 +27,7 @@ def test_initial_state_filter_overloads(value_type):
     assert result.get_truth_values_vector() == model.initial_states_as_bitvector
 
 
-@pytest.mark.parametrize("value_type", [float, stormpy.Rational])
+@pytest.mark.parametrize("value_type", [float, stormpy.numbers.Rational])
 def test_infinite_quantitative_values(value_type, tmp_path):
     # Goal is reached with probability 1/2 and the expected reward is infinite
     program = stormpy.parse_prism_program(get_example_path("dtmc", "infinite.pm"))
@@ -107,7 +107,7 @@ class TestModelChecking:
     def test_model_checking_interval_dtmc(self):
         program = stormpy.parse_prism_program(get_example_path("idtmc", "die-intervals.pm"))
         formulas = stormpy.parse_properties('P=? [ F "one"]')
-        model = stormpy.build_model[stormpy.Interval](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.Interval](program, formulas)
         initial_state = model.initial_states[0]
         assert initial_state == 0
 
@@ -136,7 +136,7 @@ class TestModelChecking:
         assert math.isclose(result[initial_state], 9.0 / 189.0, rel_tol=1e-4)
 
     def test_model_checking_interval_mdp(self):
-        model = stormpy.build_model_from_drn[stormpy.Interval](get_example_path("imdp", "tiny-01.drn"))
+        model = stormpy.build_model_from_drn[stormpy.numbers.Interval](get_example_path("imdp", "tiny-01.drn"))
         formulas = stormpy.parse_properties('Pmax=? [ F "target"];Pmin=? [ F "target"]')
         initial_state = model.initial_states[0]
         assert initial_state == 0
@@ -189,7 +189,7 @@ class TestModelChecking:
     def test_model_checking_exact_interval_dtmc(self):
         program = stormpy.parse_prism_program(get_example_path("idtmc", "die-intervals.pm"))
         formulas = stormpy.parse_properties('P=? [ F "one"]')
-        model = stormpy.build_model[stormpy.RationalInterval](program, formulas)
+        model = stormpy.build_model[stormpy.numbers.RationalInterval](program, formulas)
         initial_state = model.initial_states[0]
         assert initial_state == 0
 
@@ -218,7 +218,7 @@ class TestModelChecking:
         assert math.isclose(result[initial_state], 9.0 / 189.0, rel_tol=1e-4)
 
     def test_model_checking_exact_interval_mdp(self):
-        model = stormpy.build_model_from_drn[stormpy.RationalInterval](get_example_path("imdp", "tiny-01.drn"))
+        model = stormpy.build_model_from_drn[stormpy.numbers.RationalInterval](get_example_path("imdp", "tiny-01.drn"))
         formulas = stormpy.parse_properties('Pmax=? [ F "target"];Pmin=? [ F "target"]')
         initial_state = model.initial_states[0]
         assert initial_state == 0
@@ -458,7 +458,7 @@ class TestModelChecking:
     def test_uncertainty_resolution_mode_required(self):
         program = stormpy.parse_prism_program(get_example_path("idtmc", "die-intervals.pm"))
         properties = stormpy.parse_properties('P=? [ F "one"]')
-        model = stormpy.build_model[stormpy.Interval](program, properties)
+        model = stormpy.build_model[stormpy.numbers.Interval](program, properties)
         with pytest.raises(StormError):
             stormpy.model_checking(model, properties[0])
         model = stormpy.build_model(stormpy.parse_prism_program(get_example_path("dtmc", "die.pm")), properties)

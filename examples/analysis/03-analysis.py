@@ -14,7 +14,7 @@ def example_analysis_03():
     env = stormpy.Environment()
     env.solver().set_linear_equation_solver_type(stormpy.EquationSolverType.NATIVE)
     env.solver().native().method = stormpy.NativeLinearEquationSolverMethod.OPTIMISTIC_VALUE_ITERATION
-    env.solver().native().precision = stormpy.Rational("0.9")
+    env.solver().native().precision = stormpy.numbers.Rational("0.9")
     # env.solver().native().maximal_number_of_iterations = 2
     result = stormpy.model_checking(model, properties[0], environment=env)
     print(result[model.initial_states[0]])

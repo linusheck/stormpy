@@ -2,13 +2,12 @@ import stormpy
 import stormpy.info
 import stormpy.pars
 import stormpy.pomdp
-from stormpy import pycarl
-from stormpy.pycarl.formula import FormulaType, Relation
+from stormpy.numbers.developer.formula import FormulaType, Relation
 
 if stormpy.info.storm_ratfunc_use_cln():
-    from stormpy.pycarl.cln import formula
+    from stormpy.numbers.developer.cln import formula
 else:
-    from stormpy.pycarl.gmp import formula
+    from stormpy.numbers.developer.gmp import formula
 
 import stormpy.examples
 import stormpy.examples.files
@@ -16,7 +15,7 @@ import stormpy.examples.files
 
 def example_pomdps_01():
     # Prevent curious side effects from earlier runs (for tests only)
-    pycarl.clear_pools()
+    stormpy.numbers.clear_pools()
     # ###
     # # How to apply an unknown FSC to obtain a pMC from a POMDP
     # path = stormpy.examples.files.prism_pomdp_maze
@@ -50,7 +49,7 @@ def example_pomdps_01():
     options = stormpy.BuilderOptions(properties)
     options.set_build_state_valuations()
     options.set_build_choice_labels()
-    pomdp = stormpy.build_model[stormpy.RationalFunction](prism_program, options=options)
+    pomdp = stormpy.build_model[stormpy.numbers.RationalFunction](prism_program, options=options)
     # make its representation canonic.
     pomdp = stormpy.pomdp.make_canonic(pomdp)
 

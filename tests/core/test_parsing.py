@@ -118,7 +118,7 @@ class TestInstantiate:
         program = stormpy.parse_prism_program(get_example_path("mdp", "firewire.nm"))
         from_string, _ = stormpy.instantiate_constants(program, "delay=10,fast=0.8")
         manager = program.expression_manager
-        for fast in (0.8, stormpy.Rational("4/5"), manager.create_rational(stormpy.Rational("4/5"))):
+        for fast in (0.8, stormpy.numbers.Rational("4/5"), manager.create_rational(stormpy.numbers.Rational("4/5"))):
             from_mapping, _ = stormpy.instantiate_constants(program, {"delay": 10, "fast": fast})
             assert not from_mapping.has_undefined_constants
             assert str(from_mapping) == str(from_string)

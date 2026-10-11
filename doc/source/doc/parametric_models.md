@@ -29,7 +29,7 @@ path = stormpy.examples.files.prism_pdtmc_die
 prism_program = stormpy.parse_prism_program(path)
 formula_str = "P=? [F s=7 & d=2]"
 properties = stormpy.parse_properties(formula_str, prism_program)
-model = stormpy.build_model[stormpy.RationalFunction](prism_program, properties)
+model = stormpy.build_model[stormpy.numbers.RationalFunction](prism_program, properties)
 parameters = model.collect_all_parameters()
 for x in parameters:
     print(x)
@@ -49,7 +49,7 @@ Before we obtain an instantiated model, we need to map parameters to values: We 
 point = dict()
 for x in parameters:
     print(x.name)
-    point[x] = stormpy.RationalFunctionCoefficient(0.4)
+    point[x] = stormpy.numbers.RationalFunctionCoefficient(0.4)
 instantiated_model = instantiator.instantiate(point)
 result = stormpy.model_checking(instantiated_model, properties[0])
 print(result[model.initial_states[0]])
@@ -76,9 +76,9 @@ We collect the constraints ensuring that underlying model is well-formed and the
 import stormpy.info
 
 if stormpy.info.storm_ratfunc_use_cln():
-    import stormpy.pycarl.cln.formula
+    import stormpy.numbers.developer.cln.formula
 else:
-    import stormpy.pycarl.gmp.formula
+    import stormpy.numbers.developer.gmp.formula
 collector = stormpy.ConstraintCollector(model)
 for formula in collector.get_wellformed_constraints():
     print(formula)

@@ -1,6 +1,5 @@
 import stormpy
 import stormpy.pars
-from stormpy import pycarl
 
 import stormpy.examples
 import stormpy.examples.files
@@ -12,7 +11,7 @@ def example_parametric_models_04():
 
     formula_str = "P=? [F s=7 & d=2]"
     properties = stormpy.parse_properties(formula_str, prism_program)
-    model = stormpy.build_model[stormpy.RationalFunction](prism_program, properties)
+    model = stormpy.build_model[stormpy.numbers.RationalFunction](prism_program, properties)
 
     # Modify
     i = 0
@@ -22,12 +21,12 @@ def example_parametric_models_04():
         for action in state.actions:
             for transition in action.transitions:
                 if len(transition.value().gather_variables()) > 0:
-                    new_var = pycarl.Variable("p{}".format(i))
+                    new_var = stormpy.numbers.Variable("p{}".format(i))
                     i += 1
-                    new_pol = stormpy.RawPolynomial(new_var)
-                    pol_in_right_format = stormpy.Polynomial(new_pol, transition.value().numerator.cache())
+                    new_pol = stormpy.numbers.RawPolynomial(new_var)
+                    pol_in_right_format = stormpy.numbers.Polynomial(new_pol, transition.value().numerator.cache())
 
-                    new_factorized_ratfunc = stormpy.RationalFunction(pol_in_right_format)
+                    new_factorized_ratfunc = stormpy.numbers.RationalFunction(pol_in_right_format)
                     transition.set_value(new_factorized_ratfunc)
 
     # Display

@@ -6,7 +6,7 @@ from collections.abc import Iterable
 
 from stormpy import developer, storage
 from stormpy.core._common import PathLike, _formulas, _path
-from stormpy._config import Interval, Rational, RationalFunction, RationalInterval
+from stormpy.numbers import Interval, Rational, RationalFunction, RationalInterval
 from stormpy._template import _deduce_default, _template_function
 from stormpy.developer import (
     DirectEncodingParserOptions,
@@ -57,7 +57,7 @@ def build_model(
     """
     Build a model in sparse (explicit) representation from a symbolic model.
 
-    The value type of the model is selected via subscript, e.g. ``build_model[stormpy.Rational](program)``:
+    The value type of the model is selected via subscript, e.g. ``build_model[stormpy.numbers.Rational](program)``:
     float (default), Rational (exact), RationalFunction (parametric), Interval or RationalInterval (exact interval).
 
     :param model: Symbolic model (Prism program, Jani model or symbolic model description).
@@ -94,7 +94,7 @@ def build_symbolic_model(
     """
     Build a model in symbolic representation (using decision diagrams) from a symbolic model.
 
-    The value type of the model is selected via subscript, e.g. ``build_symbolic_model[stormpy.Rational](program)``:
+    The value type of the model is selected via subscript, e.g. ``build_symbolic_model[stormpy.numbers.Rational](program)``:
     float (default), Rational (exact) or RationalFunction (parametric). Interval value types are not supported.
 
     :param model: Symbolic model (Prism program, Jani model or symbolic model description).
@@ -116,7 +116,7 @@ def build_model_from_drn(value_type: type, path: PathLike, *, options: DirectEnc
     """
     Build a model in sparse representation from a file in the explicit DRN format.
 
-    The value type of the model is selected via subscript, e.g. ``build_model_from_drn[stormpy.Rational](path)``:
+    The value type of the model is selected via subscript, e.g. ``build_model_from_drn[stormpy.numbers.Rational](path)``:
     float (default), Rational (exact), RationalFunction (parametric), Interval or RationalInterval (exact interval).
 
     :param path: Path to the DRN file (string or path-like object).

@@ -73,9 +73,9 @@ sdist.include = [
     "lib/stormpy/gspn/_config.py",
     "lib/stormpy/pars/_config.py",
     "lib/stormpy/pomdp/_config.py",
-    "lib/stormpy/pycarl/_config.py",
-    "lib/stormpy/pycarl/cln/_config.py",
-    "lib/stormpy/pycarl/cln/formula/_config.py",
+    "lib/stormpy/numbers/developer/_config.py",
+    "lib/stormpy/numbers/developer/cln/_config.py",
+    "lib/stormpy/numbers/developer/cln/formula/_config.py",
 ]
 
 [tool.scikit-build.cmake.define]

@@ -25,9 +25,9 @@ Functions must document each parameter with ``:param <name>:``.
 C++ templates are bound once per instantiation and grouped in Python into a subscriptable family, e.g. ``stormpy.ExplicitQuantitativeCheckResult[float]``.
 - Classes are bound with ``bindTemplateClass`` (``src/template_binding.h``) and exposed as ``_TemplateClass`` (``lib/stormpy/_template.py``).
 - Functions whose template parameters cannot be deduced from their arguments (e.g. because the value type only occurs in the return type) are bound with ``bindTemplateFunction`` and exposed as ``_TemplateFunction``,
-  e.g. ``stormpy.developer.build_sparse_model[stormpy.Rational](program, formulas)``.
+  e.g. ``stormpy.developer.build_sparse_model[stormpy.numbers.Rational](program, formulas)``.
   Do not encode the template parameters in the function name.
-- Public Python functions with a template parameter, e.g. ``stormpy.build_model[stormpy.Rational](program)``, are defined with the decorator ``_template_function`` (``lib/stormpy/_template.py``).
+- Public Python functions with a template parameter, e.g. ``stormpy.build_model[stormpy.numbers.Rational](program)``, are defined with the decorator ``_template_function`` (``lib/stormpy/_template.py``).
   The decorated function takes the template parameters as leading arguments, and one instantiation is created per supported parameter.
 
 The families of the bindings are defined in the ``__init__.py`` of the developer module.

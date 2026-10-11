@@ -33,21 +33,20 @@ class TestDft:
         assert type(builder) is stormpy.dft.developer.ExplicitDFTModelBuilder[float]
 
     def test_parametric_dft(self):
-        from stormpy import pycarl
 
-        pycarl.clear_pools()
+        stormpy.numbers.clear_pools()
         env = stormpy.dft.DftEnvironment()
-        generic_dft = stormpy.dft.load_dft_json_file[stormpy.RationalFunction](get_example_path("dft", "and.json"))
-        assert type(generic_dft) is stormpy.dft.DFT[stormpy.RationalFunction]
-        assert stormpy.dft.DFT[stormpy.RationalFunction] is stormpy.dft.developer._DFT_RationalFunction
+        generic_dft = stormpy.dft.load_dft_json_file[stormpy.numbers.RationalFunction](get_example_path("dft", "and.json"))
+        assert type(generic_dft) is stormpy.dft.DFT[stormpy.numbers.RationalFunction]
+        assert stormpy.dft.DFT[stormpy.numbers.RationalFunction] is stormpy.dft.developer._DFT_RationalFunction
 
         builder = stormpy.dft.developer.ExplicitDFTModelBuilder(env, generic_dft, stormpy.dft.developer.DftSymmetries())
-        assert type(builder) is stormpy.dft.developer.ExplicitDFTModelBuilder[stormpy.RationalFunction]
+        assert type(builder) is stormpy.dft.developer.ExplicitDFTModelBuilder[stormpy.numbers.RationalFunction]
 
         model = stormpy.dft.build_model(generic_dft, environment=env)
         assert model.supports_parameters
 
-        dft = stormpy.dft.load_dft_galileo_file[stormpy.RationalFunction](get_example_path("dft", "symmetry_param.dft"))
+        dft = stormpy.dft.load_dft_galileo_file[stormpy.numbers.RationalFunction](get_example_path("dft", "symmetry_param.dft"))
         assert dft.nr_elements() == 7
         assert dft.nr_basic_elements() == 4
         assert dft.nr_dynamic_elements() == 0
