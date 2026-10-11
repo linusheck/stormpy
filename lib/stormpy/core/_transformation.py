@@ -69,6 +69,8 @@ def transform_to_discrete_time_model(model, properties: Iterable[Property]) -> t
     """
     Transform a continuous-time model (CTMC or MA) into a discrete-time model (DTMC or MDP).
 
+    Formulas which are not preserved by the transformation are dropped (with a warning).
+
     :param model: Sparse continuous-time model.
     :param properties: Properties which are transformed accordingly.
     :return: Tuple of the discrete-time model and the transformed formulas.
@@ -77,17 +79,19 @@ def transform_to_discrete_time_model(model, properties: Iterable[Property]) -> t
     return discrete_model, formulas
 
 
-def eliminate_non_markovian_chains(ma, properties: Iterable[Property], label_behavior: EliminationLabelBehavior) -> tuple:
+def eliminate_non_markovian_chains(model, properties: Iterable[Property], label_behavior: EliminationLabelBehavior) -> tuple:
     """
     Eliminate chains of non-Markovian states in a Markov automaton if possible.
 
-    :param ma: Sparse Markov automaton.
+    Formulas which are not preserved by the elimination are dropped (with a warning).
+
+    :param model: Sparse Markov automaton.
     :param properties: Properties which are transformed accordingly.
     :param label_behavior: How labels of eliminated states are handled.
     :return: Tuple of the resulting model (an MA or a CTMC) and the transformed formulas.
     """
-    model, formulas = developer.eliminate_non_markovian_chains(ma, _formulas(properties), label_behavior)
-    return model, formulas
+    result, formulas = developer.eliminate_non_markovian_chains(model, _formulas(properties), label_behavior)
+    return result, formulas
 
 
 def build_submodel(

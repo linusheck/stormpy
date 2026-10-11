@@ -98,6 +98,19 @@ class TestTransformation:
         result = stormpy.model_checking(mdp, mdp_formulas[0])
         assert math.isclose(result[initial_state], 0.08333333333)
 
+    def test_transformations_return_formulas(self):
+        program = stormpy.parse_prism_program(get_example_path("ma", "stream2.ma"))
+        properties = stormpy.parse_properties('Pmin=? [ F "done"]; Tmin=? [ F "done" ]', program)
+        ma = stormpy.build_model(program, properties)
+        # Both formulas are preserved by the transformation to a discrete-time model
+        _, mdp_formulas = stormpy.transform_to_discrete_time_model(ma, properties)
+        assert len(mdp_formulas) == 2
+        assert all(isinstance(formula, stormpy.logic.Formula) for formula in mdp_formulas)
+        # Only the probability formula is preserved by the elimination of non-Markovian chains
+        _, elim_formulas = stormpy.eliminate_non_markovian_chains(model=ma, properties=properties, label_behavior=stormpy.EliminationLabelBehavior.KEEP_LABELS)
+        assert len(elim_formulas) == 1
+        assert elim_formulas[0].is_probability_operator
+
     def test_eliminate_non_markovian_chains(self):
         program = stormpy.parse_prism_program(get_example_path("ma", "stream2.ma"))
         formulas = stormpy.parse_properties('Pmin=? [ F "done"];Tmin=? [ F "done" ]', program)
