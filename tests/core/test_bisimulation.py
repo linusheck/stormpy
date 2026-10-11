@@ -105,3 +105,22 @@ class TestBisimulation:
         assert model_bisim.nr_transitions == 454
         assert model_bisim.model_type == stormpy.ModelType.DTMC
         assert model_bisim.has_parameters
+
+    def test_perform_bisimulation_symbolic_sparse_quotient(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "crowds5_5.pm"))
+        properties = stormpy.parse_properties('P=? [F "observe0Greater1"]', program)
+        model = stormpy.build_symbolic_model(program, properties)
+        quotient = stormpy.perform_bisimulation(model, properties, quotient_format=stormpy.QuotientFormat.SPARSE)
+        assert quotient.is_sparse_model
+        assert type(quotient) is stormpy.SparseDtmc[float]
+        dd_quotient = stormpy.perform_bisimulation(model, properties)
+        assert dd_quotient.is_symbolic_model
+        assert quotient.nr_states == dd_quotient.nr_states
+        assert quotient.nr_states < model.nr_states
+
+    def test_perform_bisimulation_weak(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "crowds5_5.pm"))
+        properties = stormpy.parse_properties('P=? [F "observe0Greater1"]', program)
+        model = stormpy.build_model(program, properties)
+        quotient = stormpy.perform_bisimulation(model, properties, bisimulation_type=stormpy.BisimulationType.WEAK)
+        assert quotient.nr_states < model.nr_states

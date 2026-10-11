@@ -5,6 +5,7 @@ from helpers.helper import build_sparse_model, get_example_path
 from configurations import spot
 
 import math
+from stormpy.exceptions import StormError
 
 
 def test_symbolic_filter_template_and_shared_dd_type():
@@ -24,6 +25,21 @@ def test_initial_state_filter_overloads(value_type):
 
     assert type(result) is stormpy.ExplicitQualitativeCheckResult[value_type]
     assert result.get_truth_values_vector() == model.initial_states_as_bitvector
+
+
+@pytest.mark.parametrize("value_type", [float, stormpy.Rational])
+def test_infinite_quantitative_values(value_type, tmp_path):
+    # Goal is reached with probability 1/2 and the expected reward is infinite
+    program = stormpy.parse_prism_program(get_example_path("dtmc", "infinite.pm"))
+    properties = stormpy.parse_properties('R=? [ F "goal" ]', program)
+    model = stormpy.build_model(program, properties, value_type=value_type)
+    result = stormpy.model_checking(model, properties[0])
+    assert result[0] == math.inf
+    assert result[2] == math.inf
+    assert result[1] == 0
+    assert isinstance(result[1], value_type)
+    assert result.get_max() == math.inf
+    assert result.get_min() == 0
 
 
 class TestModelChecking:
@@ -414,3 +430,72 @@ class TestModelChecking:
             assert values[i] == 0
         for i in range(7, 13):
             assert math.isclose(values[i], 1.0 / 6)
+
+    def test_engines(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+        properties = stormpy.parse_properties('P=? [F "one"]', program)
+        sparse_model = stormpy.build_model(program, properties)
+        symbolic_model = stormpy.build_symbolic_model(program, properties)
+        result = stormpy.model_checking(sparse_model, properties[0], engine=stormpy.Engine.SPARSE)
+        assert math.isclose(result[sparse_model.initial_states[0]], 1 / 6)
+        for engine in [None, stormpy.Engine.DD, stormpy.Engine.HYBRID]:
+            result = stormpy.model_checking(symbolic_model, properties[0], only_initial_states=True, engine=engine)
+            result.filter(stormpy.create_filter_initial_states(symbolic_model))
+            assert math.isclose(result.get_min(), 1 / 6, rel_tol=1e-6)
+
+    def test_engine_mismatch(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+        properties = stormpy.parse_properties('P=? [F "one"]', program)
+        sparse_model = stormpy.build_model(program, properties)
+        symbolic_model = stormpy.build_symbolic_model(program, properties)
+        with pytest.raises(StormError):
+            stormpy.model_checking(sparse_model, properties[0], engine=stormpy.Engine.DD)
+        with pytest.raises(StormError):
+            stormpy.model_checking(symbolic_model, properties[0], engine=stormpy.Engine.SPARSE)
+        with pytest.raises(StormError):
+            stormpy.model_checking(symbolic_model, properties[0], extract_scheduler=True)
+
+    def test_uncertainty_resolution_mode_required(self):
+        program = stormpy.parse_prism_program(get_example_path("idtmc", "die-intervals.pm"))
+        properties = stormpy.parse_properties('P=? [ F "one"]')
+        model = stormpy.build_model(program, properties, value_type=stormpy.Interval)
+        with pytest.raises(StormError):
+            stormpy.model_checking(model, properties[0])
+        model = stormpy.build_model(stormpy.parse_prism_program(get_example_path("dtmc", "die.pm")), properties)
+        with pytest.raises(StormError):
+            stormpy.model_checking(model, properties[0], uncertainty_resolution_mode=stormpy.UncertaintyResolutionMode.ROBUST)
+
+    def test_pomdp_requires_force_fully_observable(self):
+        program = stormpy.parse_prism_program(get_example_path("pomdp", "maze_2.prism"))
+        properties = stormpy.parse_properties('Pmax=? [ !"bad" U "goal" ]', program)
+        model = stormpy.build_model(program, properties)
+        with pytest.raises(StormError):
+            stormpy.model_checking(model, properties[0])
+        result = stormpy.model_checking(model, properties[0], force_fully_observable=True)
+        assert math.isclose(result[model.initial_states[0]], 11 / 13)
+
+    def test_scheduler_extraction(self):
+        program = stormpy.parse_prism_program(get_example_path("mdp", "coin2-2.nm"))
+        properties = stormpy.parse_properties('Pmin=? [ F "finished" & "all_coins_equal_1"]', program)
+        model = stormpy.build_model(program, properties)
+        result = stormpy.model_checking(model, properties[0], extract_scheduler=True)
+        assert result.has_scheduler()
+        assert result.get_scheduler().memoryless
+
+    def test_multi_objective(self):
+        program = stormpy.parse_prism_program(get_example_path("mdp", "multiobjective1.nm"))
+        properties = stormpy.parse_properties('multi(Pmax=? [ F<=3 s=2 ],R{"rew"}max=? [ F s=2 ])', program)
+        model = stormpy.build_model(program, properties)
+        result = stormpy.model_checking(model, properties[0])
+        assert type(result) is stormpy.ExplicitParetoCurveCheckResult[float]
+        assert result.is_pareto_curve_check_result()
+
+    def test_hint(self):
+        program = stormpy.parse_prism_program(get_example_path("mdp", "coin2-2.nm"))
+        properties = stormpy.parse_properties('Pmin=? [ F "finished" & "all_coins_equal_1"]', program)
+        model = stormpy.build_model(program, properties)
+        result = stormpy.model_checking(model, properties[0])
+        hint = stormpy.ExplicitModelCheckerHint()
+        hint.set_result_hint(result.get_finite_value_vector())
+        result_hint = stormpy.model_checking(model, properties[0], hint=hint)
+        assert math.isclose(result_hint[model.initial_states[0]], result[model.initial_states[0]], rel_tol=1e-4)

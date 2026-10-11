@@ -3,6 +3,7 @@ import stormpy
 from helpers.helper import build_sparse_model, get_example_path
 
 import math
+from stormpy.exceptions import StormError
 
 
 @pytest.mark.parametrize("value_type", [float, stormpy.Rational, stormpy.RationalFunction, stormpy.Interval, stormpy.RationalInterval])
@@ -163,6 +164,13 @@ class TestECElimination:
         assert ec_elimination_result.new_to_old_row_mapping[200] == 245
         assert ec_elimination_result.sink_rows.number_of_set_bits() == 36
 
+    def test_eliminate_end_components_sizes(self):
+        program = stormpy.parse_prism_program(get_example_path("mdp", "two_dice.nm"))
+        model = stormpy.build_model(program)
+        states = stormpy.BitVector(model.nr_states, True)
+        with pytest.raises(StormError):
+            stormpy.eliminate_end_components(model.transition_matrix, stormpy.BitVector(1, True), stormpy.BitVector(model.nr_choices, True), states)
+
 
 class TestAddUncertainty:
     def test_add_uncertainty_dtmc(self):
@@ -192,6 +200,17 @@ class TestAddUncertainty:
         for row in range(interval_model.nr_states):
             for transition in interval_model.transition_matrix.row_iter(row, row):
                 assert transition.value().lower() <= transition.value().upper()
+
+    def test_add_uncertainty_api(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+        model = stormpy.build_model(program)
+        interval_model = stormpy.add_uncertainty(model, 0.1)
+        assert type(interval_model) is stormpy.SparseDtmc[stormpy.Interval]
+        exact_model = stormpy.build_model(program, value_type=stormpy.Rational)
+        exact_interval_model = stormpy.add_uncertainty(exact_model, stormpy.Rational("1/10"))
+        assert type(exact_interval_model) is stormpy.SparseDtmc[stormpy.RationalInterval]
+        with pytest.raises(StormError):
+            stormpy.add_uncertainty(interval_model, 0.1)
 
 
 class TestSubsystemCreation:
