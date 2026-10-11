@@ -76,7 +76,7 @@ class TestTransformation:
         assert math.isclose(result[initial_state], 4.166666667)
 
     def test_transform_continuous_to_discrete_time_model_ma(self):
-        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"), False, True)
+        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"))
         formulas = stormpy.parse_properties("Tmin=? [ F s=4 ]", program)
         ma = stormpy.build_model(program, formulas)
         assert ma.nr_states == 5
@@ -99,7 +99,7 @@ class TestTransformation:
         assert math.isclose(result[initial_state], 0.08333333333)
 
     def test_eliminate_non_markovian_chains(self):
-        program = stormpy.parse_prism_program(get_example_path("ma", "stream2.ma"), False, True)
+        program = stormpy.parse_prism_program(get_example_path("ma", "stream2.ma"))
         formulas = stormpy.parse_properties('Pmin=? [ F "done"];Tmin=? [ F "done" ]', program)
         ma = stormpy.build_model(program, formulas)
         assert ma.nr_states == 12
@@ -236,7 +236,7 @@ class TestSubsystemCreation:
         assert result.model.nr_transitions == 2
 
     def test_for_ctmc(self):
-        program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), True)
+        program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), prism_compatibility=True)
         formulas = stormpy.parse_properties('P=? [ F<=3 "target" ]', program)
         model = stormpy.build_model(program, formulas)
         assert model.nr_states == 12

@@ -114,7 +114,7 @@ class TestParametric:
         assert len(model.get_parameters()) == 4
 
     def test_parameters_ctmc(self):
-        program = stormpy.parse_prism_program(get_example_path("pctmc", "polling3.sm"), True)
+        program = stormpy.parse_prism_program(get_example_path("pctmc", "polling3.sm"), prism_compatibility=True)
         model = stormpy.build_model[stormpy.RationalFunction](program)
         model_parameters = model.collect_probability_parameters()
         reward_parameters = model.collect_reward_parameters()

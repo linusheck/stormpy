@@ -78,7 +78,7 @@ def check_dft_validity(dft: DFT) -> bool:
 
 # API functions
 def compute_relevant_events(
-    properties: Iterable[Property], additional_relevant_names: Iterable[str] = (), *, add_labels_claiming: bool = False
+    properties: Iterable[Property], *, additional_relevant_names: Iterable[str] = (), add_labels_claiming: bool = False
 ) -> RelevantEvents:
     """
     Compute the relevant events for the analysis of a DFT.
@@ -95,25 +95,26 @@ def compute_relevant_events(
 
 
 def analyze_dft(
-    env: DftEnvironment,
     dft: DFT,
     properties: Iterable[Property],
+    *,
     relevant_events: RelevantEvents | None = None,
+    environment: DftEnvironment | None = None,
 ) -> list[float | tuple[float, float]] | list[RationalFunction | tuple[RationalFunction, RationalFunction]]:
     """
     Analyze the DFT with respect to the given properties.
 
-    :param env: Environment configuring the analysis.
     :param dft: DFT.
     :param properties: Properties to check.
     :param relevant_events: (optional) relevant events which should be observed, see :func:`compute_relevant_events`.
+    :param environment: (optional) Environment configuring the analysis.
     :return: List of results corresponding to the given properties.
         Each entry is a single value for exact analysis, or a tuple (lower, upper) for approximate analysis.
-        For approximate analysis, the difference between the bounds satisfies the (relative) error given by env.analysis_environment.approximation_error.
+        For approximate analysis, the difference between the bounds satisfies the (relative) error given by environment.analysis_environment.approximation_error.
     """
     check_dft_validity(dft)
     return developer.analyze_dft(
-        env,
+        environment if environment is not None else DftEnvironment(),
         dft,
         _formulas(properties),
         relevant_events if relevant_events is not None else developer.RelevantEvents(),
@@ -121,22 +122,23 @@ def analyze_dft(
 
 
 def build_model(
-    env: DftEnvironment,
     dft: DFT,
+    *,
     symmetries: DftSymmetries | None = None,
     relevant_events: RelevantEvents | None = None,
+    environment: DftEnvironment | None = None,
 ) -> SparseCtmc[float] | SparseCtmc[RationalFunction] | SparseMA[float] | SparseMA[RationalFunction]:
     """
     Build state-space model (CTMC or MA) for the given DFT.
 
-    :param env: Environment configuring the build.
     :param dft: DFT.
     :param symmetries: (optional) symmetries in the DFT to exploit.
     :param relevant_events: (optional) relevant events which should be observed.
+    :param environment: (optional) Environment configuring the build.
     :return: The built model as either a CTMC or an MA.
     """
     return developer.build_model(
-        env,
+        environment if environment is not None else DftEnvironment(),
         dft,
         symmetries if symmetries is not None else developer.DftSymmetries(),
         relevant_events if relevant_events is not None else developer.RelevantEvents(),

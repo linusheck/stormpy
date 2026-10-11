@@ -69,7 +69,7 @@ def example_pomdps_01():
     if export_pmc:
         export_options = stormpy.DirectEncodingExporterOptions()
         export_options.allow_placeholders = False
-        stormpy.export_to_drn(pmc, "test.out", export_options)
+        stormpy.export_to_drn(pmc, "test.out", options=export_options)
 
 
 if __name__ == "__main__":

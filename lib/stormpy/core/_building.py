@@ -112,7 +112,7 @@ def build_symbolic_model(
 
 
 @_template_function("stormpy.build_model_from_drn", parameters=("ValueType",), instantiations=_VALUE_TYPES, deduce=_deduce_default(float))
-def build_model_from_drn(value_type: type, path: str, options: DirectEncodingParserOptions | None = None):
+def build_model_from_drn(value_type: type, path: str, *, options: DirectEncodingParserOptions | None = None):
     """
     Build a model in sparse representation from a file in the explicit DRN format.
 
@@ -159,7 +159,7 @@ def build_model_from_explicit(
     return model
 
 
-def build_model_from_umb(path: str, options: storage.UmbImportOptions | None = None):
+def build_model_from_umb(path: str, *, options: storage.UmbImportOptions | None = None):
     """
     Build a model in sparse representation from a UMB archive.
 

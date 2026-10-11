@@ -8,7 +8,7 @@ def example_schedulers_02():
     path = stormpy.examples.files.prism_ma_simple
     formula_str = "Tmin=? [ F s=4 ]"
 
-    program = stormpy.parse_prism_program(path, False, True)
+    program = stormpy.parse_prism_program(path)
     formulas = stormpy.parse_properties(formula_str, program)
     options = stormpy.BuilderOptions(formulas)
     options.set_build_choice_labels()

@@ -113,7 +113,7 @@ def build_submodel(
     )
 
 
-def add_uncertainty(model, additive_uncertainty: float | Rational, minimal_value: float | Rational | None = None, max_successors: int | None = None):
+def add_uncertainty(model, additive_uncertainty: float | Rational, *, minimal_value: float | Rational | None = None, max_successors: int | None = None):
     """
     Transform a model into an interval model by adding uncertainty to all transition probabilities.
 

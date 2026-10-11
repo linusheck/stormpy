@@ -14,7 +14,7 @@ PrismProgram = storage.PrismProgram
 JaniModel = storage.JaniModel
 
 
-def parse_prism_program(path: str, prism_compatibility: bool = False, simplify: bool = True) -> PrismProgram:
+def parse_prism_program(path: str, *, prism_compatibility: bool = False, simplify: bool = True) -> PrismProgram:
     """
     Parse a Prism program from file.
 
@@ -26,7 +26,7 @@ def parse_prism_program(path: str, prism_compatibility: bool = False, simplify: 
     return developer.parse_program(path, prism_compatibility=prism_compatibility, simplify=simplify)
 
 
-def parse_jani_model(path: str, property_filter: Iterable[str] | None = None) -> tuple[JaniModel, list[Property]]:
+def parse_jani_model(path: str, *, property_filter: Iterable[str] | None = None) -> tuple[JaniModel, list[Property]]:
     """
     Parse a Jani model and the properties contained in it from file.
 
@@ -37,7 +37,7 @@ def parse_jani_model(path: str, property_filter: Iterable[str] | None = None) ->
     return developer.parse_jani_model(path, property_filter=list(property_filter) if property_filter is not None else None)
 
 
-def parse_jani_model_from_string(json_string: str, property_filter: Iterable[str] | None = None) -> tuple[JaniModel, list[Property]]:
+def parse_jani_model_from_string(json_string: str, *, property_filter: Iterable[str] | None = None) -> tuple[JaniModel, list[Property]]:
     """
     Parse a Jani model and the properties contained in it from a string.
 

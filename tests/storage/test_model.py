@@ -137,7 +137,7 @@ class TestSparseModel:
         assert type(model) is stormpy.SparseMdp[float]
 
     def test_build_ctmc(self):
-        program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), True)
+        program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), prism_compatibility=True)
         formulas = stormpy.parse_properties('P=? [ F<=3 "target" ]', program)
         model = stormpy.build_model(program)
         assert model.nr_states == 12
@@ -160,7 +160,7 @@ class TestSparseModel:
         assert model.nr_observations == 8
 
     def test_build_ma(self):
-        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"), False, True)
+        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"))
         formulas = stormpy.parse_properties("Pmax=? [ F<=2 s=2 ]", program)
         model = stormpy.build_model(program, formulas)
         assert model.nr_states == 4
@@ -172,7 +172,7 @@ class TestSparseModel:
         assert not model.has_zeno_cycle
 
         # Test MA with hybrid states
-        program = stormpy.parse_prism_program(get_example_path("ma", "hybrid_states.ma"), False, True)
+        program = stormpy.parse_prism_program(get_example_path("ma", "hybrid_states.ma"))
         model = stormpy.build_model(program)
         assert model.nr_states == 5
         assert model.nr_transitions == 13
@@ -190,7 +190,7 @@ class TestSparseModel:
         assert model.is_closed
         assert model.has_zeno_cycle
         # Building MA with hybrid states and formula already applies close
-        program = stormpy.parse_prism_program(get_example_path("ma", "hybrid_states.ma"), False, True)
+        program = stormpy.parse_prism_program(get_example_path("ma", "hybrid_states.ma"))
         formulas = stormpy.parse_properties("Pmax=? [ F<=2 s=4 ]", program)
         model = stormpy.build_model(program, formulas)
         assert model.nr_states == 5
@@ -213,7 +213,7 @@ class TestSparseModel:
         assert model.get_state_player_indications() == [1, 0, 0, 0]
 
     def test_convert_ma_to_ctmc(self):
-        program = stormpy.parse_prism_program(get_example_path("ma", "ctmc.ma"), True)
+        program = stormpy.parse_prism_program(get_example_path("ma", "ctmc.ma"), prism_compatibility=True)
         formulas = stormpy.parse_properties("P=? [ F<=3 s=2 ]", program)
         model = stormpy.build_model(program, formulas)
         assert model.nr_states == 4
@@ -317,7 +317,7 @@ class TestSymbolicSylvanModel:
         assert type(model) is stormpy.SymbolicMdp[stormpy.DdType.Sylvan, float]
 
     def test_build_ctmc(self):
-        program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), True)
+        program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), prism_compatibility=True)
         formulas = stormpy.parse_properties('P=? [ F<=3 "target" ]', program)
         model = stormpy.build_symbolic_model(program, formulas)
         assert model.nr_states == 12

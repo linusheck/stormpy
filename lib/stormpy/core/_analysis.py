@@ -10,7 +10,7 @@ from stormpy.developer import CheckResult, CheckTask, Environment, PcaaWeightVec
 from stormpy.exceptions import StormError
 
 
-def topological_sort(model, forward: bool = True, initial: Iterable[int] | None = None) -> list[int]:
+def topological_sort(model, *, forward: bool = True, initial: Iterable[int] | None = None) -> list[int]:
     """
     Sort the states of a sparse model topologically.
 
@@ -25,7 +25,7 @@ def topological_sort(model, forward: bool = True, initial: Iterable[int] | None 
     return storage._storage._topological_sort(matrix, list(initial) if initial is not None else [])
 
 
-def compute_expected_number_of_visits(model, environment: Environment | None = None) -> CheckResult:
+def compute_expected_number_of_visits(model, *, environment: Environment | None = None) -> CheckResult:
     """
     Compute the expected number of visits of each state, starting from the initial states.
 
@@ -38,7 +38,7 @@ def compute_expected_number_of_visits(model, environment: Environment | None = N
     return developer.compute_expected_visiting_times_with_sparse_engine(environment if environment is not None else Environment(), model)
 
 
-def compute_steady_state_distribution(model, environment: Environment | None = None) -> CheckResult:
+def compute_steady_state_distribution(model, *, environment: Environment | None = None) -> CheckResult:
     """
     Compute the steady-state (aka stationary) distribution.
 

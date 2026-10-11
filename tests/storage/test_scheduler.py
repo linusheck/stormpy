@@ -41,7 +41,7 @@ class TestScheduler:
             assert str(distribution).startswith("{[1:")
 
     def test_scheduler_ma_via_mdp(self):
-        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"), False, True)
+        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"))
         formulas = stormpy.parse_properties("Tmin=? [ F s=4 ]", program)
         options = stormpy.BuilderOptions(formulas)
         options.set_build_state_valuations()
@@ -149,7 +149,7 @@ class TestScheduler:
         assert exact_interval_scheduler.memoryless
 
     def test_apply_scheduler_ma(self):
-        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"), False, True)
+        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"))
         formulas = stormpy.parse_properties("Tmin=? [ F s=4 ]", program)
         ma = stormpy.build_model(program, formulas)
         assert ma.nr_states == 5

@@ -6,7 +6,7 @@ from stormpy import developer, storage
 from stormpy.developer import DirectEncodingExporterOptions
 
 
-def export_to_drn(model, path: str, options: DirectEncodingExporterOptions | None = None) -> None:
+def export_to_drn(model, path: str, *, options: DirectEncodingExporterOptions | None = None) -> None:
     """
     Export a sparse model in the explicit DRN format.
 
@@ -17,7 +17,7 @@ def export_to_drn(model, path: str, options: DirectEncodingExporterOptions | Non
     developer.export_sparse_model_as_drn(model, path, options if options is not None else DirectEncodingExporterOptions())
 
 
-def export_to_umb(model, path: str, options: storage.UmbExportOptions | None = None) -> None:
+def export_to_umb(model, path: str, *, options: storage.UmbExportOptions | None = None) -> None:
     """
     Export a sparse model as UMB archive.
 

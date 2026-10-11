@@ -44,7 +44,7 @@ class TestDft:
         builder = stormpy.dft.developer.ExplicitDFTModelBuilder(env, generic_dft, stormpy.dft.developer.DftSymmetries())
         assert type(builder) is stormpy.dft.developer.ExplicitDFTModelBuilder[stormpy.RationalFunction]
 
-        model = stormpy.dft.build_model(env, generic_dft)
+        model = stormpy.dft.build_model(generic_dft, environment=env)
         assert model.supports_parameters
 
         dft = stormpy.dft.load_dft_galileo_file[stormpy.RationalFunction](get_example_path("dft", "symmetry_param.dft"))

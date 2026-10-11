@@ -118,7 +118,7 @@ class TestUmbConvenienceFunctions:
     def test_export_with_gzip(self, dtmc, tmp_umb):
         opts = stormpy.storage.UmbExportOptions()
         opts.compression = stormpy.storage.CompressionMode.GZIP
-        stormpy.export_to_umb(dtmc, tmp_umb, opts)
+        stormpy.export_to_umb(dtmc, tmp_umb, options=opts)
         model2 = stormpy.build_model_from_umb(tmp_umb)
         assert type(dtmc) == type(model2)
         assert dtmc.nr_states == model2.nr_states

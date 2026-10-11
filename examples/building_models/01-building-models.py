@@ -27,7 +27,7 @@ def example_building_models_01():
     path = stormpy.examples.files.drn_pomdp_maze
     opts = stormpy.DirectEncodingParserOptions()
     opts.build_choice_labeling = True
-    pomdp = stormpy.build_model_from_drn(stormpy.examples.files.drn_pomdp_maze, opts)
+    pomdp = stormpy.build_model_from_drn(stormpy.examples.files.drn_pomdp_maze, options=opts)
     # POMDPs need to be in a canonic representation
     pomdp = stormpy.pomdp.make_canonic(pomdp)
 
