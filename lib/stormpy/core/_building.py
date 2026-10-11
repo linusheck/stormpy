@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from stormpy import developer, storage
-from stormpy.core._common import _convert_sparse_model, _convert_symbolic_model, _formulas, _instantiation
+from stormpy.core._common import _formulas
 from stormpy._config import Interval, Rational, RationalFunction, RationalInterval
 from stormpy.developer import (
     BuilderOptions,
@@ -44,18 +44,19 @@ def build_model(
         Interval or RationalInterval (exact interval).
     :param options: (optional) Builder options for full control of the building process. Cannot be combined with properties.
     :return: The model in sparse representation, e.g. a sparse DTMC.
+    :raises TypeError: If the value type is not supported.
     """
-    build = _instantiation(developer.build_sparse_model, value_type)
+    build = developer.build_sparse_model[value_type]
     if value_type is not RationalFunction:
         _check_constants(model)
     if options is not None:
         if properties:
             raise StormError("Either properties or builder options can be given, but not both.")
-        return _convert_sparse_model(build(model, options))
+        return build(model, options)
     if properties:
         # Storm derives the builder options from the formulas and the model (e.g., choice labels for POMDPs)
-        return _convert_sparse_model(build(model, _formulas(properties)))
-    return _convert_sparse_model(build(model, BuilderOptions(build_all_reward_models=True, build_all_labels=True)))
+        return build(model, _formulas(properties))
+    return build(model, BuilderOptions(build_all_reward_models=True, build_all_labels=True))
 
 
 def build_symbolic_model(
@@ -73,15 +74,16 @@ def build_symbolic_model(
     :param value_type: Value type of the model: float (default), Rational (exact) or RationalFunction (parametric).
     :param environment: (optional) Environment configuring the decision diagram libraries.
     :return: The model in symbolic representation, e.g. a symbolic DTMC.
+    :raises TypeError: If the value type is not supported.
     """
     if value_type in (Interval, RationalInterval):
         raise StormError("Symbolic models do not support interval value types.")
-    build = _instantiation(developer.build_symbolic_model, value_type)
+    build = developer.build_symbolic_model[value_type]
     if value_type is not RationalFunction:
         _check_constants(model)
     formulas = _formulas(properties)
     environment = environment if environment is not None else Environment()
-    return _convert_symbolic_model(build(environment, model, formulas, build_full_model=not formulas))
+    return build(environment, model, formulas, build_full_model=not formulas)
 
 
 def build_model_from_drn(path: str, options: DirectEncodingParserOptions | None = None, *, value_type: type = float):
@@ -93,9 +95,10 @@ def build_model_from_drn(path: str, options: DirectEncodingParserOptions | None 
     :param value_type: Value type of the model: float (default), Rational (exact), RationalFunction (parametric),
         Interval or RationalInterval (exact interval).
     :return: The model in sparse representation.
+    :raises TypeError: If the value type is not supported.
     """
-    build = _instantiation(developer.build_explicit_drn_model, value_type)
-    return _convert_sparse_model(build(path, options if options is not None else DirectEncodingParserOptions()))
+    build = developer.build_explicit_drn_model[value_type]
+    return build(path, options if options is not None else DirectEncodingParserOptions())
 
 
 def build_model_from_explicit(
@@ -126,7 +129,7 @@ def build_model_from_explicit(
         choice_labeling,
         options if options is not None else ExplicitModelParserOptions(),
     )
-    return _convert_sparse_model(model)
+    return model
 
 
 def build_model_from_umb(path: str, options: storage.UmbImportOptions | None = None):
@@ -139,4 +142,4 @@ def build_model_from_umb(path: str, options: storage.UmbImportOptions | None = N
     """
     options = options if options is not None else storage.UmbImportOptions()
     umb = storage.import_umb(path, options)
-    return _convert_sparse_model(storage.sparse_model_from_umb(umb, options))
+    return storage.sparse_model_from_umb(umb, options)

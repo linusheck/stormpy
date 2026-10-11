@@ -153,3 +153,11 @@ class TestDeduction:
         assert call_guide(guide, source=1) is int
         assert call_guide(guide, None) is type(None)
         assert call_guide(guide, source=None) is type(None)
+
+
+def test_missing_instantiation_lists_supported_instantiations():
+    family = make_family()
+    family.register("derived", DerivedImplementation)
+
+    with pytest.raises(TypeError, match=r"Supported are: 'base', 'derived'"):
+        family["missing"]

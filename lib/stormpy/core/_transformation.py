@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from stormpy import developer, storage
-from stormpy.core._common import _convert_sparse_model, _convert_symbolic_model, _formulas, _value_type_of_model
+from stormpy.core._common import _formulas, _value_type_of_model
 from stormpy._config import Interval, Rational, RationalInterval
 from stormpy.developer import (
     AddUncertainty,
@@ -53,7 +53,7 @@ def perform_bisimulation(
     quotient = developer.perform_bisimulation_minimization(
         model, formulas, bisimulation_type=bisimulation_type, quotient_format=quotient_format, bisimulation_options=DdBisimulationOptions()
     )
-    return _convert_sparse_model(quotient) if quotient.is_sparse_model else _convert_symbolic_model(quotient)
+    return quotient
 
 
 def transform_to_sparse_model(model, properties: Iterable[Property] | None = None):
@@ -64,7 +64,7 @@ def transform_to_sparse_model(model, properties: Iterable[Property] | None = Non
     :param properties: (optional) Properties which should be preserved. If None, all labels and reward models are preserved.
     :return: The model in sparse representation.
     """
-    return _convert_sparse_model(developer.transform_symbolic_to_sparse_model(model, _formulas(properties)))
+    return developer.transform_symbolic_to_sparse_model(model, _formulas(properties))
 
 
 def transform_to_discrete_time_model(model, properties: Iterable[Property]) -> tuple:
@@ -76,7 +76,7 @@ def transform_to_discrete_time_model(model, properties: Iterable[Property]) -> t
     :return: Tuple of the discrete-time model and the transformed formulas.
     """
     discrete_model, formulas = developer.transform_continuous_to_discrete_time_sparse_model(model, _formulas(properties))
-    return _convert_sparse_model(discrete_model), formulas
+    return discrete_model, formulas
 
 
 def eliminate_non_markovian_chains(ma, properties: Iterable[Property], label_behavior: EliminationLabelBehavior) -> tuple:
@@ -89,7 +89,7 @@ def eliminate_non_markovian_chains(ma, properties: Iterable[Property], label_beh
     :return: Tuple of the resulting model (an MA or a CTMC) and the transformed formulas.
     """
     model, formulas = developer.eliminate_non_markovian_chains(ma, _formulas(properties), label_behavior)
-    return _convert_sparse_model(model), formulas
+    return model, formulas
 
 
 def build_submodel(
@@ -165,7 +165,7 @@ def add_uncertainty(model, additive_uncertainty: float | Rational, minimal_value
     transformer = AddUncertainty[value_type](model)
     if minimal_value is None:
         minimal_value = 0.0001 if value_type is float else Rational("1/10000")
-    return _convert_sparse_model(transformer.transform(additive_uncertainty, minimal_value, max_successors))
+    return transformer.transform(additive_uncertainty, minimal_value, max_successors)
 
 
 def set_state_valuations(model, valuations: storage.Valuations):
