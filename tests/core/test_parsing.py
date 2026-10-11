@@ -18,7 +18,7 @@ class TestParseProperties:
         assert properties[0].get_raw_formula().is_probability_operator
 
     def test_parse_properties_filters(self):
-        properties = stormpy.parse_properties('"a": P=? [F "one"]; "b": P=? [F "two"]', filters=["b"])
+        properties = stormpy.parse_properties('"a": P=? [F "one"]; "b": P=? [F "two"]', property_filter=["b"])
         assert len(properties) == 1
         assert properties[0].get_name() == "b"
 

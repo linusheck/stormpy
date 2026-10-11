@@ -26,7 +26,7 @@ class TestSparseModel:
     def test_build_dtmc_from_prism_program_formulas_label(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         prop = 'P=? [F "one"]'
-        properties = stormpy.parse_properties(prop, program, None)
+        properties = stormpy.parse_properties(prop, program)
         model = stormpy.build_model(program, properties)
         assert model.nr_states == 13
         assert model.nr_transitions == 20
@@ -39,7 +39,7 @@ class TestSparseModel:
     def test_build_dtmc_from_prism_program_formulas_ap(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         prop = "P=? [F s=2]"
-        properties = stormpy.parse_properties(prop, program, None)
+        properties = stormpy.parse_properties(prop, program)
         model = stormpy.build_model(program, properties)
         assert model.nr_states == 8
         assert model.nr_transitions == 12
@@ -52,7 +52,7 @@ class TestSparseModel:
     def test_build_dtmc_from_prism_program_reward_formulas(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         prop = 'R=? [F "done"]'
-        properties = stormpy.parse_properties(prop, program, None)
+        properties = stormpy.parse_properties(prop, program)
         model = stormpy.build_model(program, properties)
         assert model.nr_states == 13
         assert model.nr_transitions == 20
@@ -72,7 +72,7 @@ class TestSparseModel:
     def test_reduce_to_state_based_rewards(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         prop = 'R=? [F "done"]'
-        properties = stormpy.parse_properties(prop, program, None)
+        properties = stormpy.parse_properties(prop, program)
         model = stormpy.build_model(program, properties)
         model.reduce_to_state_based_rewards()
         assert len(model.reward_models) == 1
@@ -259,7 +259,7 @@ class TestSymbolicSylvanModel:
     def test_build_dtmc_from_prism_program_formulas(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         prop = 'P=? [F "one"]'
-        properties = stormpy.parse_properties(prop, program, None)
+        properties = stormpy.parse_properties(prop, program)
         model = stormpy.build_symbolic_model(program, properties)
         assert model.nr_states == 13
         assert model.nr_transitions == 20
@@ -271,7 +271,7 @@ class TestSymbolicSylvanModel:
     def test_build_dtmc_from_prism_program_reward_formulas(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         prop = 'R=? [F "done"]'
-        properties = stormpy.parse_properties(prop, program, None)
+        properties = stormpy.parse_properties(prop, program)
         model = stormpy.build_symbolic_model(program, properties)
         assert model.nr_states == 13
         assert model.nr_transitions == 20
@@ -286,7 +286,7 @@ class TestSymbolicSylvanModel:
     def test_reduce_to_state_based_rewards(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         prop = 'R=? [F "done"]'
-        properties = stormpy.parse_properties(prop, program, None)
+        properties = stormpy.parse_properties(prop, program)
         model = stormpy.build_symbolic_model(program, properties)
         model.reduce_to_state_based_rewards()
         assert len(model.reward_models) == 1

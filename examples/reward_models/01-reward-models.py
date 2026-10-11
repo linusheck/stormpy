@@ -7,7 +7,7 @@ import stormpy.examples.files
 def example_reward_models_01():
     program = stormpy.parse_prism_program(stormpy.examples.files.prism_dtmc_die)
     prop = 'R=? [F "done"]'
-    properties = stormpy.parse_properties(prop, program, None)
+    properties = stormpy.parse_properties(prop, program)
     model = stormpy.build_model(program, properties)
     assert len(model.reward_models) == 1
     initial_state = model.initial_states[0]

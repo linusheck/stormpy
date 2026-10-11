@@ -49,7 +49,7 @@ def parse_jani_model_from_string(json_string: str, property_filter: Iterable[str
 
 
 def parse_properties(
-    properties: str, context: PrismProgram | JaniModel | SymbolicModelDescription | None = None, filters: Iterable[str] | None = None
+    properties: str, context: PrismProgram | JaniModel | SymbolicModelDescription | None = None, *, property_filter: Iterable[str] | None = None
 ) -> list[Property]:
     """
     Parse properties given in the Prism property format.
@@ -58,18 +58,18 @@ def parse_properties(
 
     :param properties: String containing the properties.
     :param context: (optional) Symbolic model (Prism program or Jani model) defining the variables, constants and labels referenced in the properties.
-    :param filters: (optional) Names of the properties to keep. If None, all properties are kept.
+    :param property_filter: (optional) Names of the properties to keep. If None, all properties are kept.
     :return: List of the parsed properties.
     """
-    filters = set(filters) if filters is not None else None
+    property_filter = set(property_filter) if property_filter is not None else None
     if context is None:
-        return developer.parse_properties(properties, filters)
+        return developer.parse_properties(properties, property_filter)
     if isinstance(context, PrismProgram):
-        return developer.parse_properties_for_prism_program(properties, context, filters)
+        return developer.parse_properties_for_prism_program(properties, context, property_filter)
     if isinstance(context, JaniModel):
-        return developer.parse_properties_for_jani_model(properties, context, filters)
+        return developer.parse_properties_for_jani_model(properties, context, property_filter)
     if isinstance(context, SymbolicModelDescription):
-        return developer.parse_properties_for_symbolic_model_description(properties, context, filters)
+        return developer.parse_properties_for_symbolic_model_description(properties, context, property_filter)
     raise StormError(f"Unsupported context of type {type(context)} for parsing properties. Use a Prism program or a Jani model.")
 
 
