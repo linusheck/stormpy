@@ -15,8 +15,8 @@ def test_subsystem_and_end_component_overloads(value_type, tmp_path):
     subsystem = stormpy.build_submodel(model, states, choices)
     assert type(subsystem) is stormpy.SubsystemBuilderReturnType[value_type]
     assert subsystem.model.nr_states == model.nr_states
-    result = stormpy.eliminate_end_components(model.transition_matrix, states, choices, states, True)
-    assert type(result) is stormpy.EndComponentEliminatorReturnType[value_type]
+    result = stormpy.developer.EndComponentEliminator[value_type].transform(model.transition_matrix, states, choices, states, True)
+    assert type(result) is stormpy.developer.EndComponentEliminatorReturnType[value_type]
     assert result.matrix.nr_columns == model.nr_states
 
     output = tmp_path / "model.drn"
@@ -157,19 +157,14 @@ class TestECElimination:
         subsystem = stormpy.BitVector(model.nr_states, True)
         possible_ec_rows = stormpy.BitVector(model.nr_choices, True)
         add_sink_rows = subsystem
-        ec_elimination_result = stormpy.eliminate_end_components(model.transition_matrix, subsystem, possible_ec_rows, add_sink_rows, True)
+        ec_elimination_result = stormpy.developer.EndComponentEliminator[float].transform(
+            model.transition_matrix, subsystem, possible_ec_rows, add_sink_rows, True
+        )
         assert ec_elimination_result.matrix.nr_rows == 218
         assert ec_elimination_result.matrix.nr_columns == model.nr_states
         assert ec_elimination_result.old_to_new_state_mapping[23] == 23
         assert ec_elimination_result.new_to_old_row_mapping[200] == 245
         assert ec_elimination_result.sink_rows.number_of_set_bits() == 36
-
-    def test_eliminate_end_components_sizes(self):
-        program = stormpy.parse_prism_program(get_example_path("mdp", "two_dice.nm"))
-        model = stormpy.build_model(program)
-        states = stormpy.BitVector(model.nr_states, True)
-        with pytest.raises(StormError):
-            stormpy.eliminate_end_components(model.transition_matrix, stormpy.BitVector(1, True), stormpy.BitVector(model.nr_choices, True), states)
 
 
 class TestAddUncertainty:

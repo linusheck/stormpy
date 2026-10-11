@@ -13,8 +13,6 @@ from stormpy.developer import (
     BisimulationType,
     DdBisimulationOptions,
     EliminationLabelBehavior,
-    EndComponentEliminator,
-    EndComponentEliminatorReturnType,
     Property,
     QuotientFormat,
     SubsystemBuilderOptions,
@@ -113,38 +111,6 @@ def build_submodel(
     return developer.build_subsystem(
         model, states, actions, keep_unreachable_states=keep_unreachable_states, options=options if options is not None else SubsystemBuilderOptions()
     )
-
-
-def eliminate_end_components(
-    matrix: storage.SparseMatrix,
-    subsystem: storage.BitVector,
-    possible_ec_rows: storage.BitVector,
-    add_sink_row_states: storage.BitVector,
-    add_self_loop_at_sink_states: bool = False,
-) -> EndComponentEliminatorReturnType:
-    """
-    Eliminate the end components of a matrix.
-
-    Each maximal end component in the subsystem is replaced by a new state.
-    All incoming and outgoing transitions of the end component are redirected to (and from) this state.
-
-    :param matrix: Transition matrix.
-    :param subsystem: States which are kept (one entry per state).
-        Transitions leading to a state outside the subsystem are removed (but the corresponding row is kept, possibly yielding empty rows).
-    :param possible_ec_rows: Rows which can be part of an end component (one entry per row).
-        Rows containing a transition leaving the subsystem are never considered.
-    :param add_sink_row_states: States for which a row is added to the new state, representing the choice to stay in the end component forever (one entry per state).
-    :param add_self_loop_at_sink_states: If True, the added rows contain a self-loop. Otherwise, they remain empty.
-    :return: Result containing the new matrix (attribute ``matrix``) and the mappings to the original matrix.
-    """
-    if matrix.nr_columns != subsystem.size():
-        raise StormError("The subsystem must have an entry for every state.")
-    if matrix.nr_rows != possible_ec_rows.size():
-        raise StormError("The possible end component rows must have an entry for every row.")
-    if matrix.nr_columns != add_sink_row_states.size():
-        raise StormError("The sink row states must have an entry for every state.")
-    eliminator = EndComponentEliminator[storage.SparseMatrix.parameters_of(matrix)]
-    return eliminator.transform(matrix, subsystem, possible_ec_rows, add_sink_row_states, add_self_loop_at_sink_states)
 
 
 def add_uncertainty(model, additive_uncertainty: float | Rational, minimal_value: float | Rational | None = None, max_successors: int | None = None):

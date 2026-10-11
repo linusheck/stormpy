@@ -76,7 +76,6 @@ QuotientFormat = developer.QuotientFormat
 EliminationLabelBehavior = developer.EliminationLabelBehavior
 SubsystemBuilderOptions = developer.SubsystemBuilderOptions
 SubsystemBuilderReturnType = developer.SubsystemBuilderReturnType.publish_as("stormpy.SubsystemBuilderReturnType")
-EndComponentEliminatorReturnType = developer.EndComponentEliminatorReturnType.publish_as("stormpy.EndComponentEliminatorReturnType")
 ConstraintCollector = developer.ConstraintCollector.publish_as("stormpy.ConstraintCollector")
 
 LogLevel = developer.LogLevel
@@ -94,7 +93,6 @@ from .core._analysis import (
 from .core._transformation import (
     add_uncertainty,
     build_submodel,
-    eliminate_end_components,
     eliminate_non_markovian_chains,
     perform_bisimulation,
     set_state_valuations,
@@ -185,13 +183,11 @@ __all__ = [
     "EliminationLabelBehavior",
     "SubsystemBuilderOptions",
     "SubsystemBuilderReturnType",
-    "EndComponentEliminatorReturnType",
     "perform_bisimulation",
     "transform_to_sparse_model",
     "transform_to_discrete_time_model",
     "eliminate_non_markovian_chains",
     "build_submodel",
-    "eliminate_end_components",
     "add_uncertainty",
     "set_state_valuations",
     # Export

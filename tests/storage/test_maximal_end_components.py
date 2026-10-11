@@ -76,7 +76,9 @@ class TestECElimination:
         subsystem = stormpy.BitVector(interval_model.nr_states, True)
         possible_ec_rows = stormpy.BitVector(interval_model.nr_choices, True)
         add_sink_rows = subsystem
-        result = stormpy.eliminate_end_components(interval_model.transition_matrix, subsystem, possible_ec_rows, add_sink_rows, True)
+        result = stormpy.developer.EndComponentEliminator[stormpy.Interval].transform(
+            interval_model.transition_matrix, subsystem, possible_ec_rows, add_sink_rows, True
+        )
         assert result.matrix.nr_rows == 218
         assert result.matrix.nr_columns == interval_model.nr_states
         assert result.sink_rows.number_of_set_bits() == 36
@@ -91,7 +93,9 @@ class TestECElimination:
         subsystem = stormpy.BitVector(exact_interval_model.nr_states, True)
         possible_ec_rows = stormpy.BitVector(exact_interval_model.nr_choices, True)
         add_sink_rows = subsystem
-        result = stormpy.eliminate_end_components(exact_interval_model.transition_matrix, subsystem, possible_ec_rows, add_sink_rows, True)
+        result = stormpy.developer.EndComponentEliminator[stormpy.RationalInterval].transform(
+            exact_interval_model.transition_matrix, subsystem, possible_ec_rows, add_sink_rows, True
+        )
         assert result.matrix.nr_rows == 218
         assert result.matrix.nr_columns == exact_interval_model.nr_states
         assert result.sink_rows.number_of_set_bits() == 36
