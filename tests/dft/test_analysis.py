@@ -82,7 +82,7 @@ class TestAnalysis:
         initial_state = model_low.initial_states[0]
         assert initial_state == 1
         result_low = stormpy.model_checking(model_low, prop)
-        assert math.isclose(result_low.at(initial_state), 0.5735024009)
+        assert math.isclose(result_low[initial_state], 0.5735024009)
 
         model_up = builder.get_partial_model(False, True)
         assert model_up.model_type == stormpy.ModelType.CTMC
@@ -91,7 +91,7 @@ class TestAnalysis:
         assert model_up.nr_transitions == 46
         assert not model_up.supports_parameters
         result_up = stormpy.model_checking(model_up, prop)
-        assert math.isclose(result_up.at(initial_state), 0.9225431553)
+        assert math.isclose(result_up[initial_state], 0.9225431553)
 
         # Iteration 1
         builder.build(1, 1.0)
@@ -99,13 +99,13 @@ class TestAnalysis:
         assert model_low.nr_states == 55
         assert model_low.nr_transitions == 143
         result_low = stormpy.model_checking(model_low, prop)
-        assert math.isclose(result_low.at(initial_state), 0.6468192701)
+        assert math.isclose(result_low[initial_state], 0.6468192701)
 
         model_up = builder.get_partial_model(False, True)
         assert model_up.nr_states == 55
         assert model_up.nr_transitions == 143
         result_up = stormpy.model_checking(model_up, prop)
-        assert math.isclose(result_up.at(initial_state), 0.8130197535)
+        assert math.isclose(result_up[initial_state], 0.8130197535)
 
         # Iteration 2
         builder.build(2, 1.0)
@@ -113,13 +113,13 @@ class TestAnalysis:
         assert model_low.nr_states == 91
         assert model_low.nr_transitions == 295
         result_low = stormpy.model_checking(model_low, prop)
-        assert math.isclose(result_low.at(initial_state), 0.6471750688)
+        assert math.isclose(result_low[initial_state], 0.6471750688)
 
         model_up = builder.get_partial_model(False, True)
         assert model_up.nr_states == 91
         assert model_up.nr_transitions == 295
         result_up = stormpy.model_checking(model_up, prop)
-        assert math.isclose(result_up.at(initial_state), 0.6484525286)
+        assert math.isclose(result_up[initial_state], 0.6484525286)
 
     def test_explicit_model_builder_approximation_complete(self):
         dft = stormpy.dft.load_dft_galileo_file(get_example_path("dft", "rc.dft"))
@@ -138,7 +138,7 @@ class TestAnalysis:
         initial_state = model_low.initial_states[0]
         assert initial_state == 1
         result_low = stormpy.model_checking(model_low, prop)
-        assert math.isclose(result_low.at(initial_state), 0.5735024009)
+        assert math.isclose(result_low[initial_state], 0.5735024009)
 
         # Final iteration
         builder.build(1)
@@ -149,7 +149,7 @@ class TestAnalysis:
         assert model.nr_transitions == 625
         assert not model.supports_parameters
         result = stormpy.model_checking(model, prop)
-        assert math.isclose(result.at(initial_state), 0.6471760795)
+        assert math.isclose(result[initial_state], 0.6471760795)
 
     def _check_analyze_dft_with_approximation(self, heuristic):
         # Approximate analysis returns a (lower, upper) bound pair per property instead of a
@@ -178,14 +178,14 @@ class TestAnalysis:
     def test_analyze_relevant_events(self):
         dft = stormpy.dft.load_dft_json_file(get_example_path("dft", "and.json"))
         properties = stormpy.parse_properties('T=? [ F "failed" ]')
-        relevant_events = stormpy.dft.developer.compute_relevant_events(properties)
+        relevant_events = stormpy.dft.compute_relevant_events(properties)
         results = stormpy.dft.analyze_dft(stormpy.dft.DftEnvironment(), dft, properties, relevant_events=relevant_events)
         assert math.isclose(results[0], 3)
 
     def test_relevant_events_property(self):
         dft = stormpy.dft.load_dft_json_file(get_example_path("dft", "and.json"))
         properties = stormpy.parse_properties('P=? [ F<=1 "A_failed" ]')
-        relevant_events = stormpy.dft.developer.compute_relevant_events(properties)
+        relevant_events = stormpy.dft.compute_relevant_events(properties)
         assert relevant_events.is_relevant("A")
         assert not relevant_events.is_relevant("B")
         assert not relevant_events.is_relevant("C")
@@ -195,12 +195,19 @@ class TestAnalysis:
     def test_relevant_events_additional(self):
         dft = stormpy.dft.load_dft_json_file(get_example_path("dft", "and.json"))
         properties = stormpy.parse_properties('P=? [ F<=1 "failed" ]')
-        relevant_events = stormpy.dft.developer.compute_relevant_events(properties, ["B", "C"])
+        relevant_events = stormpy.dft.compute_relevant_events(properties, ["B", "C"])
         assert relevant_events.is_relevant("B")
         assert relevant_events.is_relevant("C")
         assert not relevant_events.is_relevant("A")
         results = stormpy.dft.analyze_dft(stormpy.dft.DftEnvironment(), dft, properties, relevant_events=relevant_events)
         assert math.isclose(results[0], 0.1548181217)
+
+    def test_relevant_events_developer(self):
+        formulas = [prop.get_raw_formula() for prop in stormpy.parse_properties('P=? [ F<=1 "A_failed" ]')]
+        relevant_events = stormpy.dft.developer.compute_relevant_events(formulas, additional_relevant_names=["B"])
+        assert relevant_events.is_relevant("A")
+        assert relevant_events.is_relevant("B")
+        assert not relevant_events.is_relevant("C")
 
     def test_transformation(self):
         dft = stormpy.dft.load_dft_galileo_file(get_example_path("dft", "rc2.dft"))
