@@ -6,6 +6,10 @@ The naming of functions and classes of the bindings mirrors the corresponding ``
 """
 
 from . import _pycarl_core
+
+# Checks that Storm's C++ ValueTypes match the Python types.
+from . import _numbers
+
 from ._pycarl_core import *
 from . import infinity
 from stormpy.numbers.developer import _config

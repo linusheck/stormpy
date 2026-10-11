@@ -1,6 +1,8 @@
+import subprocess
+import sys
+
 import stormpy
 import stormpy.info
-import stormpy.numbers._numbers
 from stormpy.numbers import developer as pycarl
 from helpers.helper import get_example_path
 
@@ -27,46 +29,46 @@ class TestValueType:
     """Check that Storm's C++ ValueTypes match stormpy's Python types."""
 
     def test_double(self):
-        value = stormpy.numbers._numbers._valuetype_double()
+        value = stormpy.numbers.developer._numbers._valuetype_double()
         assert type(value) is float
 
     def test_rationalnumber(self):
-        value = stormpy.numbers._numbers._valuetype_rationalnumber()
+        value = stormpy.numbers.developer._numbers._valuetype_rationalnumber()
         assert type(value) is stormpy.numbers.Rational
         assert type(value) is exact_package().Rational
 
     def test_gmprationalnumber(self):
-        value = stormpy.numbers._numbers._valuetype_gmprationalnumber()
+        value = stormpy.numbers.developer._numbers._valuetype_gmprationalnumber()
         assert type(value) is pycarl.gmp.Rational
 
     @pycarl_cln
     def test_clnrationalnumber(self):
-        value = stormpy.numbers._numbers._valuetype_clnrationalnumber()
+        value = stormpy.numbers.developer._numbers._valuetype_clnrationalnumber()
         assert type(value) is pycarl.cln.Rational
 
     def test_polynomial(self):
-        value = stormpy.numbers._numbers._valuetype_polynomial()
+        value = stormpy.numbers.developer._numbers._valuetype_polynomial()
         assert type(value) is stormpy.numbers.Polynomial
         assert type(value) is ratfunc_package().FactorizedPolynomial
         assert type(value) is not ratfunc_package().Polynomial
 
     def test_rationalfunction(self):
-        value = stormpy.numbers._numbers._valuetype_rationalfunction()
+        value = stormpy.numbers.developer._numbers._valuetype_rationalfunction()
         assert type(value) is stormpy.numbers.RationalFunction
         assert type(value) is ratfunc_package().FactorizedRationalFunction
         # Also test RationalFunctionCoefficient
-        value_rf = stormpy.numbers._numbers._valuetype_rationalfunctioncoefficient()
+        value_rf = stormpy.numbers.developer._numbers._valuetype_rationalfunctioncoefficient()
         assert type(value_rf) is stormpy.numbers.RationalFunctionCoefficient
         assert type(value_rf) is ratfunc_package().Rational
 
     def test_interval(self):
-        value = stormpy.numbers._numbers._valuetype_interval()
+        value = stormpy.numbers.developer._numbers._valuetype_interval()
         assert type(value) is stormpy.numbers.Interval
         assert type(value) is pycarl.Interval
         assert type(value) is not exact_package().Interval
 
     def test_rationalinterval(self):
-        value = stormpy.numbers._numbers._valuetype_rationalinterval()
+        value = stormpy.numbers.developer._numbers._valuetype_rationalinterval()
         assert type(value) is stormpy.numbers.RationalInterval
         assert type(value) is exact_package().Interval
         assert type(value) is not pycarl.Interval
@@ -102,3 +104,23 @@ class TestValueTypeMatrix:
         program = stormpy.parse_prism_program(get_example_path("idtmc", "die-intervals.pm"))
         model = stormpy.build_model[stormpy.numbers.RationalInterval](program)
         assert type(first_matrix_value(model)) is exact_package().Interval
+
+
+class TestGlobalState:
+    """Check that the global state of carl and Storm is shared between all native modules."""
+
+    def test_parametric_load_order(self):
+        # stormpy.numbers.developer._numbers is the first native module loading libstorm.
+        # If libstorm used its own copies of the carl pools, parametric model checking crashes (possibly only at exit).
+        # Therefore run it in a fresh interpreter.
+        script = f"""
+import stormpy
+program = stormpy.parse_prism_program({get_example_path("pdtmc", "brp16_2.pm")!r})
+properties = stormpy.parse_properties("P=? [F s=5]", program)
+model = stormpy.build_model[stormpy.numbers.RationalFunction](program, properties)
+stormpy.model_checking(model, properties[0])
+model_bisim = stormpy.perform_bisimulation(model, properties)
+stormpy.model_checking(model_bisim, properties[0])
+"""
+        result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr

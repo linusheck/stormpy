@@ -339,7 +339,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/pycarl/definitions.h.in ${CMAKE_C
 # Build stormpy
 ######
 # Build stormpy modules
-stormpy_module(numbers numbers "" "")
+stormpy_module(numbers numbers/developer "" "")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/numbers_config.py.in ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/numbers/_config.py @ONLY)
 stormpy_module(core "developer" "${storm-counterexamples_INCLUDE_DIR}" storm-counterexamples)
 stormpy_module(info info "${storm-version-info_INCLUDE_DIR}" storm-version-info)

@@ -22,10 +22,6 @@ from ._config import Interval, Polynomial, Rational, RationalFunction, RationalF
 
 from .developer import Variable, clear_pools, variable_with_name
 
-# The native module stormpy.numbers._numbers (checks that Storm's C++ ValueTypes match these types) is not imported here.
-# It links against Storm and must only be loaded after the core module of stormpy; loading it earlier leads to crashes in
-# parametric model checking. It is loaded on demand via ``import stormpy.numbers._numbers``.
-
 __all__ = [
     "Interval",
     "Polynomial",
