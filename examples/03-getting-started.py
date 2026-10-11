@@ -13,11 +13,11 @@ def example_getting_started_03():
     model = stormpy.build_model(prism_program, properties)
     result = stormpy.model_checking(model, properties[0])
     print(result)
-    assert result.result_for_all_states
-    for x in result.get_values():
+    assert result.is_result_for_all_states()
+    for x in result.get_finite_value_vector():
         print(x)
     initial_state = model.initial_states[0]
-    print(result.at(initial_state))
+    print(result[initial_state])
 
 
 if __name__ == "__main__":

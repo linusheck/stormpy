@@ -11,10 +11,10 @@ def test_subsystem_and_end_component_overloads(value_type, tmp_path):
 
     states = stormpy.BitVector(model.nr_states, True)
     choices = stormpy.BitVector(model.nr_choices, True)
-    subsystem = stormpy.construct_submodel(model, states, choices)
+    subsystem = stormpy.build_submodel(model, states, choices)
     assert type(subsystem) is stormpy.SubsystemBuilderReturnType[value_type]
     assert subsystem.model.nr_states == model.nr_states
-    result = stormpy.eliminate_ECs(model.transition_matrix, states, choices, states, True)
+    result = stormpy.eliminate_end_components(model.transition_matrix, states, choices, states, True)
     assert type(result) is stormpy.EndComponentEliminatorReturnType[value_type]
     assert result.matrix.nr_columns == model.nr_states
 
@@ -41,7 +41,7 @@ class TestTransformation:
 
     def test_transform_symbolic_parametric_dtmc_to_sparse(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "parametric_die.pm"))
-        model = stormpy.build_symbolic_parametric_model(program)
+        model = stormpy.build_symbolic_model(program, value_type=stormpy.RationalFunction)
         assert model.nr_states == 13
         assert model.nr_transitions == 20
         assert model.model_type == stormpy.ModelType.DTMC
@@ -63,7 +63,7 @@ class TestTransformation:
         initial_state = ctmc.initial_states[0]
         assert initial_state == 1
         result = stormpy.model_checking(ctmc, formulas[0])
-        assert math.isclose(result.at(initial_state), 4.166666667)
+        assert math.isclose(result[initial_state], 4.166666667)
 
         dtmc, dtmc_formulas = stormpy.transform_to_discrete_time_model(ctmc, formulas)
         assert dtmc.nr_states == 16
@@ -72,11 +72,11 @@ class TestTransformation:
         initial_state = dtmc.initial_states[0]
         assert initial_state == 1
         result = stormpy.model_checking(dtmc, dtmc_formulas[0])
-        assert math.isclose(result.at(initial_state), 4.166666667)
+        assert math.isclose(result[initial_state], 4.166666667)
 
     def test_transform_continuous_to_discrete_time_model_ma(self):
         program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"), False, True)
-        formulas = stormpy.parse_properties_for_prism_program("Tmin=? [ F s=4 ]", program)
+        formulas = stormpy.parse_properties("Tmin=? [ F s=4 ]", program)
         ma = stormpy.build_model(program, formulas)
         assert ma.nr_states == 5
         assert ma.nr_transitions == 8
@@ -85,7 +85,7 @@ class TestTransformation:
         initial_state = ma.initial_states[0]
         assert initial_state == 0
         result = stormpy.model_checking(ma, formulas[0])
-        assert math.isclose(result.at(initial_state), 0.08333333333)
+        assert math.isclose(result[initial_state], 0.08333333333)
 
         mdp, mdp_formulas = stormpy.transform_to_discrete_time_model(ma, formulas)
         assert mdp.nr_states == 5
@@ -95,11 +95,11 @@ class TestTransformation:
         initial_state = mdp.initial_states[0]
         assert initial_state == 0
         result = stormpy.model_checking(mdp, mdp_formulas[0])
-        assert math.isclose(result.at(initial_state), 0.08333333333)
+        assert math.isclose(result[initial_state], 0.08333333333)
 
     def test_eliminate_non_markovian_chains(self):
         program = stormpy.parse_prism_program(get_example_path("ma", "stream2.ma"), False, True)
-        formulas = stormpy.parse_properties_for_prism_program('Pmin=? [ F "done"];Tmin=? [ F "done" ]', program)
+        formulas = stormpy.parse_properties('Pmin=? [ F "done"];Tmin=? [ F "done" ]', program)
         ma = stormpy.build_model(program, formulas)
         assert ma.nr_states == 12
         assert ma.nr_transitions == 14
@@ -109,7 +109,7 @@ class TestTransformation:
         assert initial_state == 0
         assert len(formulas) == 2
         result = stormpy.model_checking(ma, formulas[0])
-        assert math.isclose(result.at(initial_state), 1)
+        assert math.isclose(result[initial_state], 1)
 
         # Keep labels
         ma_elim, ma_formulas_elim = stormpy.eliminate_non_markovian_chains(ma, formulas, stormpy.EliminationLabelBehavior.KEEP_LABELS)
@@ -121,7 +121,7 @@ class TestTransformation:
         assert initial_state == 0
         assert len(ma_formulas_elim) == 1
         result = stormpy.model_checking(ma_elim, ma_formulas_elim[0])
-        assert math.isclose(result.at(initial_state), 1)
+        assert math.isclose(result[initial_state], 1)
 
         # Merge labels
         ma_elim, ma_formulas_elim = stormpy.eliminate_non_markovian_chains(ma, formulas, stormpy.EliminationLabelBehavior.MERGE_LABELS)
@@ -133,7 +133,7 @@ class TestTransformation:
         assert initial_state == 0
         assert len(ma_formulas_elim) == 1
         result = stormpy.model_checking(ma_elim, ma_formulas_elim[0])
-        assert math.isclose(result.at(initial_state), 1)
+        assert math.isclose(result[initial_state], 1)
 
         # Delete labels
         ma_elim, ma_formulas_elim = stormpy.eliminate_non_markovian_chains(ma, formulas, stormpy.EliminationLabelBehavior.DELETE_LABELS)
@@ -145,18 +145,18 @@ class TestTransformation:
         assert initial_state == 0
         assert len(ma_formulas_elim) == 1
         result = stormpy.model_checking(ma_elim, ma_formulas_elim[0])
-        assert math.isclose(result.at(initial_state), 1)
+        assert math.isclose(result[initial_state], 1)
 
 
 class TestECElimination:
     def test_elimination_on_two_dice(self):
         program = stormpy.parse_prism_program(get_example_path("mdp", "two_dice.nm"))
-        formulas = stormpy.parse_properties_for_prism_program('P=? [ F "two" ]', program)
+        formulas = stormpy.parse_properties('P=? [ F "two" ]', program)
         model = stormpy.build_model(program, formulas)
         subsystem = stormpy.BitVector(model.nr_states, True)
         possible_ec_rows = stormpy.BitVector(model.nr_choices, True)
         add_sink_rows = subsystem
-        ec_elimination_result = stormpy.eliminate_ECs(model.transition_matrix, subsystem, possible_ec_rows, add_sink_rows, True)
+        ec_elimination_result = stormpy.eliminate_end_components(model.transition_matrix, subsystem, possible_ec_rows, add_sink_rows, True)
         assert ec_elimination_result.matrix.nr_rows == 218
         assert ec_elimination_result.matrix.nr_columns == model.nr_states
         assert ec_elimination_result.old_to_new_state_mapping[23] == 23
@@ -170,7 +170,7 @@ class TestAddUncertainty:
         model = stormpy.build_model(program)
         assert type(model) is stormpy.SparseDtmc[float]
         assert model.nr_states == 13
-        transformer = stormpy.AddUncertainty[float](model)
+        transformer = stormpy.developer.AddUncertainty[float](model)
         interval_model = transformer.transform(0.1)
         assert type(interval_model) is stormpy.SparseDtmc[stormpy.Interval]
         assert interval_model.nr_states == 13
@@ -182,9 +182,9 @@ class TestAddUncertainty:
 
     def test_add_uncertainty_exact_dtmc(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-        model = stormpy.build_sparse_exact_model(program)
+        model = stormpy.build_model(program, value_type=stormpy.Rational)
         assert type(model) is stormpy.SparseDtmc[stormpy.Rational]
-        transformer = stormpy.AddUncertainty[stormpy.Rational](model)
+        transformer = stormpy.developer.AddUncertainty[stormpy.Rational](model)
         interval_model = transformer.transform(stormpy.Rational("1/10"))
         assert type(interval_model) is stormpy.SparseDtmc[stormpy.RationalInterval]
         assert interval_model.nr_states == model.nr_states
@@ -196,34 +196,34 @@ class TestAddUncertainty:
 
 class TestSubsystemCreation:
     def test_for_interval_mdp(self):
-        model = stormpy.build_interval_model_from_drn(get_example_path("imdp", "tiny-01.drn"))
+        model = stormpy.build_model_from_drn(get_example_path("imdp", "tiny-01.drn"), value_type=stormpy.Interval)
         assert type(model) is stormpy.SparseMdp[stormpy.Interval]
         assert model.nr_states == 3
         states = stormpy.BitVector(model.nr_states, True)
         states.set(2, False)
         options = stormpy.SubsystemBuilderOptions()
         options.fix_deadlocks = True
-        result = stormpy.construct_submodel(model, states, stormpy.BitVector(model.nr_choices, True), True, options)
+        result = stormpy.build_submodel(model, states, stormpy.BitVector(model.nr_choices, True), keep_unreachable_states=True, options=options)
         assert type(result.model) is stormpy.SparseMdp[stormpy.Interval]
         assert result.model.nr_states == 2
         assert result.model.nr_transitions == 2
 
     def test_for_exact_interval_mdp(self):
-        model = stormpy.build_exact_interval_model_from_drn(get_example_path("imdp", "tiny-01.drn"))
+        model = stormpy.build_model_from_drn(get_example_path("imdp", "tiny-01.drn"), value_type=stormpy.RationalInterval)
         assert type(model) is stormpy.SparseMdp[stormpy.RationalInterval]
         assert model.nr_states == 3
         states = stormpy.BitVector(model.nr_states, True)
         states.set(2, False)
         options = stormpy.SubsystemBuilderOptions()
         options.fix_deadlocks = True
-        result = stormpy.construct_submodel(model, states, stormpy.BitVector(model.nr_choices, True), True, options)
+        result = stormpy.build_submodel(model, states, stormpy.BitVector(model.nr_choices, True), keep_unreachable_states=True, options=options)
         assert type(result.model) is stormpy.SparseMdp[stormpy.RationalInterval]
         assert result.model.nr_states == 2
         assert result.model.nr_transitions == 2
 
     def test_for_ctmc(self):
         program = stormpy.parse_prism_program(get_example_path("ctmc", "polling2.sm"), True)
-        formulas = stormpy.parse_properties_for_prism_program('P=? [ F<=3 "target" ]', program)
+        formulas = stormpy.parse_properties('P=? [ F<=3 "target" ]', program)
         model = stormpy.build_model(program, formulas)
         assert model.nr_states == 12
         selected_outgoing_transitions = stormpy.BitVector(model.nr_states, True)
@@ -231,7 +231,9 @@ class TestSubsystemCreation:
         selected_outgoing_transitions.set(6, False)
         options = stormpy.SubsystemBuilderOptions()
         options.fix_deadlocks = True
-        submodel_result = stormpy.construct_submodel(model, stormpy.BitVector(model.nr_states, True), selected_outgoing_transitions, False, options)
+        submodel_result = stormpy.build_submodel(
+            model, stormpy.BitVector(model.nr_states, True), selected_outgoing_transitions, keep_unreachable_states=False, options=options
+        )
         submodel = submodel_result.model
         abort_label = submodel_result.deadlock_label
         assert submodel.nr_states == 8

@@ -144,8 +144,8 @@ The result may contain information about all states.
 Instead, we can iterate over the results:
 
 ```{code-cell} python3
-assert result.result_for_all_states
-for x in result.get_values():
+assert result.is_result_for_all_states()
+for x in result.get_finite_value_vector():
     pass  # do something with x
 ```
 
@@ -157,7 +157,7 @@ A good way to get the result for the initial states is as follows:
 
 ```{code-cell} python3
 initial_state = model.initial_states[0]
-print(result.at(initial_state))
+print(result[initial_state])
 ```
 
 ### Investigating the model

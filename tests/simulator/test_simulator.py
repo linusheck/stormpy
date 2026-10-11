@@ -48,9 +48,9 @@ class TestSparseModelSimulator:
     def test_simulate_die_steps_vals(self):
         path = stormpy.examples.files.prism_dtmc_die
         prism_program = stormpy.parse_prism_program(path)
-        options = stormpy.BuilderOptions()
+        options = stormpy.BuilderOptions(True, True)
         options.set_build_state_valuations()
-        model = stormpy.build_sparse_model_with_options(prism_program, options)
+        model = stormpy.build_model(prism_program, options=options)
         simulator = stormpy.simulator.create_simulator(model, seed=42)
         simulator.set_observation_mode(stormpy.simulator.SimulatorObservationMode.PROGRAM_LEVEL)
 
@@ -63,9 +63,9 @@ class TestSparseModelSimulator:
     def test_simulate_die_vals(self):
         path = stormpy.examples.files.prism_dtmc_die
         prism_program = stormpy.parse_prism_program(path)
-        options = stormpy.BuilderOptions()
+        options = stormpy.BuilderOptions(True, True)
         options.set_build_state_valuations()
-        model = stormpy.build_sparse_model_with_options(prism_program, options)
+        model = stormpy.build_model(prism_program, options=options)
         simulator = stormpy.simulator.create_simulator(model, seed=42)
         simulator.set_observation_mode(stormpy.simulator.SimulatorObservationMode.PROGRAM_LEVEL)
         assert simulator.get_reward_names() == ["coin_flips"]
@@ -123,10 +123,10 @@ class TestSparseModelSimulator:
         rng = random.Random(23)
         path = stormpy.examples.files.prism_mdp_slipgrid
         prism_program = stormpy.parse_prism_program(path)
-        options = stormpy.BuilderOptions()
+        options = stormpy.BuilderOptions(True, True)
         options.set_build_choice_labels()
         options.set_build_state_valuations()
-        model = stormpy.build_sparse_model_with_options(prism_program, options)
+        model = stormpy.build_model(prism_program, options=options)
         simulator = stormpy.simulator.create_simulator(model, seed=42)
         simulator.set_action_mode(stormpy.simulator.SimulatorActionMode.GLOBAL_NAMES)
         simulator.set_observation_mode(stormpy.simulator.SimulatorObservationMode.PROGRAM_LEVEL)
@@ -163,7 +163,7 @@ class TestSparseModelSimulator:
 class TestPrismSimulator:
     def test_negative_values(self):
         prism_program = stormpy.parse_prism_program(get_example_path("dtmc", "negativevals.pm"))
-        prism_program = stormpy.preprocess_symbolic_input(prism_program, [], "")[0].as_prism_program()
+        prism_program, _ = stormpy.instantiate_constants(prism_program, "")
 
         simulator = stormpy.simulator.create_simulator(prism_program, seed=42)
         simulator.set_action_mode(stormpy.simulator.SimulatorActionMode.GLOBAL_NAMES)

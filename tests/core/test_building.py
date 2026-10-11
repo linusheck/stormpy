@@ -8,7 +8,7 @@ class TestBuilding:
         path = stormpy.examples.files.prism_dtmc_die
         prism_program = stormpy.parse_prism_program(path)
         formula_str = "P=? [F s=7 & d=2]"
-        properties = stormpy.parse_properties_for_prism_program(formula_str, prism_program)
+        properties = stormpy.parse_properties(formula_str, prism_program)
 
         # Fix variables in the program.
         module = prism_program.modules[0]
@@ -16,12 +16,12 @@ class TestBuilding:
         d_var = module.get_integer_variable("d").expression_variable
 
         # Construct the model
-        options = stormpy.BuilderOptions([p.raw_formula for p in properties])
+        options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
         options.set_build_state_valuations()
-        model_builder = stormpy.make_sparse_model_builder(prism_program, options)
+        model_builder = stormpy.developer.make_explicit_model_builder(prism_program, options)
         model = model_builder.build()
         # and export the model from building
-        state_mapping = model_builder.export_lookup()
+        state_mapping = model_builder.export_explicit_state_lookup()
 
         # lookup 1
         state = {s_var: prism_program.expression_manager.create_integer(3), d_var: prism_program.expression_manager.create_integer(0)}

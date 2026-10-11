@@ -9,11 +9,11 @@ def example_schedulers_02():
     formula_str = "Tmin=? [ F s=4 ]"
 
     program = stormpy.parse_prism_program(path, False, True)
-    formulas = stormpy.parse_properties_for_prism_program(formula_str, program)
-    options = stormpy.BuilderOptions([f.raw_formula for f in formulas])
+    formulas = stormpy.parse_properties(formula_str, program)
+    options = stormpy.BuilderOptions([f.get_raw_formula() for f in formulas])
     options.set_build_choice_labels()
-    options.set_build_with_choice_origins()
-    ma = stormpy.build_sparse_model_with_options(program, options)
+    options.set_build_choice_origins()
+    ma = stormpy.build_model(program, options=options)
     assert ma.model_type == stormpy.ModelType.MA
 
     # Convert MA to MDP
@@ -24,7 +24,7 @@ def example_schedulers_02():
 
     result = stormpy.model_checking(mdp, mdp_formulas[0], extract_scheduler=True)
     assert result.has_scheduler
-    scheduler = result.scheduler
+    scheduler = result.get_scheduler()
     print(scheduler)
     assert scheduler.memoryless
     assert scheduler.deterministic

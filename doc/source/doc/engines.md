@@ -27,7 +27,7 @@ import stormpy.examples.files
 
 prism_program = stormpy.parse_prism_program(stormpy.examples.files.prism_dtmc_die)
 properties = stormpy.parse_properties('P=? [F "one"]', prism_program)
-sparse_model = stormpy.build_sparse_model(prism_program, properties)
+sparse_model = stormpy.build_model(prism_program, properties)
 print(type(sparse_model))
 ```
 
@@ -40,9 +40,9 @@ print("Number of transitions: {}".format(sparse_model.nr_transitions))
 ```
 
 ```{code-cell} python3
-sparse_result = stormpy.check_model_sparse(sparse_model, properties[0])
+sparse_result = stormpy.model_checking(sparse_model, properties[0])
 initial_state = sparse_model.initial_states[0]
-print(sparse_result.at(initial_state))
+print(sparse_result[initial_state])
 ```
 
 ## Symbolic engine
@@ -64,16 +64,16 @@ print("Number of transitions: {}".format(symbolic_model.nr_transitions))
 ```
 
 ```{code-cell} python3
-symbolic_result = stormpy.check_model_dd(symbolic_model, properties[0])
+symbolic_result = stormpy.model_checking(symbolic_model, properties[0], engine=stormpy.Engine.DD)
 print(symbolic_result)
 ```
 
 We can also filter the computed results and only consider the initial states:
 
 ```{code-cell} python3
-filter = stormpy.create_filter_initial_states_symbolic(symbolic_model)
+filter = stormpy.create_filter_initial_states(symbolic_model)
 symbolic_result.filter(filter)
-print(symbolic_result.min)
+print(symbolic_result.get_min())
 ```
 
 It is also possible to first build the model symbolically and then transform it into a sparse model:
@@ -98,8 +98,8 @@ print(type(symbolic_model))
 ```
 
 ```{code-cell} python3
-hybrid_result = stormpy.check_model_hybrid(symbolic_model, properties[0])
-filter = stormpy.create_filter_initial_states_symbolic(symbolic_model)
+hybrid_result = stormpy.model_checking(symbolic_model, properties[0], engine=stormpy.Engine.HYBRID)
+filter = stormpy.create_filter_initial_states(symbolic_model)
 hybrid_result.filter(filter)
 print(hybrid_result)
 ```

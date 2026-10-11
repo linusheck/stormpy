@@ -36,8 +36,8 @@ formulas = stormpy.parse_properties(formula_str, program)
 options = stormpy.BuilderOptions(True, True)
 options.set_build_state_valuations()
 options.set_build_choice_labels()
-options.set_build_with_choice_origins()
-model = stormpy.build_sparse_model_with_options(program, options)
+options.set_build_choice_origins()
+model = stormpy.build_model(program, options=options)
 ```
 
 Next we check the model and make sure to extract the scheduler:
@@ -50,7 +50,7 @@ The result then contains the scheduler we want:
 
 ```{code-cell} python3
 assert result.has_scheduler
-scheduler = result.scheduler
+scheduler = result.get_scheduler()
 assert scheduler.memoryless
 assert scheduler.deterministic
 print(scheduler)
@@ -81,7 +81,7 @@ path = stormpy.examples.files.prism_ma_simple
 formula_str = "Tmin=? [ F s=4 ]"
 
 program = stormpy.parse_prism_program(path, False, True)
-formulas = stormpy.parse_properties_for_prism_program(formula_str, program)
+formulas = stormpy.parse_properties(formula_str, program)
 ma = stormpy.build_model(program, formulas)
 ```
 
@@ -97,6 +97,6 @@ After the transformation we have obtained an MDP where we can extract the schedu
 
 ```{code-cell} python3
 result = stormpy.model_checking(mdp, mdp_formulas[0], extract_scheduler=True)
-scheduler = result.scheduler
+scheduler = result.get_scheduler()
 print(scheduler)
 ```

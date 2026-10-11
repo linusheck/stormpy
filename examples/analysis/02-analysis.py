@@ -13,10 +13,10 @@ def example_analysis_02():
     properties = stormpy.parse_properties(formula_str, prism_program)
     model = stormpy.build_symbolic_model(prism_program, properties)
     result = stormpy.model_checking(model, properties[0])
-    filter = stormpy.create_filter_initial_states_symbolic(model)
+    filter = stormpy.create_filter_initial_states(model)
     result.filter(filter)
-    assert result.min == result.max
-    print(result.min)
+    assert result.get_min() == result.get_max()
+    print(result.get_min())
 
     # Create an auxiliary mapping to build expressions that matches some state.
     variables = dict()
@@ -34,11 +34,11 @@ def example_analysis_02():
 
     result = stormpy.model_checking(model, properties[0])
     cached_res = result.clone()
-    cached_res.filter(stormpy.create_filter_symbolic(model, expr_for_state_1))
-    print(cached_res.min)
-    result.filter(stormpy.create_filter_symbolic(model, expr_for_state_2))
-    assert result.min == result.max
-    print(result.min)
+    cached_res.filter(stormpy.create_filter(model, expr_for_state_1))
+    print(cached_res.get_min())
+    result.filter(stormpy.create_filter(model, expr_for_state_2))
+    assert result.get_min() == result.get_max()
+    print(result.get_min())
 
 
 if __name__ == "__main__":
