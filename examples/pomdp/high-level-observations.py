@@ -14,7 +14,7 @@ def example_pomdp_highlevel_observations():
     formula_str = 'P=? [!"bad" U "goal"]'
     properties = stormpy.parse_properties(formula_str, prism_program)
     # construct the POMDP
-    options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
+    options = stormpy.BuilderOptions(properties)
     options.set_build_observation_valuations()
     options.set_build_choice_labels()
     pomdp = stormpy.build_model(prism_program, options=options)

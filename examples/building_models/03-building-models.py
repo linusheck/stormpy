@@ -12,7 +12,7 @@ def example_building_models_03():
     formula_str = "P=? [F s=5]"
     properties = stormpy.parse_properties(formula_str, prism_program)
 
-    options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
+    options = stormpy.BuilderOptions(properties)
     options.set_build_state_valuations()
     model = stormpy.build_model[stormpy.RationalFunction](prism_program, options=options)
 

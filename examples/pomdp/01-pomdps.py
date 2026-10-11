@@ -47,7 +47,7 @@ def example_pomdps_01():
     formula_str = 'P=? [!"bad" U "goal"]'
     properties = stormpy.parse_properties(formula_str, prism_program)
     # construct the pPOMDP
-    options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
+    options = stormpy.BuilderOptions(properties)
     options.set_build_state_valuations()
     options.set_build_choice_labels()
     pomdp = stormpy.build_model[stormpy.RationalFunction](prism_program, options=options)

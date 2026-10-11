@@ -63,7 +63,7 @@ class TestWeightedObjectiveModelChecking:
         prism_program = stormpy.parse_prism_program(path)
         formula_str = 'multi(Rmin=? [F "goalalt1"], Pmax=? [F "goalalt2"])'
         properties = stormpy.parse_properties(formula_str, prism_program)
-        options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
+        options = stormpy.BuilderOptions(properties)
         options.set_build_state_valuations()
         model = stormpy.build_model(prism_program, options=options)
         self._check_maze_weighted_objective(model, properties)

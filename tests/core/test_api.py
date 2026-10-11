@@ -97,7 +97,7 @@ class TestDeveloperBindings:
     def test_public_classes_are_developer_classes(self):
         assert stormpy.Property is stormpy.developer.Property
         assert stormpy.Environment is stormpy.developer.Environment
-        assert stormpy.BuilderOptions is stormpy.developer.BuilderOptions
+        assert issubclass(stormpy.BuilderOptions, stormpy.developer.BuilderOptions)
 
     @pytest.mark.parametrize(
         "name",

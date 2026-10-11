@@ -10,7 +10,7 @@ def example_schedulers_02():
 
     program = stormpy.parse_prism_program(path, False, True)
     formulas = stormpy.parse_properties(formula_str, program)
-    options = stormpy.BuilderOptions([f.get_raw_formula() for f in formulas])
+    options = stormpy.BuilderOptions(formulas)
     options.set_build_choice_labels()
     options.set_build_choice_origins()
     ma = stormpy.build_model(program, options=options)

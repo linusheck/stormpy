@@ -53,7 +53,7 @@ class TestChoiceLabeling:
     def test_label(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "brp-16-2.pm"))
         properties = stormpy.parse_properties("P=? [ F s=5 ]", program)
-        options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
+        options = stormpy.BuilderOptions(properties)
         options.set_build_choice_labels(True)
         model = stormpy.build_model(program, options=options)
         clabeling = model.choice_labeling

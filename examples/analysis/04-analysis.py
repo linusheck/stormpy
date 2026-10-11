@@ -11,7 +11,7 @@ def example_analysis_04():
     formula_str = "P=? [F s=7 & d=2]"
     properties = stormpy.parse_properties(formula_str, prism_program)
 
-    options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
+    options = stormpy.BuilderOptions(properties)
     options.set_build_state_valuations()
     model = stormpy.build_model(prism_program, options=options)
 

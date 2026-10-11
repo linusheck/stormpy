@@ -21,7 +21,7 @@ class TestBuilding:
         d_var = module.get_integer_variable("d").expression_variable
 
         # Construct the model
-        options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
+        options = stormpy.BuilderOptions(properties)
         options.set_build_state_valuations()
         model_builder = stormpy.developer.make_explicit_model_builder(prism_program, options)
         model = model_builder.build()
@@ -81,6 +81,25 @@ class TestBuilding:
         options = stormpy.BuilderOptions()
         assert not options.is_build_all_labels_set()
         assert not options.is_build_all_reward_models_set()
+
+    def test_builder_options_from_properties(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+        properties = stormpy.parse_properties('P=? [F "one"]', program)
+        options = stormpy.BuilderOptions(properties)
+        raw_options = stormpy.developer.BuilderOptions([p.get_raw_formula() for p in properties])
+        assert isinstance(options, stormpy.developer.BuilderOptions)
+        assert options.get_label_names() == raw_options.get_label_names() == {"one"}
+        assert stormpy.BuilderOptions(formulas=properties).get_label_names() == {"one"}
+        assert stormpy.BuilderOptions(properties, stormpy.SymbolicModelDescription(program)).get_label_names() == {"one"}
+        # Options are accepted by the developer bindings
+        model = stormpy.developer.build_sparse_model(program, options)
+        assert model.labeling.get_labels() == {"init", "deadlock", "one"}
+
+    def test_builder_options_without_properties(self):
+        options = stormpy.BuilderOptions(True, True)
+        assert options.is_build_all_labels_set() and options.is_build_all_reward_models_set()
+        options = stormpy.BuilderOptions(build_all_reward_models=True)
+        assert options.is_build_all_reward_models_set() and not options.is_build_all_labels_set()
 
     def test_build_model_undefined_constants(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "brp.pm"))

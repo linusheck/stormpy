@@ -43,7 +43,7 @@ class TestScheduler:
     def test_scheduler_ma_via_mdp(self):
         program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"), False, True)
         formulas = stormpy.parse_properties("Tmin=? [ F s=4 ]", program)
-        options = stormpy.BuilderOptions([f.get_raw_formula() for f in formulas])
+        options = stormpy.BuilderOptions(formulas)
         options.set_build_state_valuations()
         options.set_build_choice_labels()
         options.set_build_choice_origins()

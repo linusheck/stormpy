@@ -9,7 +9,6 @@ from stormpy.core._common import _formulas
 from stormpy._config import Interval, Rational, RationalFunction, RationalInterval
 from stormpy._template import _deduce_default, _template_function
 from stormpy.developer import (
-    BuilderOptions,
     DirectEncodingParserOptions,
     Environment,
     ExplicitModelParserOptions,
@@ -17,6 +16,23 @@ from stormpy.developer import (
     SymbolicModelDescription,
 )
 from stormpy.exceptions import StormError
+
+
+class BuilderOptions(developer.BuilderOptions):
+    """
+    Options for building a model from a symbolic description.
+
+    The options can be created preserving the given properties via e.g. ``BuilderOptions(properties)``,
+    or they can be created without properties via e.g. ``BuilderOptions(build_all_reward_models=True, build_all_labels=True)``.
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        if args and not isinstance(args[0], bool):
+            # Properties (or formulas) to preserve, optionally followed by the model description
+            args = (_formulas(args[0]), *args[1:])
+        elif "formulas" in kwargs:
+            kwargs["formulas"] = _formulas(kwargs["formulas"])
+        super().__init__(*args, **kwargs)
 
 
 def _check_constants(model) -> None:
