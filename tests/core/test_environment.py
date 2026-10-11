@@ -1,3 +1,5 @@
+import math
+
 import stormpy
 from helpers.helper import get_example_path
 
@@ -31,3 +33,31 @@ class TestEnvironment:
         assert env.exploration().sampled_paths_until_precomputation == 7
         exploration.sampled_paths_until_precomputation = None
         assert env.exploration().sampled_paths_until_precomputation is None
+
+    def test_linear_equation_solver(self):
+        env = stormpy.Environment()
+        env.solver().set_linear_equation_solver_type(stormpy.EquationSolverType.NATIVE)
+        env.solver().native().method = stormpy.NativeLinearEquationSolverMethod.POWER
+        assert env.solver().get_linear_equation_solver_type() == stormpy.EquationSolverType.NATIVE
+        assert env.solver().native().method == stormpy.NativeLinearEquationSolverMethod.POWER
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+        properties = stormpy.parse_properties('P=? [F "one"]', program)
+        model = stormpy.build_model(program, properties)
+        result = stormpy.model_checking(model, properties[0], environment=env)
+        assert math.isclose(result[model.initial_states[0]], 1 / 6, rel_tol=1e-4)
+
+    def test_multi_objective_method(self):
+        env = stormpy.Environment()
+        assert env.modelchecker().multi().method == stormpy.MultiObjectiveMethod.PCAA
+        env.modelchecker().multi().method = stormpy.MultiObjectiveMethod.CONSTRAINT_BASED
+        assert env.modelchecker().multi().method == stormpy.MultiObjectiveMethod.CONSTRAINT_BASED
+
+    def test_steady_state_distribution_algorithm(self):
+        model = stormpy.build_model_from_drn(get_example_path("ctmc", "dft.drn"))
+        env = stormpy.Environment()
+        assert env.modelchecker().steady_state_distribution_algorithm == stormpy.SteadyStateDistributionAlgorithm.AUTOMATIC
+        env.modelchecker().steady_state_distribution_algorithm = stormpy.SteadyStateDistributionAlgorithm.CLASSIC
+        assert env.modelchecker().steady_state_distribution_algorithm == stormpy.SteadyStateDistributionAlgorithm.CLASSIC
+        default_result = stormpy.compute_steady_state_distribution(model).get_finite_value_vector()
+        classic_result = stormpy.compute_steady_state_distribution(model, environment=env).get_finite_value_vector()
+        assert all(math.isclose(a, b, abs_tol=1e-6) for a, b in zip(default_result, classic_result))

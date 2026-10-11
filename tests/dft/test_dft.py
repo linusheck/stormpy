@@ -84,6 +84,22 @@ class TestDftElement:
         spare = dft.get_element_by_name("n137")
         assert spare.type == stormpy.dft.DFTElementType.SPARE
 
+    def test_element_types(self):
+        dft = stormpy.dft.load_dft_json_file(get_example_path("dft", "and.json"))
+        assert isinstance(dft.top_level_element, stormpy.dft.DFTElement[float])
+        assert isinstance(stormpy.dft.modules(dft), stormpy.dft.DftIndependentModule)
+
+    def test_dependency(self):
+        dft = stormpy.dft.load_dft_galileo_file(get_example_path("dft", "pdep.dft"))
+        dependency = dft.get_element_by_name("Power")
+        assert dependency.type == stormpy.dft.DFTElementType.PDEP
+        assert isinstance(dependency, stormpy.dft.DFTDependency[float])
+        assert dependency.trigger_event.name == "B_Power"
+        assert [event.name for event in dependency.dependent_events] == ["P", "B"]
+        assert not dependency.is_fdep
+        dft = stormpy.dft.load_dft_galileo_file(get_example_path("dft", "fdep.dft"))
+        assert dft.get_element_by_name("Power").is_fdep
+
 
 @dft
 class TestDftSymmetries:

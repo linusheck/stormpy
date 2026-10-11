@@ -128,3 +128,26 @@ class TestBuilding:
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         with pytest.raises(TypeError, match="Supported are: float, Rational, RationalFunction"):
             stormpy.build_symbolic_model[stormpy.Interval](program)
+
+    def test_direct_encoding_parser_options(self):
+        assert not stormpy.build_model_from_drn(stormpy.examples.files.drn_pomdp_maze).has_choice_labeling()
+        options = stormpy.DirectEncodingParserOptions()
+        assert not options.build_choice_labeling
+        options.build_choice_labeling = True
+        assert stormpy.build_model_from_drn(stormpy.examples.files.drn_pomdp_maze, options=options).has_choice_labeling()
+
+    def test_explicit_model_parser_options(self):
+        options = stormpy.ExplicitModelParserOptions()
+        assert options.fix_deadlocks and not options.build_choice_labels
+        options.fix_deadlocks = False
+        options.build_choice_labels = True
+        assert not options.fix_deadlocks and options.build_choice_labels
+        model = stormpy.build_model_from_explicit(get_example_path("dtmc", "die.tra"), get_example_path("dtmc", "die.lab"), options=options)
+        assert model.nr_states == 13
+
+    def test_build_symbolic_ma(self):
+        program = stormpy.parse_prism_program(get_example_path("ma", "simple.ma"))
+        jani_model, _ = program.to_jani([])
+        model = stormpy.build_symbolic_model(jani_model)
+        assert type(model) is stormpy.SymbolicMA[stormpy.DdType.Sylvan, float]
+        assert model.model_type == stormpy.ModelType.MA

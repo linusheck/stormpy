@@ -499,3 +499,33 @@ class TestModelChecking:
         hint.set_result_hint(result.get_finite_value_vector())
         result_hint = stormpy.model_checking(model, properties[0], hint=hint)
         assert math.isclose(result_hint[model.initial_states[0]], result[model.initial_states[0]], rel_tol=1e-4)
+
+    def test_create_filter(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+        properties = stormpy.parse_properties('P=? [F "one"]', program)
+        symbolic_model = stormpy.build_symbolic_model(program, properties)
+        parser = stormpy.storage.ExpressionParser(program.expression_manager)
+        parser.set_identifier_mapping({variable.name: variable.get_expression() for variable in program.expression_manager.get_variables()})
+        state_filter = stormpy.create_filter(symbolic_model, parser.parse("s=0"))
+        assert type(state_filter) is stormpy.SymbolicQualitativeCheckResult[stormpy.DdType.Sylvan]
+        result = stormpy.model_checking(symbolic_model, properties[0])
+        result.filter(state_filter)
+        # Only the initial state satisfies s=0
+        assert math.isclose(result.get_min(), 1 / 6, rel_tol=1e-6)
+        assert math.isclose(result.get_max(), 1 / 6, rel_tol=1e-6)
+        sparse_model = stormpy.build_model(program, properties)
+        with pytest.raises(StormError):
+            stormpy.create_filter(sparse_model, parser.parse("s=0"))
+
+    def test_qualitative_result_type(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+        properties = stormpy.parse_properties('"one"', program)
+        model = stormpy.build_model(program, properties)
+        result = stormpy.model_checking(model, properties[0])
+        assert isinstance(result, stormpy.QualitativeCheckResult)
+        assert isinstance(result, stormpy.CheckResult)
+        assert result.is_qualitative()
+
+    def test_model_checker_hint_hierarchy(self):
+        hint = stormpy.ExplicitModelCheckerHint[float]()
+        assert isinstance(hint, stormpy.ModelCheckerHint)

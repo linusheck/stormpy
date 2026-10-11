@@ -161,6 +161,17 @@ class TestTransformation:
         result = stormpy.model_checking(ma_elim, ma_formulas_elim[0])
         assert math.isclose(result[initial_state], 1)
 
+    def test_export_to_drn_options(self, tmp_path):
+        model = stormpy.build_model(stormpy.parse_prism_program(get_example_path("dtmc", "crowds5_5.pm")))
+        options = stormpy.DirectEncodingExporterOptions()
+        options.output_precision = 1
+        output = tmp_path / "model.drn"
+        stormpy.export_to_drn(model, str(output), options=options)
+        content = output.read_text()
+        assert "0.8\n" in content
+        assert "0.833" not in content
+        assert stormpy.build_model_from_drn(str(output)).nr_states == model.nr_states
+
 
 class TestECElimination:
     def test_elimination_on_two_dice(self):
