@@ -8,9 +8,11 @@ generation tools.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator, Mapping, Sequence
+import functools
+import inspect
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
-from types import MappingProxyType
+from types import MappingProxyType, SimpleNamespace
 from typing import Any, Literal, TypeAlias
 
 _TemplateParameterKind: TypeAlias = Literal["type", "value"]
@@ -371,3 +373,44 @@ class _TemplateFunction(_TemplateClass):
     def __repr__(self) -> str:
         """Return a concise template-family representation."""
         return f"<template function {self._canonical_name}>"
+
+
+def _template_function(
+    canonical_name: str,
+    *,
+    parameters: Sequence[str | _TemplateParameter],
+    instantiations: Iterable[object],
+    deduce: _DeductionGuide | None = None,
+) -> Callable[[Callable[..., Any]], _TemplateFunction]:
+    """Turn a generic Python function into a template function family.
+
+    The decorated function receives the template parameters as its leading positional arguments.
+    For each entry of ``instantiations``, an instantiation is created with these parameters bound.
+
+    :param canonical_name: Fully qualified public family name.
+    :param parameters: Ordered descriptions or names of the template parameters.
+    :param instantiations: Template parameters (or parameter tuples) for which instantiations are created.
+    :param deduce: Optional deduction guide used when the family is called without subscript.
+    :return: Decorator creating the template function family.
+    """
+
+    def decorator(generic: Callable[..., Any]) -> _TemplateFunction:
+        arity = len(parameters)
+        signature = inspect.signature(generic)
+        instantiation_signature = signature.replace(parameters=list(signature.parameters.values())[arity:])
+        implementations = {}
+        for arguments in instantiations:
+            key = arguments if isinstance(arguments, tuple) else (arguments,)
+
+            def implementation(*args: Any, _key: tuple[object, ...] = key, **kwargs: Any) -> Any:
+                return generic(*_key, *args, **kwargs)
+
+            functools.update_wrapper(implementation, generic)
+            implementation.__signature__ = instantiation_signature
+            implementations[key] = implementation
+
+        name = canonical_name.rpartition(".")[2]
+        module = SimpleNamespace(_template_instantiations={name: implementations})
+        return _TemplateFunction(canonical_name, module, parameters=parameters, deduce=deduce)
+
+    return decorator

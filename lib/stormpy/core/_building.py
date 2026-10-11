@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from stormpy import developer, storage
 from stormpy.core._common import _formulas
 from stormpy._config import Interval, Rational, RationalFunction, RationalInterval
+from stormpy._template import _deduce_default, _template_function
 from stormpy.developer import (
     BuilderOptions,
     DirectEncodingParserOptions,
@@ -26,22 +27,27 @@ def _check_constants(model) -> None:
         raise StormError("Model still contains undefined constants which influence the graph structure. Use instantiate_constants() first.")
 
 
+_VALUE_TYPES = (float, Rational, RationalFunction, Interval, RationalInterval)
+
+
+@_template_function("stormpy.build_model", parameters=("ValueType",), instantiations=_VALUE_TYPES, deduce=_deduce_default(float))
 def build_model(
+    value_type: type,
     model: storage.PrismProgram | storage.JaniModel | SymbolicModelDescription,
     properties: Iterable[Property] | None = None,
     *,
-    value_type: type = float,
     options: BuilderOptions | None = None,
 ):
     """
     Build a model in sparse (explicit) representation from a symbolic model.
 
+    The value type of the model is selected via subscript, e.g. ``build_model[stormpy.Rational](program)``:
+    float (default), Rational (exact), RationalFunction (parametric), Interval or RationalInterval (exact interval).
+
     :param model: Symbolic model (Prism program, Jani model or symbolic model description).
     :param properties: (optional) Properties which should be checkable on the built model.
         Only the labels and reward models required by the properties are built.
         If None or empty (and no options are given), all labels and reward models are built.
-    :param value_type: Value type of the model: float (default), Rational (exact), RationalFunction (parametric),
-        Interval or RationalInterval (exact interval).
     :param options: (optional) Builder options for full control of the building process. Cannot be combined with properties.
     :return: The model in sparse representation, e.g. a sparse DTMC.
     :raises TypeError: If the value type is not supported.
@@ -59,25 +65,28 @@ def build_model(
     return build(model, BuilderOptions(build_all_reward_models=True, build_all_labels=True))
 
 
+@_template_function(
+    "stormpy.build_symbolic_model", parameters=("ValueType",), instantiations=(float, Rational, RationalFunction), deduce=_deduce_default(float)
+)
 def build_symbolic_model(
+    value_type: type,
     model: storage.PrismProgram | storage.JaniModel | SymbolicModelDescription,
     properties: Iterable[Property] | None = None,
     *,
-    value_type: type = float,
     environment: Environment | None = None,
 ):
     """
     Build a model in symbolic representation (using decision diagrams) from a symbolic model.
 
+    The value type of the model is selected via subscript, e.g. ``build_symbolic_model[stormpy.Rational](program)``:
+    float (default), Rational (exact) or RationalFunction (parametric). Interval value types are not supported.
+
     :param model: Symbolic model (Prism program, Jani model or symbolic model description).
     :param properties: (optional) Properties which should be checkable on the built model. If None, the full model is built.
-    :param value_type: Value type of the model: float (default), Rational (exact) or RationalFunction (parametric).
     :param environment: (optional) Environment configuring the decision diagram libraries.
     :return: The model in symbolic representation, e.g. a symbolic DTMC.
     :raises TypeError: If the value type is not supported.
     """
-    if value_type in (Interval, RationalInterval):
-        raise StormError("Symbolic models do not support interval value types.")
     build = developer.build_symbolic_model[value_type]
     if value_type is not RationalFunction:
         _check_constants(model)
@@ -86,14 +95,16 @@ def build_symbolic_model(
     return build(environment, model, formulas, build_full_model=not formulas)
 
 
-def build_model_from_drn(path: str, options: DirectEncodingParserOptions | None = None, *, value_type: type = float):
+@_template_function("stormpy.build_model_from_drn", parameters=("ValueType",), instantiations=_VALUE_TYPES, deduce=_deduce_default(float))
+def build_model_from_drn(value_type: type, path: str, options: DirectEncodingParserOptions | None = None):
     """
     Build a model in sparse representation from a file in the explicit DRN format.
 
+    The value type of the model is selected via subscript, e.g. ``build_model_from_drn[stormpy.Rational](path)``:
+    float (default), Rational (exact), RationalFunction (parametric), Interval or RationalInterval (exact interval).
+
     :param path: Path to the DRN file.
     :param options: (optional) Options for the DRN parser.
-    :param value_type: Value type of the model: float (default), Rational (exact), RationalFunction (parametric),
-        Interval or RationalInterval (exact interval).
     :return: The model in sparse representation.
     :raises TypeError: If the value type is not supported.
     """

@@ -53,7 +53,7 @@ class TestMaximalEndComponents:
                             assert 1 <= transition.column <= 13
 
     def test_create_exact_interval_decomposition(self):
-        model = stormpy.build_model_from_drn(get_example_path("imdp", "tiny-01.drn"), value_type=stormpy.RationalInterval)
+        model = stormpy.build_model_from_drn[stormpy.RationalInterval](get_example_path("imdp", "tiny-01.drn"))
         assert type(model) is stormpy.SparseMdp[stormpy.RationalInterval]
         assert model.nr_states == 3
 
@@ -84,7 +84,7 @@ class TestECElimination:
     def test_elimination_exact_interval(self):
         program = stormpy.parse_prism_program(get_example_path("mdp", "two_dice.nm"))
         formulas = stormpy.parse_properties('P=? [ F "two" ]', program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.Rational)
+        model = stormpy.build_model[stormpy.Rational](program, formulas)
         transformer = stormpy.developer.AddUncertainty[stormpy.Rational](model)
         exact_interval_model = transformer.transform(stormpy.Rational("1/100"))
         assert type(exact_interval_model) is stormpy.SparseMdp[stormpy.RationalInterval]

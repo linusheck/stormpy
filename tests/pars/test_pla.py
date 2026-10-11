@@ -21,7 +21,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P<=0.84 [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         assert model.model_type == stormpy.ModelType.DTMC
@@ -44,7 +44,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P<=0.84 [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         assert model.model_type == stormpy.ModelType.DTMC
@@ -80,7 +80,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         checker = stormpy.pars.create_region_checker(env, model, formulas[0].get_raw_formula())
@@ -97,7 +97,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         checker = stormpy.pars.DtmcParameterLiftingModelChecker()
@@ -112,7 +112,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         checker = stormpy.pars.DtmcParameterLiftingModelChecker()
@@ -127,7 +127,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         checker = stormpy.pars.DtmcParameterLiftingModelChecker()
@@ -143,7 +143,7 @@ class TestPLA:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.has_parameters
         env = stormpy.Environment()
         parameters = model.collect_all_parameters()

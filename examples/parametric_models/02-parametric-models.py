@@ -18,7 +18,7 @@ def example_parametric_models_02():
 
     formula_str = "P=? [F s=7 & d=2]"
     properties = stormpy.parse_properties(formula_str, prism_program)
-    model = stormpy.build_model(prism_program, properties, value_type=stormpy.RationalFunction)
+    model = stormpy.build_model[stormpy.RationalFunction](prism_program, properties)
 
     initial_state = model.initial_states[0]
     result = stormpy.model_checking(model, properties[0])

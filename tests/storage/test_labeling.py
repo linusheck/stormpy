@@ -36,7 +36,7 @@ class TestStateLabeling:
     def test_label_parametric(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         formulas = stormpy.parse_properties("P=? [ F s=5 ]", program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         labels = model.labeling.get_labels()
         assert len(labels) == 3
         assert "init" in labels

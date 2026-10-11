@@ -13,9 +13,9 @@ def get_example_path(*paths):
 def build_sparse_model(path, value_type):
     program = stormpy.parse_prism_program(path)
     if value_type in (stormpy.Rational, stormpy.RationalInterval):
-        model = stormpy.build_model(program, value_type=stormpy.Rational)
+        model = stormpy.build_model[stormpy.Rational](program)
     elif value_type is stormpy.RationalFunction:
-        model = stormpy.build_model(program, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program)
     else:
         model = stormpy.build_model(program)
     # The following are hardcoded interval values for testing purposes

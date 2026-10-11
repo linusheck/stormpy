@@ -81,23 +81,23 @@ class TestValueTypeMatrix:
 
     def test_rationalnumber(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-        model = stormpy.build_model(program, value_type=stormpy.Rational)
+        model = stormpy.build_model[stormpy.Rational](program)
         assert type(first_matrix_value(model)) is stormpy.Rational
         assert type(first_matrix_value(model)) is exact_package().Rational
 
     @pars
     def test_rationalfunction(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "parametric_die.pm"))
-        model = stormpy.build_model(program, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program)
         assert type(first_matrix_value(model)) is stormpy.RationalFunction
         assert type(first_matrix_value(model).constant_part()) is ratfunc_package().Rational
 
     def test_interval(self):
         program = stormpy.parse_prism_program(get_example_path("idtmc", "die-intervals.pm"))
-        model = stormpy.build_model(program, value_type=stormpy.Interval)
+        model = stormpy.build_model[stormpy.Interval](program)
         assert type(first_matrix_value(model)) is pycarl.Interval
 
     def test_rationalinterval(self):
         program = stormpy.parse_prism_program(get_example_path("idtmc", "die-intervals.pm"))
-        model = stormpy.build_model(program, value_type=stormpy.RationalInterval)
+        model = stormpy.build_model[stormpy.RationalInterval](program)
         assert type(first_matrix_value(model)) is exact_package().Interval

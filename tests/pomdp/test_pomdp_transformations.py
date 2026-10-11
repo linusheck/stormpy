@@ -8,7 +8,7 @@ class TestPomdpTransformations:
     def test_make_canonic_exact(self):
         program = stormpy.parse_prism_program(get_example_path("pomdp", "maze_2.prism"))
         formulas = stormpy.parse_properties('P=? [F "goal"]', program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.Rational)
+        model = stormpy.build_model[stormpy.Rational](program, formulas)
         assert type(model) is stormpy.SparsePomdp[stormpy.Rational]
         canonic = stormpy.pomdp.make_canonic(model)
         assert type(canonic) is stormpy.SparsePomdp[stormpy.Rational]

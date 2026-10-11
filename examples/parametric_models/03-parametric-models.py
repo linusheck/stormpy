@@ -13,7 +13,7 @@ def example_parametric_models_03():
 
     formula_str = 'P=? [F "target"]'
     properties = stormpy.parse_properties(formula_str, prism_program)
-    model = stormpy.build_model(prism_program, properties, value_type=stormpy.RationalFunction)
+    model = stormpy.build_model[stormpy.RationalFunction](prism_program, properties)
 
     print(model.model_type)
     start = time.time()

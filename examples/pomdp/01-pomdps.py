@@ -50,7 +50,7 @@ def example_pomdps_01():
     options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
     options.set_build_state_valuations()
     options.set_build_choice_labels()
-    pomdp = stormpy.build_model(prism_program, options=options, value_type=stormpy.RationalFunction)
+    pomdp = stormpy.build_model[stormpy.RationalFunction](prism_program, options=options)
     # make its representation canonic.
     pomdp = stormpy.pomdp.make_canonic(pomdp)
 

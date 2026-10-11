@@ -47,14 +47,14 @@ class TestBuilding:
         program = stormpy.parse_prism_program(
             get_example_path("idtmc", "die-intervals.pm") if value_type in (stormpy.Interval, stormpy.RationalInterval) else get_example_path("dtmc", "die.pm")
         )
-        model = stormpy.build_model(program, value_type=value_type)
+        model = stormpy.build_model[value_type](program)
         assert type(model) is stormpy.SparseDtmc[value_type]
         assert model.nr_states == 13
 
     def test_build_model_unsupported_value_type(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
         with pytest.raises(TypeError, match="Supported are: float, "):
-            stormpy.build_model(program, value_type=int)
+            stormpy.build_model[int](program)
 
     def test_build_model_all_labels(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
@@ -89,7 +89,7 @@ class TestBuilding:
 
     @pars
     def test_build_parametric_model_from_drn(self):
-        model = stormpy.build_model_from_drn(get_example_path("pdtmc", "die.drn"), value_type=stormpy.RationalFunction)
+        model = stormpy.build_model_from_drn[stormpy.RationalFunction](get_example_path("pdtmc", "die.drn"))
         assert type(model) is stormpy.SparseDtmc[stormpy.RationalFunction]
         assert model.has_parameters
 
@@ -101,11 +101,11 @@ class TestBuilding:
     @pytest.mark.parametrize("value_type", [float, stormpy.Rational, pytest.param(stormpy.RationalFunction, marks=pars)])
     def test_build_symbolic_model_value_types(self, value_type):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-        model = stormpy.build_symbolic_model(program, value_type=value_type)
+        model = stormpy.build_symbolic_model[value_type](program)
         assert type(model) is stormpy.SymbolicDtmc[stormpy.DdType.Sylvan, value_type]
         assert model.nr_states == 13
 
     def test_build_symbolic_model_interval(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-        with pytest.raises(StormError):
-            stormpy.build_symbolic_model(program, value_type=stormpy.Interval)
+        with pytest.raises(TypeError, match="Supported are: float, Rational, RationalFunction"):
+            stormpy.build_symbolic_model[stormpy.Interval](program)

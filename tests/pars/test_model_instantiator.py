@@ -10,7 +10,7 @@ class TestModelInstantiator:
     def test_instantiate_dtmc(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         formulas = stormpy.parse_properties("P=? [ F s=5 ]", program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         parameters = model.collect_all_parameters()
         assert len(parameters) == 2
         instantiator = stormpy.pars.ModelInstantiator(model)
@@ -30,7 +30,7 @@ class TestModelInstantiator:
     def test_instantiate_dtmc_die(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "parametric_die.pm"))
         formulas = stormpy.parse_properties("P=? [F s=7 & d=2]", program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         parameters = model.collect_all_parameters()
         assert len(parameters) == 2
         instantiator = stormpy.pars.ModelInstantiator[stormpy.ModelType.DTMC, float](model)
@@ -50,7 +50,7 @@ class TestModelInstantiator:
     def test_sample_pdtmc(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         formulas = stormpy.parse_properties('P=? [F "error"]', program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
 
         parameters = model.collect_all_parameters()
         instantiator = stormpy.pars.ModelInstantiator[stormpy.ModelType.DTMC, float](model)
@@ -68,7 +68,7 @@ class TestModelInstantiator:
     def test_pdtmc_instantiation_checker(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "herman5.pm"))
         formulas = stormpy.parse_properties('R=? [F "stable"]', program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
 
         parameters = model.collect_all_parameters()
         env = stormpy.Environment()
@@ -87,7 +87,7 @@ class TestModelInstantiator:
     def test_pdtmc_exact_instantiation_checker(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "herman5.pm"))
         formulas = stormpy.parse_properties('R=? [F "stable"]', program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
 
         parameters = model.collect_all_parameters()
         env = stormpy.Environment()
@@ -105,7 +105,7 @@ class TestModelInstantiator:
     def test_pdtmc_exact_instantiation_checker_die(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "parametric_die.pm"))
         formulas = stormpy.parse_properties("P=? [F s=7 & d=2]", program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
 
         parameters = model.collect_all_parameters()
         env = stormpy.Environment()

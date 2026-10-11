@@ -13,7 +13,7 @@ def example_building_models_01():
 
     # And the parametric
     path = stormpy.examples.files.drn_pdtmc_die
-    model = stormpy.build_model_from_drn(path, value_type=stormpy.RationalFunction)
+    model = stormpy.build_model_from_drn[stormpy.RationalFunction](path)
     print(model.model_type)
     print("Number of states: {}".format(model.nr_states))
 

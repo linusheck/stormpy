@@ -1,8 +1,9 @@
+import inspect
 from types import SimpleNamespace
 
 import pytest
 
-from stormpy._template import _TemplateClass, _TemplateFunction, _deduce_default, _deduce_from_first_argument, _deduce_from_object
+from stormpy._template import _TemplateClass, _TemplateFunction, _deduce_default, _template_function, _deduce_from_first_argument, _deduce_from_object
 
 
 # Helper functions
@@ -161,3 +162,19 @@ def test_missing_instantiation_lists_supported_instantiations():
 
     with pytest.raises(TypeError, match=r"Supported are: 'base', 'derived'"):
         family["missing"]
+
+
+def test_python_template_function():
+    @_template_function("test.scale_by", parameters=["factor"], instantiations=(2, 3), deduce=_deduce_default(2))
+    def scale_by(factor, value, *, offset=0):
+        """Scale the value."""
+        return factor * value + offset
+
+    assert isinstance(scale_by, _TemplateFunction)
+    assert scale_by[3](2, offset=1) == 7
+    assert scale_by(2) == 4
+    assert list(inspect.signature(scale_by[3]).parameters) == ["value", "offset"]
+    assert scale_by[3].__name__ == "scale_by"
+    assert inspect.getdoc(scale_by[3]) == "Scale the value."
+    with pytest.raises(TypeError, match="Supported are: 2, 3"):
+        scale_by[4]

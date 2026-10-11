@@ -11,7 +11,7 @@ class TestParametric:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         assert model.model_type == stormpy.ModelType.DTMC
@@ -27,7 +27,7 @@ class TestParametric:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "parametric_die.pm"))
         prop = "P=? [F s=7 & d=2]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 13
         assert model.nr_transitions == 20
         assert model.model_type == stormpy.ModelType.DTMC
@@ -60,7 +60,7 @@ class TestParametric:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "parametric_die.pm"))
         prop = "P=? [F s=5]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_symbolic_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_symbolic_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 11
         assert model.nr_transitions == 17
         assert model.model_type == stormpy.ModelType.DTMC
@@ -72,7 +72,7 @@ class TestParametric:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "parametric_die.pm"))
         prop = "P=? [F s=5]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_symbolic_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_symbolic_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 11
         assert model.nr_transitions == 17
         assert model.model_type == stormpy.ModelType.DTMC
@@ -85,7 +85,7 @@ class TestParametric:
     def test_parameters_dtmc(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         formulas = stormpy.parse_properties("P=? [F s=5]", program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         model_parameters = model.collect_probability_parameters()
         reward_parameters = model.collect_reward_parameters()
         rate_parameters = model.collect_rate_parameters()
@@ -95,12 +95,12 @@ class TestParametric:
         assert len(rate_parameters) == 0
         assert len(all_parameters) == 2
 
-        model = stormpy.build_symbolic_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_symbolic_model[stormpy.RationalFunction](program, formulas)
         assert len(model.get_parameters()) == 4
 
         program_reward = stormpy.parse_prism_program(get_example_path("pdtmc", "brp_rewards16_2.pm"))
         formulas_reward = stormpy.parse_properties('Rmin=? [ F "target" ]', program_reward)
-        model = stormpy.build_model(program_reward, formulas_reward, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program_reward, formulas_reward)
         model_parameters = model.collect_probability_parameters()
         reward_parameters = model.collect_reward_parameters()
         rate_parameters = model.collect_rate_parameters()
@@ -110,12 +110,12 @@ class TestParametric:
         assert len(rate_parameters) == 0
         assert len(all_parameters) == 4
 
-        model = stormpy.build_symbolic_model(program_reward, formulas_reward, value_type=stormpy.RationalFunction)
+        model = stormpy.build_symbolic_model[stormpy.RationalFunction](program_reward, formulas_reward)
         assert len(model.get_parameters()) == 4
 
     def test_parameters_ctmc(self):
         program = stormpy.parse_prism_program(get_example_path("pctmc", "polling3.sm"), True)
-        model = stormpy.build_model(program, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program)
         model_parameters = model.collect_probability_parameters()
         reward_parameters = model.collect_reward_parameters()
         rate_parameters = model.collect_rate_parameters()
@@ -125,7 +125,7 @@ class TestParametric:
         assert len(rate_parameters) == 2
         assert len(all_parameters) == 2
 
-        model = stormpy.build_symbolic_model(program, value_type=stormpy.RationalFunction)
+        model = stormpy.build_symbolic_model[stormpy.RationalFunction](program)
         assert len(model.get_parameters()) == 2
 
     def test_constraints_collector(self):
@@ -138,7 +138,7 @@ class TestParametric:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P=? [F s=5]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         collector = stormpy.ConstraintCollector(model)
         constraints_well_formed = collector.get_wellformed_constraints()
         assert len(constraints_well_formed) == 4
@@ -157,7 +157,7 @@ class TestParametric:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P<=0.84 [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         assert model.model_type == stormpy.ModelType.DTMC
@@ -172,7 +172,7 @@ class TestParametric:
         prop = "P<=0.84 [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
         formula = formulas[0].get_raw_formula()
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         model, formula = stormpy.pars.simplify_model(model, formula)
@@ -183,7 +183,7 @@ class TestParametric:
         program = stormpy.parse_prism_program(get_example_path("pmdp", "two_dice.nm"))
         formulas = stormpy.parse_properties('Pmin=? [ F "two" ]', program)
         formula = formulas[0].get_raw_formula()
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         assert model.nr_states == 169
         assert model.nr_transitions == 435
         model, formula = stormpy.pars.simplify_model(model, formula)
@@ -193,7 +193,7 @@ class TestParametric:
     def test_simplification_with_property(self):
         program = stormpy.parse_prism_program(get_example_path("pmdp", "two_dice.nm"))
         properties = stormpy.parse_properties('Pmin=? [ F "two" ]', program)
-        model = stormpy.build_model(program, properties, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, properties)
         simplified, formula = stormpy.pars.simplify_model(model, properties[0])
         assert simplified.nr_states == 17
         assert formula.is_probability_operator
@@ -202,7 +202,7 @@ class TestParametric:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = "P<=0.84 [F s=5 ]"
         formulas = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         parameters = model.collect_all_parameters()
         assert len(parameters) == 2
         region = stormpy.pars.ParameterRegion.create_from_string("0.7<=pL<=0.9,0.75<=pK<=0.95", parameters)

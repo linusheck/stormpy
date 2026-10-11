@@ -7,7 +7,7 @@ import pytest
 
 def test_parameters_of_model():
     program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-    model = stormpy.build_model(program, value_type=stormpy.Rational)
+    model = stormpy.build_model[stormpy.Rational](program)
 
     assert stormpy.storage.parameters_of_model(model) == (stormpy.Rational,)
 
@@ -333,7 +333,7 @@ class TestSymbolicSylvanModel:
             model = stormpy.build_symbolic_model(program, formulas)
 
     def test_build_ipomdp(self):
-        model = stormpy.build_model_from_drn(get_example_path("ipomdp", "tiny-01.drn"), value_type=stormpy.Interval)
+        model = stormpy.build_model_from_drn[stormpy.Interval](get_example_path("ipomdp", "tiny-01.drn"))
         assert model.nr_states == 4
         assert model.nr_choices == 5
         assert model.nr_transitions == 8
@@ -351,7 +351,7 @@ class TestSymbolicSylvanModel:
         assert type(model) is stormpy.SparsePomdp[stormpy.Interval]
 
     def test_build_exact_ipomdp(self):
-        model = stormpy.build_model_from_drn(get_example_path("ipomdp", "tiny-01.drn"), value_type=stormpy.RationalInterval)
+        model = stormpy.build_model_from_drn[stormpy.RationalInterval](get_example_path("ipomdp", "tiny-01.drn"))
         assert model.nr_states == 4
         assert model.nr_choices == 5
         assert model.nr_transitions == 8

@@ -53,7 +53,7 @@ class TestBisimulation:
         assert program.undefined_constants_are_graph_preserving
         prop = "P=? [F s=5]"
         properties = stormpy.parse_properties(prop, program)
-        model = stormpy.build_model(program, properties, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, properties)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         assert model.model_type == stormpy.ModelType.DTMC
@@ -95,7 +95,7 @@ class TestBisimulation:
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         prop = 'P=? [F "error"]'
         properties = stormpy.parse_properties(prop, program)
-        model = stormpy.build_symbolic_model(program, properties, value_type=stormpy.RationalFunction)
+        model = stormpy.build_symbolic_model[stormpy.RationalFunction](program, properties)
         assert model.nr_states == 613
         assert model.nr_transitions == 803
         assert model.model_type == stormpy.ModelType.DTMC

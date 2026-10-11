@@ -106,7 +106,7 @@ class TestMatrix:
     def test_change_parametric_matrix_modelchecking(self):
         program = stormpy.parse_prism_program(get_example_path("pdtmc", "brp16_2.pm"))
         formulas = stormpy.parse_properties("P=? [ F s=5 ]", program)
-        model = stormpy.build_model(program, formulas, value_type=stormpy.RationalFunction)
+        model = stormpy.build_model[stormpy.RationalFunction](program, formulas)
         initial_state = model.initial_states[0]
         assert initial_state == 0
         matrix = model.transition_matrix

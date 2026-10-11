@@ -14,7 +14,7 @@ def example_building_models_03():
 
     options = stormpy.BuilderOptions([p.get_raw_formula() for p in properties])
     options.set_build_state_valuations()
-    model = stormpy.build_model(prism_program, options=options, value_type=stormpy.RationalFunction)
+    model = stormpy.build_model[stormpy.RationalFunction](prism_program, options=options)
 
     valuations = model.state_valuations
     values2 = json.loads(str(valuations.get_json(2)))
