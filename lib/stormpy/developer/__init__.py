@@ -15,7 +15,7 @@ for _name, _value in vars(_core).items():
 del _name, _value
 
 from stormpy import storage
-from stormpy._template import _TemplateClass, _TemplateParameter, _deduce_default, _deduce_from_object
+from stormpy._template import _TemplateClass, _TemplateFunction, _TemplateParameter, _deduce_default, _deduce_from_object
 
 _deduce_from_model = _deduce_from_object(storage.parameters_of_model, keyword=("model", "original_model"))
 
@@ -76,3 +76,11 @@ SubsystemBuilderReturnType = _TemplateClass("stormpy.developer.SubsystemBuilderR
 EndComponentEliminatorReturnType = _TemplateClass("stormpy.developer.EndComponentEliminatorReturnType", _core, parameters=("ValueType",))
 EndComponentEliminator = _TemplateClass("stormpy.developer.EndComponentEliminator", _core, parameters=("ValueType",))
 AddUncertainty = _TemplateClass("stormpy.developer.AddUncertainty", _core, parameters=("ValueType",), deduce=_deduce_from_model)
+
+# Define templated functions (value type cannot be deduced from the arguments)
+build_sparse_model = _TemplateFunction("stormpy.developer.build_sparse_model", _core, parameters=("ValueType",), deduce=_deduce_default(float))
+build_symbolic_model = _TemplateFunction("stormpy.developer.build_symbolic_model", _core, parameters=("ValueType",), deduce=_deduce_default(float))
+make_explicit_model_builder = _TemplateFunction(
+    "stormpy.developer.make_explicit_model_builder", _core, parameters=("ValueType",), deduce=_deduce_default(float)
+)
+build_explicit_drn_model = _TemplateFunction("stormpy.developer.build_explicit_drn_model", _core, parameters=("ValueType",), deduce=_deduce_default(float))

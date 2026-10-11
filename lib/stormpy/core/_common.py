@@ -5,26 +5,9 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from stormpy import storage
-from stormpy._config import Interval, Rational, RationalFunction, RationalInterval
+from stormpy._config import Rational, RationalFunction
 from stormpy.developer import Property
 from stormpy.exceptions import StormError
-
-# Supported value types and the corresponding infix used in the names of the developer bindings
-_VALUE_TYPE_PREFIXES = {
-    float: "",
-    Rational: "exact_",
-    RationalFunction: "parametric_",
-    Interval: "interval_",
-    RationalInterval: "exact_interval_",
-}
-
-
-def _value_type_prefix(value_type: type) -> str:
-    """Get the infix for the given value type used in the names of the developer bindings."""
-    try:
-        return _VALUE_TYPE_PREFIXES[value_type]
-    except KeyError:
-        raise StormError(f"Unsupported value type {value_type}. Supported are: float, Rational, RationalFunction, Interval and RationalInterval.") from None
 
 
 def _value_type_of_model(model) -> type:

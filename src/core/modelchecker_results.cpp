@@ -18,22 +18,6 @@ using CheckResult = storm::modelchecker::CheckResult;
 using QualitativeCheckResult = storm::modelchecker::QualitativeCheckResult;
 constexpr auto Sylvan = storm::dd::DdType::Sylvan;
 
-namespace {
-
-template<typename ValueType>
-void define_check_result_conversions(py::classh<CheckResult>& checkResult) {
-    // Value type cannot be deduced from the arguments -> encode it in the name
-    std::string const prefix = valueTypePrefix<ValueType>();
-    checkResult.def(("as_explicit_" + prefix + "qualitative_check_result").c_str(),
-                    py::overload_cast<>(&CheckResult::template asExplicitQualitativeCheckResult<ValueType>, py::const_),
-                    "Convert into explicit qualitative result", py::return_value_policy::reference_internal);
-    checkResult.def(("as_explicit_" + prefix + "quantitative_check_result").c_str(),
-                    py::overload_cast<>(&CheckResult::template asExplicitQuantitativeCheckResult<ValueType>, py::const_),
-                    "Convert into explicit quantitative result", py::return_value_policy::reference_internal);
-}
-
-}  // namespace
-
 void define_modelchecker_results(py::module& m) {
     py::classh<CheckResult> checkResult(m, "CheckResult", "Base class for all model checking results");
     checkResult.def("is_explicit", &CheckResult::isExplicit, "Whether the result is explicit")
@@ -56,9 +40,6 @@ void define_modelchecker_results(py::module& m) {
             result.writeToStream(stream);
             return stream.str();
         });
-    define_check_result_conversions<double>(checkResult);
-    define_check_result_conversions<storm::RationalNumber>(checkResult);
-    define_check_result_conversions<storm::RationalFunction>(checkResult);
 
     py::classh<QualitativeCheckResult>(m, "QualitativeCheckResult", "Base class for qualitative model checking results", checkResult)
         .def("exists_true", &QualitativeCheckResult::existsTrue, "Whether at least one state satisfies the property")

@@ -53,7 +53,7 @@ class TestBuilding:
 
     def test_build_model_unsupported_value_type(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
-        with pytest.raises(StormError):
+        with pytest.raises(TypeError, match="Supported are: float, "):
             stormpy.build_model(program, value_type=int)
 
     def test_build_model_all_labels(self):

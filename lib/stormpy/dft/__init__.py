@@ -43,12 +43,11 @@ RelevantEvents = developer.RelevantEvents
 DftSymmetries = developer.DftSymmetries
 
 # Import functions from developer
-load_dft_galileo_file = developer.load_dft_galileo_file
-load_parametric_dft_galileo_file = developer.load_parametric_dft_galileo_file
-load_dft_json_file = developer.load_dft_json_file
-load_dft_json_string = developer.load_dft_json_string
-load_parametric_dft_json_file = developer.load_parametric_dft_json_file
-load_parametric_dft_json_string = developer.load_parametric_dft_json_string
+# Templated functions
+load_dft_galileo_file = developer.load_dft_galileo_file.publish_as("stormpy.dft.load_dft_galileo_file")
+load_dft_json_file = developer.load_dft_json_file.publish_as("stormpy.dft.load_dft_json_file")
+load_dft_json_string = developer.load_dft_json_string.publish_as("stormpy.dft.load_dft_json_string")
+# Additional functions
 export_dft_json_file = developer.export_dft_json_file
 export_dft_json_string = developer.export_dft_json_string
 
@@ -57,9 +56,8 @@ export_dft_json_string = developer.export_dft_json_string
 from ._module import DftIndependentModule, modules, modules_json
 from ._simulator import DFTSimulator, SimulationStepResult, SimulationTraceResult
 
+
 # Add additional functions
-
-
 # Define helper functions
 def check_dft_validity(dft: DFT) -> bool:
     """
@@ -176,11 +174,8 @@ __all__ = [
     "ApproximationHeuristic",
     # Input/output
     "load_dft_galileo_file",
-    "load_parametric_dft_galileo_file",
     "load_dft_json_file",
     "load_dft_json_string",
-    "load_parametric_dft_json_file",
-    "load_parametric_dft_json_string",
     "export_dft_json_file",
     "export_dft_json_string",
     # Analysis

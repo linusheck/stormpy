@@ -6,6 +6,7 @@ Generic checks of all public APIs (names exist, documentation) are in tests/test
 import pytest
 import stormpy
 import stormpy.developer
+from helpers.helper import get_example_path
 
 
 class TestPublicApi:
@@ -54,14 +55,9 @@ class TestDeveloperBindings:
             "parse_properties_for_jani_model",
             "parse_properties_for_symbolic_model_description",
             "build_explicit_drn_model",
-            "build_explicit_parametric_drn_model",
             "build_explicit_model",
             # storm/api
             "build_sparse_model",
-            "build_sparse_exact_model",
-            "build_sparse_parametric_model",
-            "build_sparse_interval_model",
-            "build_sparse_exact_interval_model",
             "build_symbolic_model",
             "make_explicit_model_builder",
             "perform_bisimulation_minimization",
@@ -102,3 +98,37 @@ class TestDeveloperBindings:
         assert stormpy.Property is stormpy.developer.Property
         assert stormpy.Environment is stormpy.developer.Environment
         assert stormpy.BuilderOptions is stormpy.developer.BuilderOptions
+
+    @pytest.mark.parametrize(
+        "name",
+        [
+            # Value types are selected via template function families
+            "build_sparse_exact_model",
+            "build_sparse_parametric_model",
+            "build_sparse_interval_model",
+            "build_sparse_exact_interval_model",
+            "build_symbolic_exact_model",
+            "build_symbolic_parametric_model",
+            "make_explicit_exact_model_builder",
+            "build_explicit_exact_drn_model",
+            "build_explicit_parametric_drn_model",
+            "as_explicit_quantitative_check_result",
+        ],
+    )
+    def test_removed_names(self, name):
+        assert not hasattr(stormpy.developer, name)
+        assert not hasattr(stormpy.developer.CheckResult, name)
+
+    def test_template_functions(self):
+        program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
+        formulas = [prop.get_raw_formula() for prop in stormpy.parse_properties('P=? [F "one"]', program)]
+        assert "template function" in repr(stormpy.developer.build_sparse_model)
+        model = stormpy.developer.build_sparse_model(program, formulas)
+        assert type(model) is stormpy.SparseDtmc[float]
+        exact_model = stormpy.developer.build_sparse_model[stormpy.Rational](program, formulas)
+        assert type(exact_model) is stormpy.SparseDtmc[stormpy.Rational]
+        assert (stormpy.Interval,) in stormpy.developer.build_sparse_model.instantiations
+        with pytest.raises(TypeError):
+            stormpy.developer.build_symbolic_model[stormpy.Interval](program, formulas)
+        drn_model = stormpy.developer.build_explicit_drn_model[stormpy.Rational](get_example_path("ctmc", "dft.drn"))
+        assert type(drn_model) is stormpy.SparseCtmc[stormpy.Rational]

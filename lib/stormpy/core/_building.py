@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from stormpy import developer, storage
-from stormpy.core._common import _convert_sparse_model, _convert_symbolic_model, _formulas, _value_type_prefix
+from stormpy.core._common import _convert_sparse_model, _convert_symbolic_model, _formulas, _instantiation
 from stormpy._config import Interval, Rational, RationalFunction, RationalInterval
 from stormpy.developer import (
     BuilderOptions,
@@ -45,7 +45,7 @@ def build_model(
     :param options: (optional) Builder options for full control of the building process. Cannot be combined with properties.
     :return: The model in sparse representation, e.g. a sparse DTMC.
     """
-    build = getattr(developer, f"build_sparse_{_value_type_prefix(value_type)}model")
+    build = _instantiation(developer.build_sparse_model, value_type)
     if value_type is not RationalFunction:
         _check_constants(model)
     if options is not None:
@@ -76,7 +76,7 @@ def build_symbolic_model(
     """
     if value_type in (Interval, RationalInterval):
         raise StormError("Symbolic models do not support interval value types.")
-    build = getattr(developer, f"build_symbolic_{_value_type_prefix(value_type)}model")
+    build = _instantiation(developer.build_symbolic_model, value_type)
     if value_type is not RationalFunction:
         _check_constants(model)
     formulas = _formulas(properties)
@@ -94,7 +94,7 @@ def build_model_from_drn(path: str, options: DirectEncodingParserOptions | None 
         Interval or RationalInterval (exact interval).
     :return: The model in sparse representation.
     """
-    build = getattr(developer, f"build_explicit_{_value_type_prefix(value_type)}drn_model")
+    build = _instantiation(developer.build_explicit_drn_model, value_type)
     return _convert_sparse_model(build(path, options if options is not None else DirectEncodingParserOptions()))
 
 

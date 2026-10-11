@@ -4,6 +4,7 @@
 #include <storm-parsers/parser/DirectEncodingParser.h>
 #include <storm-parsers/parser/ExplicitModelParserOptions.h>
 
+#include "src/binding_type_index.h"
 #include "src/numbers.h"
 
 namespace stormpy {
@@ -45,9 +46,10 @@ void define_parsers_api_properties(py::module& m) {
 
 template<typename ValueType>
 void define_parsers_api_explicit_models_typed(py::module& m) {
-    std::string const prefix = valueTypePrefix<ValueType>();
-    m.def(("build_explicit_" + prefix + "drn_model").c_str(), &storm::api::buildExplicitDRNModel<ValueType>, "Build sparse model from DRN file",
-          py::arg("drn_file"), py::arg("options") = storm::parser::DirectEncodingParserOptions());
+    // Value type cannot be deduced from the arguments -> bind as template function family
+    stormpy::bindings::bindTemplateFunction(m, "build_explicit_drn_model", stormpy::bindings::typeIndex<ValueType>(),
+                                            &storm::api::buildExplicitDRNModel<ValueType>, "Build sparse model from DRN file", py::arg("drn_file"),
+                                            py::arg("options") = storm::parser::DirectEncodingParserOptions());
 
     if constexpr (std::is_same_v<ValueType, double>) {
         m.def("build_explicit_model", &storm::api::buildExplicitModel<double>, "Build sparse model from explicit input files", py::arg("transitions_file"),

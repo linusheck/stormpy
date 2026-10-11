@@ -117,6 +117,30 @@ def _deduce_from_first_argument(source: "_TemplateClass | None" = None, *, keywo
     return deduction
 
 
+def _format_parameter(parameter: object) -> str:
+    """Format a template parameter for messages.
+
+    Types exported by :mod:`stormpy` are shown with their public name (e.g. ``RationalInterval``),
+    builtin types with their name and other types with their qualified name. Values are shown via ``repr``.
+    """
+    if not isinstance(parameter, type):
+        return repr(parameter)
+    if parameter.__module__ == "builtins":
+        return parameter.__name__
+    import stormpy
+
+    for name in getattr(stormpy, "__all__", ()):
+        if getattr(stormpy, name, None) is parameter:
+            return name
+    return f"{parameter.__module__}.{parameter.__qualname__}"
+
+
+def _format_parameters(parameters: tuple[object, ...]) -> str:
+    """Format a template-parameter tuple for messages, e.g. ``float`` or ``(ModelType.DTMC, float)``."""
+    formatted = [_format_parameter(parameter) for parameter in parameters]
+    return formatted[0] if len(formatted) == 1 else f"({', '.join(formatted)})"
+
+
 class _TemplateClass:
     """Native C++ template family exposed as a subscriptable Python object.
 
@@ -208,8 +232,7 @@ class _TemplateClass:
             already registered.
         """
         key = self._normalize(parameters)
-        if not isinstance(implementation, type):
-            raise TypeError("A template implementation must be a class")
+        self._check_implementation(implementation)
         if key in self._instantiations:
             raise ValueError(f"{self.__name__} instantiation for {key!r} is already registered")
         if implementation in self._parameters_by_type:
@@ -218,6 +241,14 @@ class _TemplateClass:
         self._instantiations[key] = implementation
         self._parameters_by_type[implementation] = key
 
+    def _check_implementation(self, implementation: object) -> None:
+        """Check that ``implementation`` can be registered in this family.
+
+        :raises TypeError: If ``implementation`` is not a class.
+        """
+        if not isinstance(implementation, type):
+            raise TypeError("A template implementation must be a class")
+
     def __getitem__(self, parameters: object) -> type:
         """Return the concrete class registered for ``parameters``.
 
@@ -225,13 +256,15 @@ class _TemplateClass:
         parameters use normal subscription tuple syntax, ``family[T, U]``.
 
         :raises TypeError: If the parameter count is wrong or no matching
-            specialization is registered.
+            specialization is registered. The message lists the registered
+            specializations.
         """
         key = self._normalize(parameters)
         try:
             return self._instantiations[key]
         except KeyError:
-            raise TypeError(f"{self.__name__} has no instantiation for {key!r}") from None
+            supported = ", ".join(_format_parameters(registered) for registered in self._instantiations)
+            raise TypeError(f"{self.__name__} has no instantiation for {key!r}. Supported are: {supported}") from None
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Construct the specialization selected by the deduction guide.
@@ -301,7 +334,7 @@ class _TemplateClass:
         if not separator or not canonical_module or not name.isidentifier():
             raise ValueError("Canonical template name must be fully qualified")
 
-        published = _TemplateClass.__new__(_TemplateClass)
+        published = type(self).__new__(type(self))
         published.__name__ = name
         published.__qualname__ = name
         published.__module__ = canonical_module
@@ -316,3 +349,25 @@ class _TemplateClass:
     def __repr__(self) -> str:
         """Return a concise template-family representation."""
         return f"<template class {self._canonical_name}>"
+
+
+class _TemplateFunction(_TemplateClass):
+    """Native C++ template function family exposed as a subscriptable Python object.
+
+    Used for functions whose template parameters cannot be deduced from their arguments,
+    e.g. because the value type only occurs in the return type.
+    ``family[parameters](*args, **kwargs)`` calls the registered instantiation.
+    ``family(*args, **kwargs)`` calls the instantiation selected by a configured deduction guide.
+    """
+
+    def _check_implementation(self, implementation: object) -> None:
+        """Check that ``implementation`` can be registered in this family.
+
+        :raises TypeError: If ``implementation`` is not callable.
+        """
+        if not callable(implementation):
+            raise TypeError("A template function implementation must be callable")
+
+    def __repr__(self) -> str:
+        """Return a concise template-family representation."""
+        return f"<template function {self._canonical_name}>"

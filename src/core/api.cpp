@@ -16,6 +16,7 @@
 #include <storm/models/symbolic/StandardRewardModel.h>
 #include <storm/storage/jani/Property.h>
 
+#include "src/binding_type_index.h"
 #include "src/numbers.h"
 
 namespace stormpy {
@@ -32,25 +33,30 @@ void define_api_properties(py::module& m) {
 
 template<typename ValueType>
 void define_api_builder_typed(py::module& m) {
-    std::string const prefix = valueTypePrefix<ValueType>();
     using ExplorationOptions = typename storm::builder::ExplicitModelBuilder<ValueType>::Options;
+    auto const index = stormpy::bindings::typeIndex<ValueType>();
 
-    m.def(("build_sparse_" + prefix + "model").c_str(),
-          py::overload_cast<storm::storage::SymbolicModelDescription const&, storm::builder::BuilderOptions const&, ExplorationOptions const&>(
-              &storm::api::buildSparseModel<ValueType>),
-          "Build model in sparse representation", py::arg("model"), py::arg("options"), py::arg("exploration_options") = ExplorationOptions(),
-          py::call_guard<py::gil_scoped_release>());
-    m.def(("build_sparse_" + prefix + "model").c_str(),
-          py::overload_cast<storm::storage::SymbolicModelDescription const&, Formulas const&>(&storm::api::buildSparseModel<ValueType>),
-          "Build model in sparse representation preserving the given formulas", py::arg("model"), py::arg("formulas"),
-          py::call_guard<py::gil_scoped_release>());
-    m.def(("make_explicit_" + prefix + "model_builder").c_str(), &storm::api::makeExplicitModelBuilder<ValueType>, "Construct an explicit model builder",
-          py::arg("model"), py::arg("options"), py::arg("action_mask") = nullptr, py::arg("exploration_options") = ExplorationOptions());
+    // Value type cannot be deduced from the arguments -> bind as template function families
+    stormpy::bindings::bindTemplateFunction(
+        m, "build_sparse_model", index,
+        py::overload_cast<storm::storage::SymbolicModelDescription const&, storm::builder::BuilderOptions const&, ExplorationOptions const&>(
+            &storm::api::buildSparseModel<ValueType>),
+        "Build model in sparse representation", py::arg("model"), py::arg("options"), py::arg("exploration_options") = ExplorationOptions(),
+        py::call_guard<py::gil_scoped_release>());
+    // Additional overload of the registered instantiation
+    stormpy::bindings::bindInternalFunction(
+        m, stormpy::bindings::templateClassName("build_sparse_model", index),
+        py::overload_cast<storm::storage::SymbolicModelDescription const&, Formulas const&>(&storm::api::buildSparseModel<ValueType>),
+        "Build model in sparse representation preserving the given formulas", py::arg("model"), py::arg("formulas"), py::call_guard<py::gil_scoped_release>());
+    stormpy::bindings::bindTemplateFunction(m, "make_explicit_model_builder", index, &storm::api::makeExplicitModelBuilder<ValueType>,
+                                            "Construct an explicit model builder", py::arg("model"), py::arg("options"), py::arg("action_mask") = nullptr,
+                                            py::arg("exploration_options") = ExplorationOptions());
 
     if constexpr (!storm::IsIntervalType<ValueType>) {
-        m.def(("build_symbolic_" + prefix + "model").c_str(), &storm::api::buildSymbolicModel<storm::dd::DdType::Sylvan, ValueType>,
-              "Build model in symbolic representation", py::arg("env"), py::arg("model"), py::arg("formulas"), py::arg("build_full_model") = false,
-              py::arg("apply_maximum_progress") = true, py::arg("fix_deadlocks") = true, py::call_guard<py::gil_scoped_release>());
+        stormpy::bindings::bindTemplateFunction(m, "build_symbolic_model", index, &storm::api::buildSymbolicModel<storm::dd::DdType::Sylvan, ValueType>,
+                                                "Build model in symbolic representation", py::arg("env"), py::arg("model"), py::arg("formulas"),
+                                                py::arg("build_full_model") = false, py::arg("apply_maximum_progress") = true, py::arg("fix_deadlocks") = true,
+                                                py::call_guard<py::gil_scoped_release>());
     }
 }
 

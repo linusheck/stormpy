@@ -4,7 +4,8 @@
 
 namespace stormpy::dft {
 
-void define_api_io_input(py::module& m);
+template<typename ValueType>
+void define_api_io_input_typed(py::module& m);
 void define_api_io_output(py::module& m);
 
 void define_api_analysis(py::module& m);
