@@ -259,7 +259,10 @@ void define_environment(py::module& m) {
         .def_property("force_exact", &storm::SolverEnvironment::isForceExact, &storm::SolverEnvironment::setForceExact, "Whether exact solving is enforced");
 
     py::classh<storm::NativeSolverEnvironment>(m, "NativeSolverEnvironment", "Environment for native solvers")
-        .def_property("method", &storm::NativeSolverEnvironment::getMethod, &storm::NativeSolverEnvironment::setMethod, "Solution method")
+        .def_property(
+            // Thin wrapper as the setter has a default argument
+            "method", &storm::NativeSolverEnvironment::getMethod,
+            [](storm::NativeSolverEnvironment& env, storm::solver::NativeLinearEquationSolverMethod value) { env.setMethod(value); }, "Solution method")
         .def_property("maximal_number_of_iterations", &storm::NativeSolverEnvironment::getMaximalNumberOfIterations,
                       &storm::NativeSolverEnvironment::setMaximalNumberOfIterations, "Maximal number of iterations")
         .def_property("precision", &storm::NativeSolverEnvironment::getPrecision, &storm::NativeSolverEnvironment::setPrecision, "Precision")
