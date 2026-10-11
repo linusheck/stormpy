@@ -103,7 +103,7 @@ from .core._transformation import (
     transform_to_sparse_model,
 )
 from .core._io import export_to_drn, export_to_umb
-from .core._settings import reset_timeout, set_log_level, set_settings, set_timeout
+from .core._settings import reset_timeout, set_log_level, set_timeout
 
 __all__ = [
     # Value types
@@ -204,5 +204,4 @@ __all__ = [
     "set_log_level",
     "set_timeout",
     "reset_timeout",
-    "set_settings",
 ]

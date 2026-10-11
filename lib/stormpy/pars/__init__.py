@@ -13,8 +13,6 @@ from stormpy.core._common import _formula
 from stormpy.exceptions import StormError
 from stormpy._template import _TemplateClass, _TemplateParameter
 
-_pars._set_up()
-
 
 def _deduce_model_and_double(_family: _TemplateClass, args: tuple[object, ...], kwargs: _Mapping[str, object]) -> object:
     if args:

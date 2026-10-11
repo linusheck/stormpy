@@ -14,7 +14,8 @@ namespace stormpy {
 
 void define_utility(py::module& m) {
     m.def(
-        // Thin wrapper for initializing Storm and its settings
+        // Thin wrapper for initializing Storm (logging) and its settings.
+        // TODO: remove when settings are completely eliminated
         "_set_up",
         [](std::string const& commandLineString) {
             storm::utility::setUp();
@@ -35,12 +36,6 @@ void define_utility(py::module& m) {
         .finalize();
     m.def("set_log_level", &storm::utility::setLogLevel, "Set log level of Storm", py::arg("level"));
     m.def("get_log_level", &storm::utility::getLogLevel, "Get log level of Storm");
-
-    m.def(
-        // Thin wrapper as the SettingsManager itself is not bound
-        "set_from_exploded_string",
-        [](std::vector<std::string> const& commandLineArguments) { storm::settings::mutableManager().setFromExplodedString(commandLineArguments); },
-        "Set Storm settings from command line arguments", py::arg("command_line_arguments"));
 
     m.def("set_timeout_alarm", &storm::utility::resources::setTimeoutAlarm, "Set timeout in seconds", py::arg("timeout"));
     m.def("reset_timeout_alarm", &storm::utility::resources::resetTimeoutAlarm, "Reset timeout");

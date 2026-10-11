@@ -12,6 +12,7 @@
 #include "src/core/modelchecker_multiobjective.h"
 #include "src/core/modelchecker_results.h"
 #include "src/core/parser.h"
+#include "src/core/settings.h"
 #include "src/core/simulator.h"
 #include "src/core/solver.h"
 #include "src/core/storage.h"
@@ -57,6 +58,7 @@ PYBIND11_MODULE(_core, m) {
     define_modelchecker_results_typed<storm::RationalNumber>(m);
     define_modelchecker_results_typed<storm::RationalFunction>(m);
     define_parser(m);
+    define_settings(m);
     define_simulator_sparse_typed<double>(m);
     define_simulator_sparse_typed<storm::RationalNumber>(m);
     define_simulator_prism_typed<double>(m);
