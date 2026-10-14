@@ -4,6 +4,7 @@ import os as _os
 from collections.abc import Iterable as _Iterable
 
 import stormpy as _stormpy
+from stormpy.core._common import _path
 from stormpy.developer import storage as _bindings
 
 PrismProgram = _bindings.PrismProgram
@@ -94,8 +95,6 @@ def import_umb(path: str | _os.PathLike[str], *, options: UmbImportOptions | Non
     :param options: Optional UmbImportOptions controlling imported values and metadata.
     :return: The intermediate UmbModel; use build_model_from_umb to build a sparse model.
     """
-    from stormpy.core._common import _path
-
     return _bindings.import_umb(_path(path), options if options is not None else UmbImportOptions())
 
 
@@ -106,8 +105,6 @@ def umb_to_archive(umb_model: UmbModel, path: str | _os.PathLike[str], options: 
     :param path: Archive filename as a string or path-like object.
     :param options: Optional UmbExportOptions controlling values and compression.
     """
-    from stormpy.core._common import _path
-
     _bindings.to_archive(umb_model, _path(path), options if options is not None else UmbExportOptions())
 
 
@@ -127,8 +124,6 @@ def export_jani_to_file(
     :param check_valid: Whether to validate the model before exporting it.
     :param compact: Whether to omit JSON indentation.
     """
-    from stormpy.core._common import _path
-
     _bindings.JsonExporter.to_file(model, list(properties) if properties is not None else [], _path(filename), check_valid, compact)
 
 
