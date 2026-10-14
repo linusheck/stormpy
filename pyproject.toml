@@ -86,6 +86,7 @@ STORMPY_ALLOW_STORM_FETCH="ON"
 STORM_GIT_REPO="https://github.com/stormchecker/storm.git"
 # Storm version should be synced with STORM_MIN_VERSION in CMakeLists.txt
 STORM_GIT_TAG="1.14.0"
+STORM_CARL_GIT_TAG="master"
 STORMPY_USE_STORM_DFT="ON"
 STORMPY_USE_STORM_GSPN="ON"
 STORMPY_USE_STORM_PARS="ON"
