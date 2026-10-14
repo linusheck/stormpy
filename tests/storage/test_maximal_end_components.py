@@ -35,7 +35,7 @@ class TestMaximalEndComponents:
                         assert action.id == 0
                         assert len(action.transitions) == 1
                         for transition in action.transitions:
-                            assert transition.get_value() == 1
+                            assert transition.value == 1
                             assert transition.column == 14
 
             else:
@@ -49,7 +49,7 @@ class TestMaximalEndComponents:
                         action = state.actions[choice_id - offset]
                         assert action.id in [0, 1, 2, 3]
                         for transition in action.transitions:
-                            assert transition.get_value() == 1
+                            assert transition.value == 1
                             assert 1 <= transition.column <= 13
 
     def test_create_exact_interval_decomposition(self):

@@ -204,8 +204,8 @@ class TestAddUncertainty:
         assert interval_model.nr_transitions == model.nr_transitions
         for row in range(interval_model.nr_states):
             for transition in interval_model.transition_matrix.row_iter(row, row):
-                assert transition.get_value().lower() <= transition.get_value().upper()
-                assert transition.get_value().lower() >= 0.0
+                assert transition.value.lower() <= transition.value.upper()
+                assert transition.value.lower() >= 0.0
 
     def test_add_uncertainty_exact_dtmc(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
@@ -218,7 +218,7 @@ class TestAddUncertainty:
         assert interval_model.nr_transitions == model.nr_transitions
         for row in range(interval_model.nr_states):
             for transition in interval_model.transition_matrix.row_iter(row, row):
-                assert transition.get_value().lower() <= transition.get_value().upper()
+                assert transition.value.lower() <= transition.value.upper()
 
     def test_add_uncertainty_api(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))

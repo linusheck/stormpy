@@ -32,7 +32,7 @@ class TestMatrixBuilder:
         assert matrix_5x5.nr_entries == 7
 
         for e in matrix_5x5:
-            assert (e.get_value() == 0.1 and e.column == 1) or e.get_value() == 0 or (e.get_value() > 20 and e.column > 1)
+            assert (e.value == 0.1 and e.column == 1) or e.value == 0 or (e.value > 20 and e.column > 1)
 
     def test_exact_matrix_builder(self):
         builder = stormpy.datastructures.SparseMatrixBuilder[stormpy.Rational](force_dimensions=True)
@@ -62,9 +62,9 @@ class TestMatrixBuilder:
 
         for e in matrix_5x5:
             assert (
-                (e.get_value() == stormpy.Rational(1) and e.column < 2)
-                or (e.get_value() == stormpy.Rational(2) and e.column == 2)
-                or (e.column > 2 and e.get_value() == stormpy.Rational("1/6"))
+                (e.value == stormpy.Rational(1) and e.column < 2)
+                or (e.value == stormpy.Rational(2) and e.column == 2)
+                or (e.column > 2 and e.value == stormpy.Rational("1/6"))
             )
 
     def test_parametric_matrix_builder(self):
@@ -103,7 +103,7 @@ class TestMatrixBuilder:
         assert matrix_5x5.nr_entries == 7
 
         for e in matrix_5x5:
-            assert (e.get_value() == first_val and e.column < 2) or (e.get_value() == sec_val and e.column > 1)
+            assert (e.value == first_val and e.column < 2) or (e.value == sec_val and e.column > 1)
 
     def test_matrix_replace_columns(self):
         builder = stormpy.datastructures.SparseMatrixBuilder(3, 4, force_dimensions=False)
@@ -129,12 +129,7 @@ class TestMatrixBuilder:
 
         # Check if columns where replaced
         for e in matrix:
-            assert (
-                (e.get_value() == 0 and e.column == 0)
-                or (e.get_value() == 3 and e.column == 1)
-                or (e.get_value() == 2 and e.column == 2)
-                or (e.get_value() == 1 and e.column == 3)
-            )
+            assert (e.value == 0 and e.column == 0) or (e.value == 3 and e.column == 1) or (e.value == 2 and e.column == 2) or (e.value == 1 and e.column == 3)
 
     def test_parametric_matrix_replace_columns(self):
         builder = stormpy.datastructures.SparseMatrixBuilder[stormpy.RationalFunction](3, 4, force_dimensions=False)
@@ -167,9 +162,7 @@ class TestMatrixBuilder:
 
         # Check if columns where replaced
         for e in matrix:
-            assert (
-                (e.get_value() == first_val and e.column == 1) or (e.get_value() == third_val and e.column == 2) or (e.get_value() == sec_val and e.column == 3)
-            )
+            assert (e.value == first_val and e.column == 1) or (e.value == third_val and e.column == 2) or (e.value == sec_val and e.column == 3)
 
     def test_matrix_builder_row_grouping(self):
         num_rows = 5
@@ -222,7 +215,7 @@ class TestMatrixBuilder:
         for r in range(array.shape[1]):
             row = matrix.get_row(r)
             for e in row:
-                assert e.get_value() == array[r, e.column]
+                assert e.value == array[r, e.column]
 
     @numpy_avail
     def test_matrix_from_numpy_zeros(self):
@@ -241,7 +234,7 @@ class TestMatrixBuilder:
         for r in range(array.shape[1]):
             row = matrix.get_row(r)
             for e in row:
-                assert e.get_value() == array[r, e.column]
+                assert e.value == array[r, e.column]
 
     @numpy_avail
     def test_parametric_matrix_from_numpy(self):
@@ -268,7 +261,7 @@ class TestMatrixBuilder:
         for r in range(array.shape[1]):
             row = matrix.get_row(r)
             for e in row:
-                assert e.get_value() == array[r, e.column]
+                assert e.value == array[r, e.column]
 
     @numpy_avail
     def test_matrix_from_numpy_row_grouping(self):
@@ -287,7 +280,7 @@ class TestMatrixBuilder:
         for r in range(array.shape[1]):
             row = matrix.get_row(r)
             for e in row:
-                assert e.get_value() == array[r, e.column]
+                assert e.value == array[r, e.column]
 
         # Check row groups
         assert matrix.get_row_group_start(0) == 1
@@ -321,7 +314,7 @@ class TestMatrixBuilder:
         for r in range(array.shape[1]):
             row = matrix.get_row(r)
             for e in row:
-                assert e.get_value() == array[r, e.column]
+                assert e.value == array[r, e.column]
 
         # Check row groups
         assert matrix.get_row_group_start(0) == 1

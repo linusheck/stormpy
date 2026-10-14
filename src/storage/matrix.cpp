@@ -30,7 +30,8 @@ void define_sparse_matrix(py::module& m) {
     // MatrixEntry
     stormpy::bindings::bindTemplateClass<MatrixEntry<ValueType>>(m, "SparseMatrixEntry", index, "Entry of sparse matrix")
         .def("__str__", &streamToString<MatrixEntry<ValueType>>)
-        // def_property threw "pointer being freed not allocated" after exiting
+        // Copy the value so Python never owns a reference into the matrix's storage.
+        .def_property("value", &MatrixEntry<ValueType>::getValue, &MatrixEntry<ValueType>::setValue, py::return_value_policy::copy, "Value of the matrix entry")
         .def("get_value", &MatrixEntry<ValueType>::getValue, "Value")
         .def("set_value", &MatrixEntry<ValueType>::setValue, py::arg("value"), "Set value")
         .def_property_readonly("column", &MatrixEntry<ValueType>::getColumn, "Column");
