@@ -48,8 +48,10 @@ void define_valuation(py::module& m) {
              py::arg("manager") = nullptr, py::arg("num_entities") = uint64_t(0),
              "Construct valuations from a class description, optional expression manager and entity count")
         .def("get_boolean_value", &Valuations::getBooleanValue, py::arg("entity"), py::arg("variable"))
+        .def("get_boolean_values", &Valuations::getBooleanValues, py::arg("variable"), "Values of a Boolean variable as a BitVector")
         .def("get_int64_value", &Valuations::getInt64Value, py::arg("entity"), py::arg("variable"))
-        .def("get_rational_value", &Valuations::getRationalValue, py::arg("entity"), py::arg("variable"))
+        .def("get_int64_values", &Valuations::getInt64Values, py::arg("variable"),
+             "Get the integer variable value for all entities. The i-th entry is the value of entity i.")
         .def(
             "get_integer_bigint_value",
             [](Valuations const& v, uint64_t entity, storm::expressions::Variable const& var) {
@@ -62,11 +64,7 @@ void define_valuation(py::module& m) {
             "Get the value of an integer variable as an arbitrary-precision integer. Only needed for integer "
             "variables declared with arbitrary-precision bounds whose value does not fit in an int64; get_value "
             "already handles the common case.")
-        .def("get_boolean_values", &Valuations::getBooleanValues, py::arg("variable"), "Values of a Boolean variable as a BitVector")
-        .def("get_string_value", &Valuations::getStringValue, py::arg("entity"), py::arg("variable"))
-        .def("get_string_values", &Valuations::getStringValues, py::arg("variable"))
-        .def("get_int64_values", &Valuations::getInt64Values, py::arg("variable"),
-             "Get the integer variable value for all entities. The i-th entry is the value of entity i.")
+        .def("get_rational_value", &Valuations::getRationalValue, py::arg("entity"), py::arg("variable"))
         .def("get_rational_values", &Valuations::getRationalValues, py::arg("variable"),
              "Get the rational variable value for all entities. The i-th entry is the value of entity i.")
         .def(
@@ -90,6 +88,8 @@ void define_valuation(py::module& m) {
                 return v.getDoubleValues(var);
             },
             py::arg("variable"), "Get the value for all entities of a rational variable declared via add_double_variable.")
+        .def("get_string_value", &Valuations::getStringValue, py::arg("entity"), py::arg("variable"))
+        .def("get_string_values", &Valuations::getStringValues, py::arg("variable"))
         .def("to_string", &Valuations::toString, py::arg("entity"), py::arg("pretty") = true,
              py::arg("selected_variables") = std::optional<std::set<storm::expressions::Variable>>{})
         .def(
