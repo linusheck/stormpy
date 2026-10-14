@@ -123,7 +123,7 @@ def export_jani_to_file(filename, model, properties=None, *, check_valid=True, c
 __all__ += ["import_umb", "umb_to_archive", "export_jani_to_file"]
 
 
-def to_umb(model, *, options=None):
+def sparse_model_to_umb(model, *, options=None):
     """Convert a sparse model to the intermediate UMB representation.
 
     :param model: Sparse model with floating point, exact or interval values.
@@ -133,4 +133,4 @@ def to_umb(model, *, options=None):
     return _bindings.sparse_model_to_umb(model, options if options is not None else UmbExportOptions())
 
 
-__all__ += ["to_umb"]
+__all__ += ["sparse_model_to_umb"]

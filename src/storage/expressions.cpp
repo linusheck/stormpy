@@ -114,18 +114,23 @@ void define_expressions(py::module& m) {
         .def_property_readonly("arity", &storm::expressions::Expression::getArity, "The arity of the expression")
         .def("get_operand", &storm::expressions::Expression::getOperand, "Get the operand at the given index", py::arg("operand_index"))
 
-        .def("__add__", [](Expression const& lhs, Expression const& rhs) { return lhs + rhs; })
-        .def("__sub__", [](Expression const& lhs, Expression const& rhs) { return lhs - rhs; })
-        .def("__mul__", [](Expression const& lhs, Expression const& rhs) { return lhs * rhs; })
-        .def("__truediv__", [](Expression const& lhs, Expression const& rhs) { return lhs / rhs; })
-        .def("__and__", [](Expression const& lhs, Expression const& rhs) { return lhs && rhs; })
-        .def("__or__", [](Expression const& lhs, Expression const& rhs) { return lhs || rhs; })
-        .def("__ge__", [](Expression const& lhs, Expression const& rhs) { return lhs >= rhs; })
-        .def("__eq__", [](Expression const& lhs, Expression const& rhs) { return lhs == rhs; })
-        .def("__ne__", [](Expression const& lhs, Expression const& rhs) { return lhs != rhs; })
-        .def("__gt__", [](Expression const& lhs, Expression const& rhs) { return lhs > rhs; })
-        .def("__lt__", [](Expression const& lhs, Expression const& rhs) { return lhs < rhs; })
-        .def("__le__", [](Expression const& lhs, Expression const& rhs) { return lhs <= rhs; });
+        .def_static("Plus", [](Expression const& lhs, Expression const& rhs) { return lhs + rhs; })
+        .def_static("Minus", [](Expression const& lhs, Expression const& rhs) { return lhs - rhs; })
+        .def_static("Multiply", [](Expression const& lhs, Expression const& rhs) { return lhs * rhs; })
+        .def_static("Divide", [](Expression const& lhs, Expression const& rhs) { return lhs / rhs; })
+        .def_static("And", [](Expression const& lhs, Expression const& rhs) { return lhs && rhs; })
+        .def_static("Or", [](Expression const& lhs, Expression const& rhs) { return lhs || rhs; })
+        .def_static("Geq", [](Expression const& lhs, Expression const& rhs) { return lhs >= rhs; })
+        .def_static("Eq", [](Expression const& lhs, Expression const& rhs) { return lhs == rhs; })
+        .def_static("Neq", [](Expression const& lhs, Expression const& rhs) { return lhs != rhs; })
+        .def_static("Greater", [](Expression const& lhs, Expression const& rhs) { return lhs > rhs; })
+        .def_static("Less", [](Expression const& lhs, Expression const& rhs) { return lhs < rhs; })
+        .def_static("Leq", [](Expression const& lhs, Expression const& rhs) { return lhs <= rhs; })
+        .def_static("Modulo", [](Expression const& lhs, Expression const& rhs) { return storm::expressions::modulo(lhs, rhs); })
+        .def_static("Implies", [](Expression const& lhs, Expression const& rhs) { return storm::expressions::implies(lhs, rhs); })
+        .def_static("Iff", [](Expression const& lhs, Expression const& rhs) { return storm::expressions::iff(lhs, rhs); })
+        .def_static("Conjunction", [](std::vector<Expression> const& expr) { return storm::expressions::conjunction(expr); })
+        .def_static("Disjunction", [](std::vector<Expression> const& expr) { return storm::expressions::disjunction(expr); });
 
     m.def("modulo", &storm::expressions::modulo, py::arg("first"), py::arg("second"), "Modulo of two expressions");
     m.def("implies", &storm::expressions::implies, py::arg("first"), py::arg("second"), "Logical implication");

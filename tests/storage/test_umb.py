@@ -75,27 +75,27 @@ class TestUmbOptions:
 
 class TestUmbModel:
     def test_str(self, dtmc):
-        umb = stormpy.io.to_umb(dtmc)
+        umb = stormpy.io.sparse_model_to_umb(dtmc)
         assert isinstance(str(umb), str)
 
     def test_get_short_model_information(self, dtmc):
-        umb = stormpy.io.to_umb(dtmc)
+        umb = stormpy.io.sparse_model_to_umb(dtmc)
         assert isinstance(umb.get_short_model_information(), str)
 
     def test_get_model_information(self, dtmc):
-        umb = stormpy.io.to_umb(dtmc)
+        umb = stormpy.io.sparse_model_to_umb(dtmc)
         info = umb.get_model_information()
         assert isinstance(info, str)
         assert len(info) > 0
 
     def test_validate(self, dtmc):
-        umb = stormpy.io.to_umb(dtmc)
+        umb = stormpy.io.sparse_model_to_umb(dtmc)
         valid, errors = umb.validate()
         assert valid is True
         assert errors == ""
 
     def test_validate_or_throw(self, dtmc):
-        umb = stormpy.io.to_umb(dtmc)
+        umb = stormpy.io.sparse_model_to_umb(dtmc)
         umb.validate_or_throw()  # should not raise
 
     def test_export_and_build_from_path(self, dtmc, tmp_path):
@@ -139,19 +139,19 @@ class TestUmbRoundTrip:
         assert model.nr_choices == model2.nr_choices
 
     def test_dtmc_short_round_trip(self, dtmc):
-        umb = stormpy.io.to_umb(dtmc)
+        umb = stormpy.io.sparse_model_to_umb(dtmc)
         model2 = stormpy.developer.storage.sparse_model_from_umb(umb)
         self._assert_same_structure(dtmc, model2)
 
     def test_mdp_short_round_trip(self, mdp):
-        umb = stormpy.io.to_umb(mdp)
+        umb = stormpy.io.sparse_model_to_umb(mdp)
         model2 = stormpy.developer.storage.sparse_model_from_umb(umb)
         self._assert_same_structure(mdp, model2)
 
     def test_dtmc_gzip_round_trip(self, dtmc, tmp_umb):
         export_opts = stormpy.io.UmbExportOptions()
         export_opts.compression = stormpy.io.CompressionMode.GZIP
-        umb = stormpy.io.to_umb(dtmc, options=export_opts)
+        umb = stormpy.io.sparse_model_to_umb(dtmc, options=export_opts)
         stormpy.io.umb_to_archive(umb, tmp_umb, export_opts)
         assert os.path.getsize(tmp_umb) > 0
         umb2 = stormpy.io.import_umb(tmp_umb)
@@ -161,7 +161,7 @@ class TestUmbRoundTrip:
     def test_dtmc_xz_round_trip(self, dtmc, tmp_umb):
         export_opts = stormpy.io.UmbExportOptions()
         export_opts.compression = stormpy.io.CompressionMode.XZ
-        umb = stormpy.io.to_umb(dtmc, options=export_opts)
+        umb = stormpy.io.sparse_model_to_umb(dtmc, options=export_opts)
         stormpy.io.umb_to_archive(umb, tmp_umb, export_opts)
         assert os.path.getsize(tmp_umb) > 0
         umb2 = stormpy.io.import_umb(tmp_umb)
@@ -169,7 +169,7 @@ class TestUmbRoundTrip:
         self._assert_same_structure(dtmc, model2)
 
     def test_import_options_no_state_valuations(self, dtmc, tmp_umb):
-        umb = stormpy.io.to_umb(dtmc)
+        umb = stormpy.io.sparse_model_to_umb(dtmc)
         stormpy.io.umb_to_archive(umb, tmp_umb)
         import_opts = stormpy.io.UmbImportOptions()
         import_opts.build_state_valuations = False

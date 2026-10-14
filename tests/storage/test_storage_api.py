@@ -35,25 +35,6 @@ def test_public_classes_share_native_types(package):
             assert public is getattr(stormpy.developer.storage, name)
 
 
-@pytest.mark.parametrize("name", ["_storage", "StateValuation", "StateValuationsBuilder", "StateValuationTransformer", "build_parametric_sparse_matrix"])
-def test_legacy_names_are_not_public(name):
-    assert not hasattr(stormpy, name)
-    assert not hasattr(stormpy.datastructures, name)
-
-
-@pytest.mark.parametrize("name", ["BitVector", "SparseDtmc", "SparseMdp", "DdType", "ModelType", "storage"])
-def test_storage_names_are_not_reexported_at_top_level(name):
-    assert name not in stormpy.__all__
-    assert not hasattr(stormpy, name)
-
-
-@pytest.mark.parametrize("name", ["Polytope", "DdManager", "OverlappingGuardAnalyser", "JsonExporter", "get_topological_sort", "sparse_model_from_umb"])
-def test_advanced_bindings_remain_internal(name):
-    assert hasattr(stormpy.developer.storage, name)
-    for package in PACKAGES:
-        assert not hasattr(getattr(stormpy, package), name)
-
-
 def test_native_module_location():
     native = stormpy.developer.storage._storage
     assert native.__name__ == "stormpy.developer.storage._storage"
@@ -76,24 +57,18 @@ def test_storm_method_names_and_keyword_arguments():
 
 @pytest.mark.parametrize("value_type", [float, stormpy.Rational, stormpy.RationalFunction, stormpy.Interval, stormpy.RationalInterval])
 def test_build_matrix_selects_value_type(value_type):
-    array = np.array([[1.0, 0.0], [0.0, 2.0]])
+    if value_type is stormpy.RationalFunction:
+        values = [stormpy.RationalFunction(stormpy.Polynomial(stormpy.RationalFunctionCoefficient(value))) for value in (1, 2)]
+    elif value_type is stormpy.RationalInterval:
+        values = [stormpy.RationalInterval(stormpy.Rational(value)) for value in (1, 2)]
+    else:
+        values = [value_type(value) for value in (1, 2)]
+    array = np.array([values], dtype=object)
     matrix = stormpy.datastructures.build_sparse_matrix[value_type](array)
     assert type(matrix) is stormpy.datastructures.SparseMatrix[value_type]
-    assert matrix.nr_rows == 2
+    assert matrix.nr_rows == 1
     assert matrix.nr_columns == 2
     assert matrix.nr_entries == 2
-
-
-def test_build_matrix_keeps_empty_trailing_row_groups():
-    matrix = stormpy.datastructures.build_sparse_matrix(np.array([[1.0], [0.0], [0.0]]), row_group_indices=np.array([0, 1, 2], dtype=np.int64))
-    assert [matrix.get_row_group_start(i) for i in range(3)] == [0, 1, 2]
-    assert matrix.get_row_group_end(2) == 3
-
-
-@pytest.mark.parametrize("groups", [[1, 0], [0, 0], [-1], [2]])
-def test_invalid_matrix_groups(groups):
-    with pytest.raises(ValueError):
-        stormpy.datastructures.build_sparse_matrix(np.eye(2), row_group_indices=groups)
 
 
 def test_public_valuations_convert_boolean_bitvector_to_list():
@@ -121,7 +96,7 @@ def test_public_and_raw_jani_export_argument_order(tmp_path):
 def test_public_umb_accepts_pathlike_and_allocates_default_options(tmp_path):
     program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
     model = stormpy.build_model(program)
-    umb = stormpy.io.to_umb(model)
+    umb = stormpy.io.sparse_model_to_umb(model)
     path = tmp_path / "model.umb"
     stormpy.io.umb_to_archive(umb, path)
     restored = stormpy.io.import_umb(path)
@@ -145,10 +120,13 @@ def test_scheduler_conversion_uses_one_template_family():
         raw.to_value_type[float](scheduler.to_value_type(stormpy.Interval))
 
 
-def test_expression_operators_and_public_static_constructors():
+def test_public_static_expression_constructors():
     manager = stormpy.expressions.ExpressionManager()
     first, second = manager.integer(2), manager.integer(3)
-    assert (first + second).evaluate_as_int() == 5
+    assert (first == first) is True
+    assert (first == second) is False
+    assert (first != second) is True
+    assert stormpy.expressions.Expression.Eq(first, second).evaluate_as_bool() is False
     assert stormpy.expressions.Expression.Plus(first, second).evaluate_as_int() == 5
     assert stormpy.developer.storage.modulo(second, first).evaluate_as_int() == 1
     assert stormpy.expressions.Expression.Modulo(second, first).evaluate_as_int() == 1

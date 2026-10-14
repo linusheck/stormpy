@@ -13,5 +13,3 @@ ExpressionType = _bindings.ExpressionType
 OperatorType = _bindings.OperatorType
 
 __all__ = ["ExpressionManager", "Expression", "Variable", "ExpressionParser", "ExpressionType", "OperatorType"]
-
-from . import _expression
