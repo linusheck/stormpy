@@ -13,7 +13,7 @@ def test_symbolic_filter_template_and_shared_dd_type():
     model = stormpy.build_symbolic_model(program)
     result = stormpy.create_filter_initial_states(model)
 
-    assert stormpy.models.DdType is stormpy.models.DdType
+    assert stormpy.models.DdType is stormpy.developer.storage.DdType
     assert type(result) is stormpy.SymbolicQualitativeCheckResult[stormpy.models.DdType.Sylvan]
     assert stormpy.developer.storage.Bdd.parameters_of(result.get_truth_values_vector()) == (stormpy.models.DdType.Sylvan,)
 
