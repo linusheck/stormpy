@@ -29,7 +29,7 @@ def example_building_models_02():
 
     matrix = model.transition_matrix
     for e in matrix:
-        val = e.value()
+        val = e.get_value()
         if val.is_constant():
             continue
         val_pol = val.numerator.polynomial()

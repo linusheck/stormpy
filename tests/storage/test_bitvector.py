@@ -5,21 +5,21 @@ class TestBitvector:
     def test_init_default(self):
         bit = stormpy.datastructures.BitVector()
         assert bit.size() == 0
-        assert bit.number_of_set_bits() == 0
+        assert bit.get_number_of_set_bits() == 0
 
     def test_init_length(self):
         bit = stormpy.datastructures.BitVector(10)
         assert bit.size() == 10
-        assert bit.number_of_set_bits() == 0
+        assert bit.get_number_of_set_bits() == 0
         bit = stormpy.datastructures.BitVector(5, True)
         assert bit.size() == 5
         assert len(bit) == 5
-        assert bit.number_of_set_bits() == 5
+        assert bit.get_number_of_set_bits() == 5
 
     def test_init_vector(self):
         bit = stormpy.datastructures.BitVector(5, [2, 3])
         assert bit.size() == 5
-        assert bit.number_of_set_bits() == 2
+        assert bit.get_number_of_set_bits() == 2
         assert bit.get(0) is False
         assert bit.get(1) is False
         assert bit.get(2) is True
@@ -85,7 +85,7 @@ class TestBitvector:
     def test_increment_wraps_around(self):
         bit = stormpy.datastructures.BitVector(3, True)
         bit.increment()
-        assert bit.number_of_set_bits() == 0
+        assert bit.get_number_of_set_bits() == 0
 
     def test_is_subset_of(self):
         bit = stormpy.datastructures.BitVector(5, [0, 2])
@@ -115,24 +115,24 @@ class TestBitvector:
     def test_clear(self):
         bit = stormpy.datastructures.BitVector(5, True)
         assert bit.full() is True
-        assert bit.number_of_set_bits() == 5
+        assert bit.get_number_of_set_bits() == 5
         bit.clear()
         assert bit.empty() is True
-        assert bit.number_of_set_bits() == 0
+        assert bit.get_number_of_set_bits() == 0
 
     def test_fill(self):
         bit = stormpy.datastructures.BitVector(5)
         assert bit.empty() is True
-        assert bit.number_of_set_bits() == 0
+        assert bit.get_number_of_set_bits() == 0
         bit.fill()
         assert bit.full() is True
-        assert bit.number_of_set_bits() == 5
+        assert bit.get_number_of_set_bits() == 5
 
     def test_number_of_set_bits_before_index(self):
         bit = stormpy.datastructures.BitVector(5, [1, 3])
-        assert bit.number_of_set_bits_before_index(0) == 0
-        assert bit.number_of_set_bits_before_index(2) == 1
-        assert bit.number_of_set_bits_before_index(4) == 2
+        assert bit.get_number_of_set_bits_before_index(0) == 0
+        assert bit.get_number_of_set_bits_before_index(2) == 1
+        assert bit.get_number_of_set_bits_before_index(4) == 2
 
     def test_has_unique_set_bit(self):
         bit = stormpy.datastructures.BitVector(5, [2])

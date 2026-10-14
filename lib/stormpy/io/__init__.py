@@ -134,5 +134,3 @@ def to_umb(model, *, options=None):
 
 
 __all__ += ["to_umb"]
-
-from . import _convenience

@@ -340,11 +340,11 @@ class TestSymbolicSylvanModel:
 
         for transition in model.transition_matrix.row_iter(0, 0):
             if transition.column == 1:
-                assert transition.value().lower() == 0.2
-                assert transition.value().upper() == 0.7
+                assert transition.get_value().lower() == 0.2
+                assert transition.get_value().upper() == 0.7
             elif transition.column == 2:
-                assert transition.value().lower() == 0.3
-                assert transition.value().upper() == 0.8
+                assert transition.get_value().lower() == 0.3
+                assert transition.get_value().upper() == 0.8
 
         assert model.model_type == stormpy.models.ModelType.POMDP
         assert type(model) is stormpy.models.SparsePomdp[stormpy.Interval]
@@ -358,11 +358,11 @@ class TestSymbolicSylvanModel:
 
         for transition in model.transition_matrix.row_iter(0, 0):
             if transition.column == 1:
-                assert transition.value().lower() == stormpy.Rational("1/5")
-                assert transition.value().upper() == stormpy.Rational("7/10")
+                assert transition.get_value().lower() == stormpy.Rational("1/5")
+                assert transition.get_value().upper() == stormpy.Rational("7/10")
             elif transition.column == 2:
-                assert transition.value().lower() == stormpy.Rational("3/10")
-                assert transition.value().upper() == stormpy.Rational("4/5")
+                assert transition.get_value().lower() == stormpy.Rational("3/10")
+                assert transition.get_value().upper() == stormpy.Rational("4/5")
 
         assert model.model_type == stormpy.models.ModelType.POMDP
         assert type(model) is stormpy.models.SparsePomdp[stormpy.RationalInterval]

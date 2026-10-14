@@ -31,13 +31,13 @@ class TestBuilding:
         state_mapping = model_builder.export_explicit_state_lookup()
 
         # lookup 1
-        state = {s_var: prism_program.expression_manager.create_integer(3), d_var: prism_program.expression_manager.create_integer(0)}
+        state = {s_var: prism_program.expression_manager.integer(3), d_var: prism_program.expression_manager.integer(0)}
         id = state_mapping.lookup(state)
         assert model.state_valuations.get_value(id, s_var) == 3
         assert model.state_valuations.get_value(id, d_var) == 0
 
         # lookup 2
-        state = {s_var: prism_program.expression_manager.create_integer(7), d_var: prism_program.expression_manager.create_integer(3)}
+        state = {s_var: prism_program.expression_manager.integer(7), d_var: prism_program.expression_manager.integer(3)}
         id = state_mapping.lookup(state)
         assert model.state_valuations.get_value(id, s_var) == 7
         assert model.state_valuations.get_value(id, d_var) == 3

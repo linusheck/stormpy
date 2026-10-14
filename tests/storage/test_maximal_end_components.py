@@ -35,7 +35,7 @@ class TestMaximalEndComponents:
                         assert action.id == 0
                         assert len(action.transitions) == 1
                         for transition in action.transitions:
-                            assert transition.value() == 1
+                            assert transition.get_value() == 1
                             assert transition.column == 14
 
             else:
@@ -49,7 +49,7 @@ class TestMaximalEndComponents:
                         action = state.actions[choice_id - offset]
                         assert action.id in [0, 1, 2, 3]
                         for transition in action.transitions:
-                            assert transition.value() == 1
+                            assert transition.get_value() == 1
                             assert 1 <= transition.column <= 13
 
     def test_create_exact_interval_decomposition(self):
@@ -81,7 +81,7 @@ class TestECElimination:
         )
         assert result.matrix.nr_rows == 218
         assert result.matrix.nr_columns == interval_model.nr_states
-        assert result.sink_rows.number_of_set_bits() == 36
+        assert result.sink_rows.get_number_of_set_bits() == 36
 
     def test_elimination_exact_interval(self):
         program = stormpy.parse_prism_program(get_example_path("mdp", "two_dice.nm"))
@@ -98,4 +98,4 @@ class TestECElimination:
         )
         assert result.matrix.nr_rows == 218
         assert result.matrix.nr_columns == exact_interval_model.nr_states
-        assert result.sink_rows.number_of_set_bits() == 36
+        assert result.sink_rows.get_number_of_set_bits() == 36

@@ -34,7 +34,7 @@ class TestScheduler:
             assert action < len(state.actions)
             action = state.actions[action]
             assert action.id < 268 or "done" in action.labels
-            distribution = choice.get_choice()
+            distribution = choice.get_choice_as_distribution()
             assert str(distribution).startswith("{[1:")
 
     def test_scheduler_ma_via_mdp(self):
@@ -141,7 +141,7 @@ class TestScheduler:
         result = stormpy.model_checking(model, formulas[0], extract_scheduler=True)
         scheduler = result.get_scheduler()
         assert scheduler.deterministic
-        exact_interval_scheduler = scheduler.cast_to_exact_interval_datatype()
+        exact_interval_scheduler = scheduler.to_value_type(stormpy.RationalInterval)
         assert exact_interval_scheduler.deterministic
         assert exact_interval_scheduler.memoryless
 

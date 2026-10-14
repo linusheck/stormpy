@@ -10,6 +10,8 @@ Version 1.14.x
   Public storage exports move to `stormpy.models`, `stormpy.datastructures`, `stormpy.expressions`, and `stormpy.io`.
   Top-level model/BitVector aliases and the old `stormpy.storage` API are removed.
   Use `stormpy.datastructures.build_sparse_matrix[stormpy.RationalFunction](array)` instead of `build_parametric_sparse_matrix`.
+  Public methods use the Storm binding names directly, e.g. `define_undefined_constants`, `declare_integer_variable`, and `get_number_of_set_bits`.
+  Legacy method aliases are removed. The public static expression constructors (`Expression.Plus`, `Expression.Eq`, etc.) are preserved.
   Deprecated state-valuation shims are removed; use `Valuations`, `ValuationDescriptionBuilder`, and `ValuationTransformer`.
 
   | Previous name | New location |

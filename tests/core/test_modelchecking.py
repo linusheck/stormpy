@@ -365,28 +365,28 @@ class TestModelChecking:
         model = stormpy.build_model(program, [formulaPsi])
         phiResult = stormpy.model_checking(model, formulaPhi)
         phiStates = phiResult.get_truth_values_vector()
-        assert phiStates.number_of_set_bits() == model.nr_states
+        assert phiStates.get_number_of_set_bits() == model.nr_states
         psiResult = stormpy.model_checking(model, formulaPsi)
         psiStates = psiResult.get_truth_values_vector()
-        assert psiStates.number_of_set_bits() == 1
+        assert psiStates.get_number_of_set_bits() == 1
         prob0, prob1 = stormpy.developer.perform_prob01(model, phiStates, psiStates)
-        assert prob0.number_of_set_bits() == 9
-        assert prob1.number_of_set_bits() == 1
+        assert prob0.get_number_of_set_bits() == 9
+        assert prob1.get_number_of_set_bits() == 1
         labelprop = stormpy.Property("cora", formulaPsi.get_raw_formula(), set())
         result = stormpy.model_checking(model, labelprop)
-        assert result.get_truth_values_vector().number_of_set_bits() == 1
+        assert result.get_truth_values_vector().get_number_of_set_bits() == 1
 
         program = stormpy.parse_prism_program(get_example_path("mdp", "coin2-2.nm"))
         formulas = stormpy.parse_properties('Pmin=? [ F "finished" & "all_coins_equal_1"]', program)
         model = stormpy.build_model(program, formulas)
         psi_states = stormpy.model_checking(model, formulas[0].get_raw_formula().subformula.subformula).get_truth_values_vector()
         prob0, prob1 = stormpy.developer.perform_prob01_min(model, stormpy.datastructures.BitVector(model.nr_states, True), psi_states)
-        assert prob0.number_of_set_bits() == 94
-        assert prob1.number_of_set_bits() == 15
+        assert prob0.get_number_of_set_bits() == 94
+        assert prob1.get_number_of_set_bits() == 15
         psi_states = stormpy.model_checking(model, formulas[0].get_raw_formula().subformula.subformula).get_truth_values_vector()
         prob0, prob1 = stormpy.developer.perform_prob01_max(model, stormpy.datastructures.BitVector(model.nr_states, True), psi_states)
-        assert prob0.number_of_set_bits() == 83
-        assert prob1.number_of_set_bits() == 18
+        assert prob0.get_number_of_set_bits() == 83
+        assert prob1.get_number_of_set_bits() == 18
 
     def test_model_checking_ctmc(self):
         model = stormpy.build_model_from_drn(get_example_path("ctmc", "dft.drn"))
@@ -572,7 +572,7 @@ class TestModelChecking:
         symbolic_model = stormpy.build_symbolic_model(program, properties)
         parser = stormpy.expressions.ExpressionParser(program.expression_manager)
         parser.set_identifier_mapping({variable.name: variable.get_expression() for variable in program.expression_manager.get_variables()})
-        state_filter = stormpy.create_filter(symbolic_model, parser.parse("s=0"))
+        state_filter = stormpy.create_filter(symbolic_model, parser.parse_from_string("s=0"))
         assert type(state_filter) is stormpy.SymbolicQualitativeCheckResult[stormpy.models.DdType.Sylvan]
         result = stormpy.model_checking(symbolic_model, properties[0])
         result.filter(state_filter)
@@ -581,7 +581,7 @@ class TestModelChecking:
         assert math.isclose(result.get_max(), 1 / 6, rel_tol=1e-6)
         sparse_model = stormpy.build_model(program, properties)
         with pytest.raises(StormError):
-            stormpy.create_filter(sparse_model, parser.parse("s=0"))
+            stormpy.create_filter(sparse_model, parser.parse_from_string("s=0"))
 
     def test_qualitative_result_type(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))

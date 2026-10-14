@@ -56,7 +56,7 @@ class TestFormulas:
         formula = stormpy.parse_properties(prop)[0].get_raw_formula()
         expression_manager = stormpy.expressions.ExpressionManager()
         rational = stormpy.Rational("0.2")
-        expression = expression_manager.create_rational(rational)
+        expression = expression_manager.rational(rational)
         formula.set_bound(stormpy.logic.ComparisonType.GEQ, expression)
         assert formula.threshold == stormpy.Rational("0.2")
         assert formula.comparison_type == stormpy.logic.ComparisonType.GEQ

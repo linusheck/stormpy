@@ -66,8 +66,8 @@ class TestSparseModelComponents:
 
         # state valuations
         manager = stormpy.expressions.ExpressionManager()
-        var_s = manager.create_integer_variable(name="s")
-        var_d = manager.create_integer_variable(name="d")
+        var_s = manager.declare_integer_variable(name="s")
+        var_d = manager.declare_integer_variable(name="d")
         desc_builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         desc_builder.add_integer_variable(var_s, 0, 7)
         desc_builder.add_integer_variable(var_d, 0, 6)
@@ -107,21 +107,21 @@ class TestSparseModelComponents:
         assert dtmc.nr_transitions == 20
         assert dtmc.transition_matrix.nr_entries == dtmc.nr_transitions
         for e in dtmc.transition_matrix:
-            assert e.value() == 0.5 or e.value() == 0 or (e.value() == 1 and e.column > 6)
+            assert e.get_value() == 0.5 or e.get_value() == 0 or (e.get_value() == 1 and e.column > 6)
         for state in dtmc.states:
             assert len(state.actions) <= 1
 
         # Test state labeling
         assert dtmc.labeling.get_labels() == {"init", "deadlock", "done", "one", "two", "three", "four", "five", "six"}
-        assert dtmc.labeling.get_states("done").number_of_set_bits() == 6
-        assert dtmc.labeling.get_states("six").number_of_set_bits() == 1
+        assert dtmc.labeling.get_states("done").get_number_of_set_bits() == 6
+        assert dtmc.labeling.get_states("six").get_number_of_set_bits() == 1
 
         # Test initial states
         initial_states = dtmc.initial_states
         assert len(initial_states) == 1
         assert initial_states[0] == 0
         initial_states = dtmc.labeling.get_states("init")
-        assert initial_states.number_of_set_bits() == 1
+        assert initial_states.get_number_of_set_bits() == 1
         assert initial_states.size() == nr_states
         assert initial_states.get(0)
 
@@ -228,8 +228,8 @@ class TestSparseModelComponents:
 
         # state valuations
         manager = stormpy.expressions.ExpressionManager()
-        var_s = manager.create_integer_variable(name="s")
-        var_d = manager.create_integer_variable(name="d")
+        var_s = manager.declare_integer_variable(name="s")
+        var_d = manager.declare_integer_variable(name="d")
         desc_builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         desc_builder.add_integer_variable(var_s, 0, 7)
         desc_builder.add_integer_variable(var_d, 0, 6)
@@ -274,7 +274,7 @@ class TestSparseModelComponents:
         assert mdp.nr_transitions == 22
         assert mdp.transition_matrix.nr_entries == mdp.nr_transitions
         for e in mdp.transition_matrix:
-            assert e.value() == 0.5 or e.value() == 0 or e.value() == 0.2 or e.value() == 0.8 or (e.value() == 1 and e.column > 6)
+            assert e.get_value() == 0.5 or e.get_value() == 0 or e.get_value() == 0.2 or e.get_value() == 0.8 or (e.get_value() == 1 and e.column > 6)
         for state in mdp.states:
             assert len(state.actions) <= 2
 
@@ -375,10 +375,10 @@ class TestSparseModelComponents:
 
         # state valuations
         manager = stormpy.expressions.ExpressionManager()
-        var_s = manager.create_integer_variable(name="s")
-        var_a = manager.create_integer_variable(name="a")
-        var_s1 = manager.create_integer_variable(name="s1")
-        var_s2 = manager.create_integer_variable(name="s2")
+        var_s = manager.declare_integer_variable(name="s")
+        var_a = manager.declare_integer_variable(name="a")
+        var_s1 = manager.declare_integer_variable(name="s1")
+        var_s2 = manager.declare_integer_variable(name="s2")
         desc_builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         desc_builder.add_integer_variable(var_s, 1, 2)
         desc_builder.add_integer_variable(var_a, 0, 1)
@@ -427,7 +427,7 @@ class TestSparseModelComponents:
         assert ctmc.transition_matrix.nr_columns == nr_states
         assert ctmc.transition_matrix.nr_rows == nr_choices
         for e in ctmc.transition_matrix:
-            assert e.value() == 0.5 or e.value() == 0 or e.value() == 200 or e.value() == 1.0
+            assert e.get_value() == 0.5 or e.get_value() == 0 or e.get_value() == 200 or e.get_value() == 1.0
         for state in ctmc.states:
             assert len(state.actions) <= 1
 
@@ -527,7 +527,7 @@ class TestSparseModelComponents:
 
         # state valuations
         manager = stormpy.expressions.ExpressionManager()
-        var_s = manager.create_integer_variable(name="s")
+        var_s = manager.declare_integer_variable(name="s")
         desc_builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         desc_builder.add_integer_variable(var_s, 0, 4)
         desc = desc_builder.build_class_description()
@@ -589,7 +589,15 @@ class TestSparseModelComponents:
         assert ma.transition_matrix.get_row_group_end(4) == 10
 
         for e in ma.transition_matrix:
-            assert e.value() == 1.0 or e.value() == 0 or e.value() == 0.8 or e.value() == 0.2 or e.value() == 0.1 or e.value() == 0.5 or e.value() == 0.9
+            assert (
+                e.get_value() == 1.0
+                or e.get_value() == 0
+                or e.get_value() == 0.8
+                or e.get_value() == 0.2
+                or e.get_value() == 0.1
+                or e.get_value() == 0.5
+                or e.get_value() == 0.9
+            )
         for state in ma.states:
             assert len(state.actions) <= 3
 
@@ -733,9 +741,9 @@ class TestSparseModelComponents:
 
         # state valuations
         manager = stormpy.expressions.ExpressionManager()
-        var_x = manager.create_integer_variable(name="x")
-        var_y = manager.create_integer_variable(name="y")
-        var_o = manager.create_integer_variable(name="o")
+        var_x = manager.declare_integer_variable(name="x")
+        var_y = manager.declare_integer_variable(name="y")
+        var_o = manager.declare_integer_variable(name="o")
         desc_builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         desc_builder.add_integer_variable(var_x, 0, 2)
         desc_builder.add_integer_variable(var_y, 0, 2)
@@ -769,7 +777,7 @@ class TestSparseModelComponents:
         assert pomdp.nr_states == nr_states
         assert pomdp.nr_transitions == 41
         for e in pomdp.transition_matrix:
-            assert e.value() == 1 or e.value() == 0 or e.value() == 0.125
+            assert e.get_value() == 1 or e.get_value() == 0 or e.get_value() == 0.125
         for state in pomdp.states:
             assert len(state.actions) <= 4
 
@@ -900,7 +908,7 @@ class TestSparseModelComponents:
         assert dtmc.nr_transitions == 20
         assert dtmc.transition_matrix.nr_entries == dtmc.nr_transitions
         for e in dtmc.transition_matrix:
-            assert type(e.value()) is stormpy.RationalFunction
+            assert type(e.get_value()) is stormpy.RationalFunction
         for state in dtmc.states:
             assert len(state.actions) <= 1
 

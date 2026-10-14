@@ -7,16 +7,16 @@ class TestExpressions:
 
     def test_create_variable(self):
         manager = stormpy.expressions.ExpressionManager()
-        v1 = manager.create_boolean_variable("b1")
+        v1 = manager.declare_boolean_variable("b1")
         assert v1.has_boolean_type()
-        v2 = manager.create_integer_variable("v1")
+        v2 = manager.declare_integer_variable("v1")
         assert v2.has_integer_type()
         assert manager.has_variable("b1")
         assert not manager.has_variable("b2")
 
     def test_boolean_expression(self):
         manager = stormpy.expressions.ExpressionManager()
-        expression = manager.create_boolean(True)
+        expression = manager.boolean(True)
         assert expression.is_literal()
         assert expression.evaluate_as_bool
         assert not expression.contains_variables()
@@ -26,7 +26,7 @@ class TestExpressions:
 
     def test_integer_expression(self):
         manager = stormpy.expressions.ExpressionManager()
-        expression = manager.create_integer(2)
+        expression = manager.integer(2)
         assert expression.is_literal()
         assert not expression.contains_variables()
         assert not expression.has_boolean_type()
@@ -36,7 +36,7 @@ class TestExpressions:
 
     def test_rational_expression(self):
         manager = stormpy.expressions.ExpressionManager()
-        expression = manager.create_rational(stormpy.Rational(0.2))
+        expression = manager.rational(stormpy.Rational(0.2))
         assert expression.is_literal()
         assert not expression.contains_variables()
         assert not expression.has_boolean_type()
@@ -48,8 +48,8 @@ class TestExpressions:
         manager = stormpy.expressions.ExpressionManager()
         ep = stormpy.expressions.ExpressionParser(manager)
         ep.set_identifier_mapping(dict())
-        ex_true = ep.parse("true")
+        ex_true = ep.parse_from_string("true")
         assert str(ex_true) == "true"
-        ex_one = ep.parse("1.0")
+        ex_one = ep.parse_from_string("1.0")
         assert str(ex_one) == "1"
         assert ex_one.has_rational_type()

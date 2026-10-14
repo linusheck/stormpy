@@ -159,7 +159,7 @@ class SparseSimulator(Simulator):
         if self._observation_mode == SimulatorObservationMode.STATE_LEVEL:
             return self._engine.get_current_state()
         elif self._observation_mode == SimulatorObservationMode.PROGRAM_LEVEL:
-            return self._state_valuations.get_json(self._engine.get_current_state())
+            return self._state_valuations.to_json(self._engine.get_current_state())
         assert False, "The observation mode is unexpected"
 
     def _report_observation(self):

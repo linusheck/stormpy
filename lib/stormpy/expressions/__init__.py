@@ -14,4 +14,4 @@ OperatorType = _bindings.OperatorType
 
 __all__ = ["ExpressionManager", "Expression", "Variable", "ExpressionParser", "ExpressionType", "OperatorType"]
 
-from . import _convenience
+from . import _expression

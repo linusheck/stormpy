@@ -12,15 +12,15 @@ class TestValuationTransformer:
         vt = stormpy.datastructures.ValuationTransformer(model.state_valuations)
         manager = program.expression_manager
         vt.add_expression(
-            manager.create_boolean_variable("s_exceeds_three"),
-            stormpy.expressions.Expression.Geq(manager.get_variable("s").get_expression(), manager.create_integer(4)),
+            manager.declare_boolean_variable("s_exceeds_three"),
+            stormpy.expressions.Expression.Geq(manager.get_variable("s").get_expression(), manager.integer(4)),
         )
         vt.add_expression(
-            manager.create_integer_variable("sum"),
+            manager.declare_integer_variable("sum"),
             stormpy.expressions.Expression.Plus(manager.get_variable("d").get_expression(), manager.get_variable("s").get_expression()),
         )
         new_sv = vt.build(True)
-        assert new_sv.get_nr_of_entities() == model.state_valuations.get_nr_of_entities()
+        assert new_sv.get_number_of_entities() == model.state_valuations.get_number_of_entities()
         new_model = stormpy.set_state_valuations(model, new_sv)
         assert new_model.nr_states == model.nr_states
 
@@ -28,7 +28,7 @@ class TestValuationTransformer:
 class TestValuationsExtendedTypes:
     def test_string_variable(self):
         manager = stormpy.expressions.ExpressionManager()
-        var_s = manager.create_string_variable(name="s")
+        var_s = manager.declare_string_variable(name="s")
         assert var_s.has_string_type()
 
         builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
@@ -47,7 +47,7 @@ class TestValuationsExtendedTypes:
 
     def test_bigint_value(self):
         manager = stormpy.expressions.ExpressionManager()
-        var_big = manager.create_integer_variable(name="big")
+        var_big = manager.declare_integer_variable(name="big")
         assert var_big.has_integer_type()
 
         lower = stormpy.numbers.Integer(str(-(10**30)))
@@ -66,7 +66,7 @@ class TestValuationsExtendedTypes:
 
     def test_bigint_value_wrong_variable_type_raises(self):
         manager = stormpy.expressions.ExpressionManager()
-        var_b = manager.create_boolean_variable(name="b")
+        var_b = manager.declare_boolean_variable(name="b")
         builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         builder.add_boolean_variable(var_b)
         desc = builder.build_class_description()
@@ -80,7 +80,7 @@ class TestValuationsExtendedTypes:
 
     def test_double_encoding_of_rational_variable(self):
         manager = stormpy.expressions.ExpressionManager()
-        var_r = manager.create_rational_variable(name="r")
+        var_r = manager.declare_rational_variable(name="r")
         assert var_r.has_rational_type()
 
         builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
@@ -92,11 +92,11 @@ class TestValuationsExtendedTypes:
         vals.write_double_value(1, var_r, -2.5)
 
         assert vals.get_double_value(0, var_r) == pytest.approx(1.0 / 3.0)
-        assert vals.get_double_values_states(var_r) == pytest.approx([1.0 / 3.0, -2.5])
+        assert vals.get_double_values(var_r) == pytest.approx([1.0 / 3.0, -2.5])
 
     def test_double_encoding_wrong_variable_type_raises(self):
         manager = stormpy.expressions.ExpressionManager()
-        var_b = manager.create_boolean_variable(name="b")
+        var_b = manager.declare_boolean_variable(name="b")
         builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         builder.add_boolean_variable(var_b)
         desc = builder.build_class_description()
@@ -110,7 +110,7 @@ class TestValuationsExtendedTypes:
 
     def test_get_value_raises_on_double_encoded_variable(self):
         manager = stormpy.expressions.ExpressionManager()
-        var_r = manager.create_rational_variable(name="r")
+        var_r = manager.declare_rational_variable(name="r")
         builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         builder.add_double_variable(var_r)
         desc = builder.build_class_description()
@@ -122,11 +122,11 @@ class TestValuationsExtendedTypes:
 
     def test_mixed_types_in_one_valuation_class(self):
         manager = stormpy.expressions.ExpressionManager()
-        var_b = manager.create_boolean_variable(name="b")
-        var_i = manager.create_integer_variable(name="i")
-        var_r = manager.create_rational_variable(name="r")
-        var_s = manager.create_string_variable(name="s")
-        var_big = manager.create_integer_variable(name="big")
+        var_b = manager.declare_boolean_variable(name="b")
+        var_i = manager.declare_integer_variable(name="i")
+        var_r = manager.declare_rational_variable(name="r")
+        var_s = manager.declare_string_variable(name="s")
+        var_big = manager.declare_integer_variable(name="big")
 
         builder = stormpy.datastructures.ValuationDescriptionBuilder(manager)
         builder.add_boolean_variable(var_b)

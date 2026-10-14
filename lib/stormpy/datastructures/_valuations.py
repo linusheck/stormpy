@@ -80,6 +80,3 @@ def _write_value(self, entity, variable, value):
 storage.Valuations.get_value = _get_entity_value
 storage.Valuations.get_values_states = _get_values
 storage.Valuations.write_value = _write_value
-storage.Valuations.get_boolean_values_states_as_bitvector = storage.Valuations.get_boolean_values
-storage.Valuations.get_double_values_states = storage.Valuations.get_double_values
-storage.Valuations.get_json = storage.Valuations.to_json

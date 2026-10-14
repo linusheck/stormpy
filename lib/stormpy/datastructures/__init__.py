@@ -53,7 +53,7 @@ __all__ = [
     "MaximalEndComponentDecomposition",
 ]
 
-from . import _convenience, _valuations
+from . import _scheduler, _valuations
 from ._matrix import build_sparse_matrix
 
 

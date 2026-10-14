@@ -82,9 +82,9 @@ class TestMonitorVerifier:
         assert "stop" in labels
         assert "condition" in labels
         assert "sink" in labels
-        assert product.labeling.get_states("goal").number_of_set_bits() == 1
-        assert product.labeling.get_states("stop").number_of_set_bits() == 1
-        assert product.labeling.get_states("condition").number_of_set_bits() == 2
+        assert product.labeling.get_states("goal").get_number_of_set_bits() == 1
+        assert product.labeling.get_states("stop").get_number_of_set_bits() == 1
+        assert product.labeling.get_states("condition").get_number_of_set_bits() == 2
 
     def test_observation_map_entries(self):
         mc = _build_simple_mc()

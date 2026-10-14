@@ -188,7 +188,7 @@ class TestECElimination:
         assert ec_elimination_result.matrix.nr_columns == model.nr_states
         assert ec_elimination_result.old_to_new_state_mapping[23] == 23
         assert ec_elimination_result.new_to_old_row_mapping[200] == 245
-        assert ec_elimination_result.sink_rows.number_of_set_bits() == 36
+        assert ec_elimination_result.sink_rows.get_number_of_set_bits() == 36
 
 
 class TestAddUncertainty:
@@ -204,8 +204,8 @@ class TestAddUncertainty:
         assert interval_model.nr_transitions == model.nr_transitions
         for row in range(interval_model.nr_states):
             for transition in interval_model.transition_matrix.row_iter(row, row):
-                assert transition.value().lower() <= transition.value().upper()
-                assert transition.value().lower() >= 0.0
+                assert transition.get_value().lower() <= transition.get_value().upper()
+                assert transition.get_value().lower() >= 0.0
 
     def test_add_uncertainty_exact_dtmc(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))
@@ -218,7 +218,7 @@ class TestAddUncertainty:
         assert interval_model.nr_transitions == model.nr_transitions
         for row in range(interval_model.nr_states):
             for transition in interval_model.transition_matrix.row_iter(row, row):
-                assert transition.value().lower() <= transition.value().upper()
+                assert transition.get_value().lower() <= transition.get_value().upper()
 
     def test_add_uncertainty_api(self):
         program = stormpy.parse_prism_program(get_example_path("dtmc", "die.pm"))

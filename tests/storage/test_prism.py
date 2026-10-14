@@ -35,9 +35,9 @@ class TestPrism:
         assert len(program.constants) == 1
         assert len(program.global_boolean_variables) == 0
         assert len(program.global_integer_variables) == 0
-        assert len(program.get_variables()) == 16
+        assert len(program.get_all_expression_variables()) == 16
         assert len(program.variables) == 16
-        assert len(program.get_variables(False)) == 15
+        assert len(program.get_all_expression_variables(False)) == 15
         for module in program.modules:
             assert len(module.integer_variables) == 5
             assert len(module.boolean_variables) == 0
