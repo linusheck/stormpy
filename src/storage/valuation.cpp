@@ -44,8 +44,8 @@ void define_valuation(py::module& m) {
         .def("build_class_description", &ValuationDescriptionBuilder::buildClassDescription, "Finalise and return the class description");
 
     py::classh<Valuations>(m, "Valuations", "Valuations for explicit entities (states/observations)")
-        .def(py::init<ValuationClassDescription, std::shared_ptr<storm::expressions::ExpressionManager const> const&, uint64_t>(),
-             py::arg("class_description"), py::arg("manager") = nullptr, py::arg("num_entities") = uint64_t(0),
+        .def(py::init<ValuationClassDescription, std::shared_ptr<storm::expressions::ExpressionManager const> const&, uint64_t>(), py::arg("class_description"),
+             py::arg("manager") = nullptr, py::arg("num_entities") = uint64_t(0),
              "Construct valuations from a class description, optional expression manager and entity count")
         .def("get_boolean_value", &Valuations::getBooleanValue, py::arg("entity"), py::arg("variable"))
         .def("get_int64_value", &Valuations::getInt64Value, py::arg("entity"), py::arg("variable"))

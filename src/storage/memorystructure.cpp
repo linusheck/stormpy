@@ -17,8 +17,7 @@ void define_memorystructure_product_each(py::classh<storm::storage::MemoryStruct
         [](storm::storage::MemoryStructure& ms, storm::models::sparse::Model<ValueType> const& sparseModel) { return ms.product(sparseModel); },
         py::arg("model"));
     reverseData.def("create_memory_scheduler_from_product_scheduler",
-                    &storm::storage::SparseModelMemoryProductReverseData::createMemorySchedulerFromProductScheduler<ValueType>,
-                    py::arg("product_scheduler"));
+                    &storm::storage::SparseModelMemoryProductReverseData::createMemorySchedulerFromProductScheduler<ValueType>, py::arg("product_scheduler"));
 }
 
 void define_memorystructure_untyped(py::module& m) {
@@ -28,8 +27,8 @@ void define_memorystructure_untyped(py::module& m) {
     memoryStructure.def_property_readonly("nr_states", &MemoryStructure::getNumberOfStates);
     memoryStructure.def_property_readonly("state_labeling", &MemoryStructure::getStateLabeling);
 
-    py::classh<storm::storage::SparseModelMemoryProductReverseData> memoryProductReverseData(
-        m, "SparseModelMemoryProductReverseData", "Maps schedulers on a memory product back to the original model");
+    py::classh<storm::storage::SparseModelMemoryProductReverseData> memoryProductReverseData(m, "SparseModelMemoryProductReverseData",
+                                                                                             "Maps schedulers on a memory product back to the original model");
     define_memorystructure_product_each<double>(memoryStructure, memoryProductReverseData);
     define_memorystructure_product_each<storm::RationalNumber>(memoryStructure, memoryProductReverseData);
     define_memorystructure_product_each<storm::RationalFunction>(memoryStructure, memoryProductReverseData);

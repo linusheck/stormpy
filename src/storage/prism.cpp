@@ -91,8 +91,8 @@ void define_prism(py::module& m) {
                 return program.toJani(properties, allVariablesGlobal, suffix);
             },
             "Transform to Jani program", py::arg("properties"), py::arg("all_variables_global") = true, py::arg("suffix") = "")
-        .def("to_jani", py::overload_cast<bool, std::string>(&Program::toJani, py::const_), py::arg("all_variables_global") = true,
-             py::arg("suffix") = "", "Convert the program to a JANI model")
+        .def("to_jani", py::overload_cast<bool, std::string>(&Program::toJani, py::const_), py::arg("all_variables_global") = true, py::arg("suffix") = "",
+             "Convert the program to a JANI model")
         .def("__str__", &streamToString<storm::prism::Program>)
         .def(
             "get_label_expression", [](storm::prism::Program const& program, std::string const& label) { return program.getLabelExpression(label); },

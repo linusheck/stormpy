@@ -17,7 +17,7 @@ void bind_scheduler_conversion(py::module& m) {
         stormpy::bindings::bindTemplateFunction(m, "to_value_type", index, convert, "Convert a scheduler to another value type", py::arg("scheduler"));
     } else {
         stormpy::bindings::bindInternalFunction(m, stormpy::bindings::templateClassName("to_value_type", index), convert,
-                                               "Convert a scheduler to another value type", py::arg("scheduler"));
+                                                "Convert a scheduler to another value type", py::arg("scheduler"));
     }
 }
 
