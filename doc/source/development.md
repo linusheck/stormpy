@@ -17,7 +17,7 @@ Each library ``xy`` of Storm (e.g. core or DFTs) is split into two layers:
   The public names are declared in ``__all__`` of the module.
   Only names listed in ``__all__`` are part of the public API and appear in the API documentation.
 
-Storage follows the package layout in ``module-structure.md``:
+Storage is split across the following packages:
 ``stormpy.developer.storage`` contains the raw native module and template families.
 The public objects are selected explicitly in ``stormpy.models`` (models and components),
 ``stormpy.datastructures`` (matrices, labels, schedulers and valuations),
