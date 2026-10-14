@@ -132,12 +132,6 @@ void define_expressions(py::module& m) {
         .def_static("Conjunction", [](std::vector<Expression> const& expr) { return storm::expressions::conjunction(expr); })
         .def_static("Disjunction", [](std::vector<Expression> const& expr) { return storm::expressions::disjunction(expr); });
 
-    m.def("modulo", &storm::expressions::modulo, py::arg("first"), py::arg("second"), "Modulo of two expressions");
-    m.def("implies", &storm::expressions::implies, py::arg("first"), py::arg("second"), "Logical implication");
-    m.def("iff", &storm::expressions::iff, py::arg("first"), py::arg("second"), "Logical equivalence");
-    m.def("conjunction", &storm::expressions::conjunction, py::arg("expressions"), "Conjunction of the given expressions");
-    m.def("disjunction", &storm::expressions::disjunction, py::arg("expressions"), "Disjunction of the given expressions");
-
     py::classh<storm::parser::ExpressionParser>(m, "ExpressionParser", "Parser for storm-expressions")
         .def(py::init<storm::expressions::ExpressionManager const&>(), "Expression Manager to use", py::arg("expression_manager"))
         .def(

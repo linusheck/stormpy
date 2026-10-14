@@ -128,9 +128,12 @@ def test_public_static_expression_constructors():
     assert (first != second) is True
     assert stormpy.expressions.Expression.Eq(first, second).evaluate_as_bool() is False
     assert stormpy.expressions.Expression.Plus(first, second).evaluate_as_int() == 5
-    assert stormpy.developer.storage.modulo(second, first).evaluate_as_int() == 1
     assert stormpy.expressions.Expression.Modulo(second, first).evaluate_as_int() == 1
-    assert stormpy.developer.storage.conjunction([manager.boolean(True), manager.boolean(False)]).evaluate_as_bool() is False
+    true, false = manager.boolean(True), manager.boolean(False)
+    assert stormpy.expressions.Expression.Implies(true, false).evaluate_as_bool() is False
+    assert stormpy.expressions.Expression.Iff(true, false).evaluate_as_bool() is False
+    assert stormpy.expressions.Expression.Conjunction([true, false]).evaluate_as_bool() is False
+    assert stormpy.expressions.Expression.Disjunction([true, false]).evaluate_as_bool() is True
 
 
 def test_raw_prism_to_jani_overloads_and_valuation_defaults():
