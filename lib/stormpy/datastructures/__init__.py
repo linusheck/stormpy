@@ -1,5 +1,6 @@
 """Matrices, labels, schedulers, valuations and memory structures."""
 
+import stormpy as _stormpy
 from stormpy.developer import storage as _bindings
 
 BitVector = _bindings.BitVector
@@ -54,7 +55,7 @@ from . import _scheduler, _valuations
 from ._matrix import build_sparse_matrix
 
 
-def get_maximal_end_components(model):
+def get_maximal_end_components(model: "_stormpy.models.SparseModel") -> "MaximalEndComponentDecomposition":
     """Compute the maximal end components of a nondeterministic sparse model.
 
     :param model: Sparse MDP, POMDP, Markov automaton or stochastic game.

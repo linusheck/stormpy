@@ -1,5 +1,9 @@
 """Prism and JANI descriptions and UMB archive input/output."""
 
+import os as _os
+from collections.abc import Iterable as _Iterable
+
+import stormpy as _stormpy
 from stormpy.developer import storage as _bindings
 
 PrismProgram = _bindings.PrismProgram
@@ -79,7 +83,7 @@ __all__ = [
 ]
 
 
-def import_umb(path, *, options=None):
+def import_umb(path: str | _os.PathLike[str], *, options: UmbImportOptions | None = None) -> UmbModel:
     """Read a UMB archive into an intermediate UMB model.
 
     :param path: Archive filename as a string or path-like object.
@@ -91,7 +95,7 @@ def import_umb(path, *, options=None):
     return _bindings.import_umb(_path(path), options if options is not None else UmbImportOptions())
 
 
-def umb_to_archive(umb_model, path, options=None):
+def umb_to_archive(umb_model: UmbModel, path: str | _os.PathLike[str], options: UmbExportOptions | None = None) -> None:
     """Write an intermediate UMB model to an archive.
 
     :param umb_model: UMB model to export.
@@ -103,7 +107,14 @@ def umb_to_archive(umb_model, path, options=None):
     _bindings.to_archive(umb_model, _path(path), options if options is not None else UmbExportOptions())
 
 
-def export_jani_to_file(filename, model, properties=None, *, check_valid=True, compact=False):
+def export_jani_to_file(
+    filename: str | _os.PathLike[str],
+    model: JaniModel,
+    properties: "_Iterable[_stormpy.Property] | None" = None,
+    *,
+    check_valid: bool = True,
+    compact: bool = False,
+) -> None:
     """Write a JANI model and its properties as JSON.
 
     :param filename: Output filename as a string or path-like object.
@@ -120,7 +131,7 @@ def export_jani_to_file(filename, model, properties=None, *, check_valid=True, c
 __all__ += ["import_umb", "umb_to_archive", "export_jani_to_file"]
 
 
-def sparse_model_to_umb(model, *, options=None):
+def sparse_model_to_umb(model: "_stormpy.models.SparseModel", *, options: UmbExportOptions | None = None) -> UmbModel:
     """Convert a sparse model to the intermediate UMB representation.
 
     :param model: Sparse model with floating point, exact or interval values.

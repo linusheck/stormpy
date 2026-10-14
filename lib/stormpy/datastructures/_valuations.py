@@ -1,9 +1,14 @@
 """Python conveniences for Storm valuations."""
 
+from __future__ import annotations
+
+from stormpy import Rational
 from stormpy.developer import storage
+from stormpy.expressions import Variable
+from . import SimpleValuation, Valuations
 
 
-def _get_value(self, var):
+def _get_value(self: SimpleValuation, var: Variable) -> bool | int | float:
     """
     Get the value of the given variable.
     :param var: Variable.
@@ -22,7 +27,7 @@ def _get_value(self, var):
 storage.SimpleValuation.get_value = _get_value
 
 
-def _get_entity_value(self, entity, variable):
+def _get_entity_value(self: Valuations, entity: int, variable: Variable) -> bool | int | Rational | str:
     """Read a variable at an entity, dispatching by its expression type.
 
     :param entity: State or observation index.
@@ -40,7 +45,7 @@ def _get_entity_value(self, entity, variable):
     raise ValueError("Variable has unsupported type")
 
 
-def _get_values(self, variable):
+def _get_values(self: Valuations, variable: Variable) -> list[bool] | list[int] | list[Rational] | list[str]:
     """Read a variable for every entity, returning a list in entity order.
 
     :param variable: Expression variable to read.
@@ -58,7 +63,7 @@ def _get_values(self, variable):
     raise ValueError("Variable has unsupported type")
 
 
-def _write_value(self, entity, variable, value):
+def _write_value(self: Valuations, entity: int, variable: Variable, value: bool | int | Rational | str) -> None:
     """Write a variable at an entity, dispatching by its expression type.
 
     :param entity: State or observation index.

@@ -1,8 +1,16 @@
 """Construction of sparse matrices from NumPy arrays."""
 
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
 from stormpy import Rational, RationalFunction, Interval, RationalInterval
-from stormpy.developer.storage import SparseMatrixBuilder
 from stormpy._template import _deduce_default, _template_function
+from . import SparseMatrix, SparseMatrixBuilder
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @_template_function(
@@ -11,7 +19,7 @@ from stormpy._template import _deduce_default, _template_function
     instantiations=(float, Rational, RationalFunction, Interval, RationalInterval),
     deduce=_deduce_default(float),
 )
-def build_sparse_matrix(value_type: type, array, row_group_indices=None):
+def build_sparse_matrix(value_type: type, array: np.ndarray, row_group_indices: Sequence[int] | None = None) -> SparseMatrix:
     """Build a sparse matrix from a two-dimensional NumPy array.
 
     Zero entries are skipped. The value type is selected by subscription, e.g.
