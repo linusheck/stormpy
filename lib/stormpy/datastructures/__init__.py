@@ -1,22 +1,7 @@
 """Matrices, labels, schedulers, valuations and memory structures.
 
-``SparseMatrixBuilder[ValueType]`` builds a matrix by adding entries in row and
-column order, then calling ``build()``. The value type defaults to ``float``.
-``build_sparse_matrix[ValueType](array)`` constructs the same representation
-from a NumPy array. Row groups associate several action rows with one state.
-
-``BitVector`` supports indexed Boolean access; iteration yields the indices of
-set bits. State and choice labelings associate named labels with such indices.
-``Scheduler`` and ``SchedulerChoice`` describe the decisions resolved during
-model checking, while memory structures describe finite scheduler memory.
-
-Valuations are constructed using ``ValuationDescriptionBuilder`` to declare
-variables and their storage encoding, then ``Valuations(description, manager,
-num_entities)``. ``get_value``, ``write_value`` and ``get_values_states`` dispatch
-by variable type; double-encoded rationals and large integers have explicit
-accessors. ``ValuationTransformer`` evaluates expressions to derive new variables.
-
-The raw Storm bindings are available in :mod:`stormpy.developer.storage`."""
+The raw Storm bindings are available in :mod:`stormpy.developer.storage`.
+"""
 
 from stormpy.developer import storage as _bindings
 

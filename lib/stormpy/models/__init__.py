@@ -1,17 +1,7 @@
 """Probabilistic models in sparse and decision diagram representations.
 
-Sparse model classes are template families selected by value type, for example
-``SparseDtmc[float]`` or ``SparseDtmc[stormpy.Rational]``. They can be built from
-``SparseModelComponents`` containing a transition matrix and state labeling,
-or obtained through ``stormpy.build_model``. Copy constructors deduce the value
-type from the original model. Reward models store state, action and transition
-rewards with the same value type as the model.
-
-Symbolic model families additionally select the decision diagram backend, e.g.
-``SymbolicDtmc[DdType.Sylvan, float]``. Use the common ``SparseModel`` or
-``SymbolicModel`` families for type inspection across concrete model kinds.
-
-The raw Storm bindings are available in :mod:`stormpy.developer.storage`."""
+The raw Storm bindings are available in :mod:`stormpy.developer.storage`.
+"""
 
 from stormpy.developer import storage as _bindings
 

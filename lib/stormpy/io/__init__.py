@@ -1,20 +1,7 @@
 """Prism and JANI descriptions and UMB archive input/output.
 
-``PrismProgram`` and ``JaniModel`` describe symbolic models before state-space
-construction. Their modules, automata, commands, edges, variables and assignments
-can be inspected using the corresponding description classes in this package.
-Core parsing functions continue to be available through ``stormpy``.
-
-``import_umb`` reads an archive into an intermediate ``UmbModel``. ``to_umb``
-converts a sparse model to that representation, and ``umb_to_archive`` writes it
-to disk. Use ``stormpy.build_model_from_umb`` to obtain a sparse model directly,
-and ``stormpy.export_to_umb`` to export one directly. Import/export options select
-numeric encodings, metadata and compression. File wrappers accept strings and
-path-like objects, and allocate fresh default options for each call.
-
-``export_jani_to_file`` writes a JANI description and optional properties.
-
-The raw Storm bindings are available in :mod:`stormpy.developer.storage`."""
+The raw Storm bindings are available in :mod:`stormpy.developer.storage`.
+"""
 
 from stormpy.developer import storage as _bindings
 
