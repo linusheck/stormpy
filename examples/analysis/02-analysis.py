@@ -1,5 +1,5 @@
 import stormpy
-from stormpy.storage import Expression
+from stormpy.expressions import Expression
 
 import stormpy.examples
 import stormpy.examples.files

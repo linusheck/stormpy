@@ -54,7 +54,7 @@ class TestFormulas:
     def test_set_bounds(self):
         prop = 'P<0.4 [F "one"]'
         formula = stormpy.parse_properties(prop)[0].get_raw_formula()
-        expression_manager = stormpy.storage.ExpressionManager()
+        expression_manager = stormpy.expressions.ExpressionManager()
         rational = stormpy.Rational("0.2")
         expression = expression_manager.create_rational(rational)
         formula.set_bound(stormpy.logic.ComparisonType.GEQ, expression)

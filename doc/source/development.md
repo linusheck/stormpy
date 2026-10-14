@@ -17,6 +17,15 @@ Each library ``xy`` of Storm (e.g. core or DFTs) is split into two layers:
   The public names are declared in ``__all__`` of the module.
   Only names listed in ``__all__`` are part of the public API and appear in the API documentation.
 
+Storage follows the package layout in ``module-structure.md``:
+``stormpy.developer.storage`` contains the raw native module and template families.
+The public objects are selected explicitly in ``stormpy.models`` (models and components),
+``stormpy.datastructures`` (matrices, labels, schedulers and valuations),
+``stormpy.expressions`` (expressions and variables) and ``stormpy.io`` (model descriptions and UMB archives).
+Their ``__all__`` lists define the supported API. Advanced DD and transformation helpers remain in the developer module.
+Public template families use ``publish_as`` and share their native classes with the developer families.
+Python conveniences are implemented in the public layer; no deprecated ``stormpy.storage`` aliases are provided.
+
 ### Extending the public API
 When adding a name to the public API, import it in ``__init__.py``, add it to ``__all__`` and document it with a docstring.
 Functions must document each parameter with ``:param <name>:``.

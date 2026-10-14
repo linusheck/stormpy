@@ -5,7 +5,8 @@ Use :func:`create_simulator` to obtain a simulator for a given model.
 
 from enum import Enum
 
-from stormpy import developer, storage
+from stormpy import developer
+from stormpy.developer import storage
 
 
 class SimulatorObservationMode(Enum):
@@ -357,7 +358,7 @@ def create_simulator(
     :param options: BuilderOptions that can be passed to the simulator (only for Prism programs).
     :return: A simulator that can simulate on top of this model.
     """
-    if isinstance(model, storage._storage._ModelBase):
+    if isinstance(model, storage.ModelBase):
         if model.is_sparse_model:
             return SparseSimulator(model, seed)
         raise NotImplementedError("Currently, we only support simulators for sparse models.")

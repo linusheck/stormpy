@@ -8,7 +8,7 @@ class TestMatrix:
     def test_matrix(self):
         model = stormpy.build_model_from_explicit(get_example_path("dtmc", "die.tra"), get_example_path("dtmc", "die.lab"))
         matrix = model.transition_matrix
-        assert type(matrix) is stormpy.storage.SparseMatrix[float]
+        assert type(matrix) is stormpy.datastructures.SparseMatrix[float]
         assert matrix.nr_rows == model.nr_states
         assert matrix.nr_columns == model.nr_states
         assert matrix.nr_entries == 20
@@ -19,7 +19,7 @@ class TestMatrix:
     def test_backward_matrix(self):
         model = stormpy.build_model_from_explicit(get_example_path("dtmc", "die.tra"), get_example_path("dtmc", "die.lab"))
         matrix = model.backward_transition_matrix
-        assert type(matrix) is stormpy.storage.SparseMatrix[float]
+        assert type(matrix) is stormpy.datastructures.SparseMatrix[float]
         assert matrix.nr_rows == model.nr_states
         assert matrix.nr_columns == model.nr_states
         assert matrix.nr_entries == 20
@@ -30,7 +30,7 @@ class TestMatrix:
     def test_matrix_row_groups(self):
         model = stormpy.build_model_from_explicit(get_example_path("mdp", "two_dice.tra"), get_example_path("mdp", "two_dice.lab"))
         matrix = model.transition_matrix
-        assert type(matrix) is stormpy.storage.SparseMatrix[float]
+        assert type(matrix) is stormpy.datastructures.SparseMatrix[float]
         assert matrix.nr_rows == 254
         assert matrix.nr_columns == model.nr_states
         assert matrix.nr_entries == 436
@@ -145,7 +145,7 @@ class TestMatrix:
         for e in matrix:
             assert e.value() == 0.5 or e.value() == 0 or (e.value() == 1 and e.column > 6)
 
-        row_constraint = stormpy.BitVector(13, [0, 1, 3, 4, 7, 8, 9])
+        row_constraint = stormpy.datastructures.BitVector(13, [0, 1, 3, 4, 7, 8, 9])
         submatrix = matrix.submatrix(row_constraint, row_constraint)
         assert submatrix.nr_rows == 7
         assert submatrix.nr_columns == 7
@@ -156,7 +156,7 @@ class TestMatrix:
     def test_submatrix_no_groups(self):
         model = stormpy.build_model_from_explicit(get_example_path("mdp", "two_dice.tra"), get_example_path("mdp", "two_dice.lab"))
         matrix = model.transition_matrix
-        assert type(matrix) is stormpy.storage.SparseMatrix[float]
+        assert type(matrix) is stormpy.datastructures.SparseMatrix[float]
         assert matrix.nr_rows == 254
         assert matrix.nr_columns == model.nr_states
         assert matrix.nr_entries == 436
@@ -164,7 +164,7 @@ class TestMatrix:
 
         assert matrix.nr_rows != matrix.nr_columns
 
-        row_constraint = stormpy.BitVector(254, [0, 1, 3, 4, 7, 8, 9])
+        row_constraint = stormpy.datastructures.BitVector(254, [0, 1, 3, 4, 7, 8, 9])
         submatrix = matrix.submatrix(row_constraint, row_constraint, use_groups=False)
         assert submatrix.nr_rows == 7
         assert submatrix.nr_columns == 7

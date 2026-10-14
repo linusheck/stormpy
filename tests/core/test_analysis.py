@@ -32,7 +32,7 @@ class TestProb01:
         assert prob1.number_of_set_bits() == 1
         # Same as the developer function with all states as phi states
         psi_states = stormpy.model_checking(model, properties[0].get_raw_formula().subformula.subformula).get_truth_values_vector()
-        assert (prob0, prob1) == tuple(stormpy.developer.perform_prob01(model, stormpy.BitVector(model.nr_states, True), psi_states))
+        assert (prob0, prob1) == tuple(stormpy.developer.perform_prob01(model, stormpy.datastructures.BitVector(model.nr_states, True), psi_states))
         # Path formula without probability operator
         formula = properties[0].get_raw_formula().subformula
         assert stormpy.compute_prob01_states(model, formula) == (prob0, prob1)
