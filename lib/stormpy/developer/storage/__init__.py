@@ -2,7 +2,7 @@
 
 This module is intended for developers. Use :mod:`stormpy.models`,
 :mod:`stormpy.datastructures`, :mod:`stormpy.expressions` and :mod:`stormpy.io`
-for the documented public API. Function names use snake_case for Storm's C++ names.
+for the documented public API.
 """
 
 import stormpy.utility
