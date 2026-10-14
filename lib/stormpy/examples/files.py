@@ -29,6 +29,8 @@ prism_pdtmc_brp = _path("pdtmc", "brp16_2.pm")
 """Prism version of Bounded Retransmission Protocol with parameters"""
 
 # MDP
+prism_mdp_vacuum = _path("mdp", "vacuum.pm")
+"""Fully observable robot vacuum returning to its charging dock"""
 prism_mdp_coin_2_2 = _path("mdp", "coin2-2.nm")
 """Prism version of 2-coin Knuth-Yao Die"""
 prism_mdp_firewire = _path("mdp", "firewire.nm")
