@@ -49,6 +49,8 @@ __all__ = [
     "PrismChoiceOrigins",
     "MaximalEndComponent",
     "MaximalEndComponentDecomposition",
+    "build_sparse_matrix",
+    "get_maximal_end_components",
 ]
 
 from . import _scheduler, _valuations
@@ -62,6 +64,3 @@ def get_maximal_end_components(model: "_stormpy.models.SparseModel") -> "Maximal
     :return: An iterable decomposition into maximal end components.
     """
     return MaximalEndComponentDecomposition(model)
-
-
-__all__ += ["build_sparse_matrix", "get_maximal_end_components"]

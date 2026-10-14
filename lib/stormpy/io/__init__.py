@@ -80,6 +80,10 @@ __all__ = [
     "UmbExportValueType",
     "UmbExportOptions",
     "UmbModel",
+    "import_umb",
+    "umb_to_archive",
+    "export_jani_to_file",
+    "sparse_model_to_umb",
 ]
 
 
@@ -128,9 +132,6 @@ def export_jani_to_file(
     _bindings.JsonExporter.to_file(model, list(properties) if properties is not None else [], _path(filename), check_valid, compact)
 
 
-__all__ += ["import_umb", "umb_to_archive", "export_jani_to_file"]
-
-
 def sparse_model_to_umb(model: "_stormpy.models.SparseModel", *, options: UmbExportOptions | None = None) -> UmbModel:
     """Convert a sparse model to the intermediate UMB representation.
 
@@ -139,6 +140,3 @@ def sparse_model_to_umb(model: "_stormpy.models.SparseModel", *, options: UmbExp
     :return: Intermediate UmbModel for inspection or archive export.
     """
     return _bindings.sparse_model_to_umb(model, options if options is not None else UmbExportOptions())
-
-
-__all__ += ["sparse_model_to_umb"]
