@@ -1,7 +1,7 @@
 Stormpy.developer.storage
 **************************************************
 
-The raw Storm bindings, including advanced geometry, decision diagram and
+The raw Storm bindings, including polytopes, decision diagrams and
 transformation helpers. Shared public classes are documented under
 :mod:`stormpy.models`, :mod:`stormpy.datastructures`, :mod:`stormpy.expressions`
 and :mod:`stormpy.io`.
