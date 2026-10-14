@@ -149,3 +149,16 @@ class TestValuationsExtendedTypes:
         assert vals.get_value(0, var_s) == "hello"
         assert vals.get_integer_bigint_value(0, var_big) == stormpy.numbers.Integer(str(10**25))
         assert len(vals.get_all_variables()) == 5
+
+
+class TestSimpleValuation:
+    def test_get_value(self):
+        program = stormpy.parse_prism_program(stormpy.examples.files.prism_dtmc_brp)
+        simulator = stormpy.developer.DiscreteTimePrismProgramSimulator(program, stormpy.BuilderOptions())
+        simulator.reset_to_initial()
+        valuation = simulator.get_current_state_as_valuation()
+        assert isinstance(valuation, stormpy.datastructures.SimpleValuation)
+
+        manager = program.expression_manager
+        assert valuation.get_value(manager.get_variable("s")) == 0
+        assert valuation.get_value(manager.get_variable("bs")) is False
