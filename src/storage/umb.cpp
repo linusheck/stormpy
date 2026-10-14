@@ -82,13 +82,14 @@ void define_umb(py::module& m) {
         "sparse_model_from_umb",
         [](storm::umb::UmbModel const& umbModel, storm::umb::ImportOptions const& options) { return storm::umb::sparseModelFromUmb(umbModel, options); },
         py::arg("umb_model"), py::arg("options") = storm::umb::ImportOptions{}, "Build a sparse model from the given UMB model");
-
-    // Overloads deduce ValueType from the model, as in Storm's C++ API.
-    m.def("sparse_model_to_umb", &storm::umb::sparseModelToUmb<double>, py::arg("model"), py::arg("options"), "Convert a sparse model to UMB");
-    m.def("sparse_model_to_umb", &storm::umb::sparseModelToUmb<storm::RationalNumber>, py::arg("model"), py::arg("options"),
-          "Convert an exact sparse model to UMB");
-    m.def("sparse_model_to_umb", &storm::umb::sparseModelToUmb<storm::Interval>, py::arg("model"), py::arg("options"),
-          "Convert an interval sparse model to UMB");
-    m.def("sparse_model_to_umb", &storm::umb::sparseModelToUmb<storm::RationalInterval>, py::arg("model"), py::arg("options"),
-          "Convert an exact interval sparse model to UMB");
 }
+
+template<typename ValueType>
+void define_umb_typed(py::module& m) {
+    m.def("sparse_model_to_umb", &storm::umb::sparseModelToUmb<ValueType>, py::arg("model"), py::arg("options"), "Convert a sparse model to UMB");
+}
+
+template void define_umb_typed<double>(py::module&);
+template void define_umb_typed<storm::RationalNumber>(py::module&);
+template void define_umb_typed<storm::Interval>(py::module&);
+template void define_umb_typed<storm::RationalInterval>(py::module&);
