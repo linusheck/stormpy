@@ -1,7 +1,4 @@
-"""Matrices, labels, schedulers, valuations and memory structures.
-
-The raw Storm bindings are available in :mod:`stormpy.developer.storage`.
-"""
+"""Matrices, labels, schedulers, valuations and memory structures."""
 
 from stormpy.developer import storage as _bindings
 

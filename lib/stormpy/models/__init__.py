@@ -1,7 +1,4 @@
-"""Probabilistic models in sparse and decision diagram representations.
-
-The raw Storm bindings are available in :mod:`stormpy.developer.storage`.
-"""
+"""Probabilistic models in sparse and decision diagram representations."""
 
 from stormpy.developer import storage as _bindings
 

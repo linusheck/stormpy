@@ -1,7 +1,4 @@
-"""Prism and JANI descriptions and UMB archive input/output.
-
-The raw Storm bindings are available in :mod:`stormpy.developer.storage`.
-"""
+"""Prism and JANI descriptions and UMB archive input/output."""
 
 from stormpy.developer import storage as _bindings
 

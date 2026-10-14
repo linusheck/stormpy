@@ -1,7 +1,4 @@
-"""Symbolic expressions, variables and expression parsing.
-
-The raw Storm bindings are available in :mod:`stormpy.developer.storage`.
-"""
+"""Symbolic expressions, variables and expression parsing."""
 
 from stormpy.developer import storage as _bindings
 
