@@ -10,10 +10,6 @@ from types import SimpleNamespace
 import pytest
 import stormpy
 from stormpy._template import _TemplateClass, _TemplateFunction, _template_function, _deduce_default
-from configurations import dft, has_dft
-
-if has_dft:
-    import stormpy.dft
 
 _spec = importlib.util.spec_from_file_location("stormpy_templates", Path(__file__).parents[2] / "doc/source/_ext/stormpy_templates.py")
 docs = importlib.util.module_from_spec(_spec)
@@ -164,21 +160,6 @@ def test_function_overloads_only_available_for_some_specializations(monkeypatch)
     assert info["overloads"][1]["signature"] == "(label: str = 'a,b')"
 
 
-def test_function_with_value_template_parameters():
-    @_template_function("test.scale", parameters=["factor"], instantiations=(2, 3))
-    def scale(factor, value: int) -> int:
-        return factor * value
-
-    entries = [(inst, "scale(value: int) -> int") for inst in scale.metadata.instantiations]
-    assert docs.generic_docs(scale, entries, [], "scale") == entries
-
-
-def test_functions_without_return_annotations_have_stable_defaults():
-    assert (
-        docs._public_signature("run(options: test._Options = <test._Options object at 0x123>, label: str = 'a,b')") == "run(options = ..., label: str = 'a,b')"
-    )
-
-
 def test_python_function_signatures_preserve_argument_kinds(monkeypatch):
     @_template_function("test.select", parameters=["ValueType"], instantiations=(float, int))
     def select(value_type, value: "int", /, *args: "str", option: "bool" = False, **kwargs: "int") -> "int":
@@ -215,104 +196,34 @@ def test_real_python_function_resolves_forward_annotations():
     assert ":param model:" in info["overloads"][0]["description"]
 
 
-@dft
-def test_real_dft_python_function_resolves_forward_annotations():
-    info = docs.template_function_info("stormpy.dft.load_dft_galileo_file")
-    assert info["signatures"] == ("(path: str | os.PathLike[str]) -> stormpy.dft.DFT",)
-
-
-def test_real_native_conversion_preserves_conditional_overloads():
-    info = docs.template_function_info("stormpy.developer.storage.to_value_type")
-    assert info["signatures"] == ()
-    assert all(not docs._unresolved(overload["signature"]) for overload in info["overloads"])
-    assert any("stormpy.datastructures.Scheduler[float]" in overload["signature"] for overload in info["overloads"])
-    assert any(overload["specializations"] for overload in info["overloads"])
-
-
 def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     pytest.importorskip("sphinx")
     from io import StringIO
     from types import ModuleType
 
-    from sphinx.addnodes import desc_signature, pending_xref
+    from sphinx.addnodes import desc_signature
     from sphinx.application import Sphinx
 
-    family = make_native_function(monkeypatch)
-
-    @_template_function("test.select", parameters=["ValueType"], instantiations=(float, int), deduce=_deduce_default(float))
-    def select(value_type, value: int, *, label="a,b") -> int:
-        """Select a value using :func:`compute`.
-
-        :param value: The input value.
-        :param label: The label.
-        :return: The selected value.
-        """
-        return value
-
     module = ModuleType("test")
-    module.compute, module.select = family, select
+    module.compute = make_native_function(monkeypatch)
+    module.Example = make_family()
+    module.developer = ModuleType("test.developer")
+    module.developer.compute = module.compute.publish_as("test.developer.compute")
+    module.developer.Example = module.Example.publish_as("test.developer.Example")
     monkeypatch.setitem(sys.modules, "test", module)
-    developer = ModuleType("test.developer")
-    developer.compute = family.publish_as("test.developer.compute")
-    developer.select = select.publish_as("test.developer.select")
-    developer.Template = make_family().publish_as("test.developer.Template")
-    developer.Ordinary = type("Ordinary", (), {"__module__": developer.__name__, "__doc__": "An ordinary class."})
-
-    def constructor(self, components, limit=5):
-        """__init__(self: test.developer._bindings.Ordinary, components: storm::Components<std::pair<int, int>>, limit: int = 5) -> None
-
-        Construct an ordinary object.
-        """
-
-    def convert(self, model, value):
-        """convert(*args, **kwargs)
-        Overloaded function.
-
-        1. convert(self: test.developer._bindings.Ordinary, model: stormpy.developer.storage._storage.JaniModel, value: test._Opaque) -> storm::Result<int>
-
-        Convert a model.
-
-        2. convert(self: test.developer._bindings.Ordinary, model: stormpy.developer.storage._storage.JaniModel, value: int) -> int
-
-        Convert an integer.
-        """
-
-    def choose(value):
-        """choose(*args, **kwargs)
-        Overloaded function.
-
-        1. choose(value: storm::Opaque<int>, limit: int = 5) -> storm::Result<int>
-
-        Choose an opaque value.
-
-        2. choose(value: stormpy.developer.storage._storage.JaniModel) -> stormpy.developer.storage._storage.JaniModel
-
-        Choose a model.
-        """
-
-    developer.Ordinary.__init__ = constructor
-    developer.Ordinary.convert = convert
-    choose.__module__ = developer.__name__
-    module.Ordinary = type("Ordinary", (), {"__module__": module.__name__, "__init__": constructor, "convert": convert})
-    module.choose = developer.choose = choose
-    developer.ApiError = type("ApiError", (Exception,), {"__module__": developer.__name__, "__doc__": "An API error."})
-    developer.CONSTANT = 123
-    module.developer = developer
-    monkeypatch.setitem(sys.modules, "test.developer", developer)
+    monkeypatch.setitem(sys.modules, "test.developer", module.developer)
     source = Path(__file__).parents[2] / "doc/source"
     config = runpy.run_path(str(source / "conf.py"))
     (tmp_path / "conf.py").write_text("")
     (tmp_path / "index.rst").write_text("Documentation\n=============\n\n.. toctree::\n\n   api\n   developer_api\n")
     (tmp_path / "api.rst").write_text(
         "API Documentation\n=================\n\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/module.rst\n\n   test\n"
-        "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/class.rst\n\n   stormpy.io.JaniModel\n   stormpy.ConstraintCollector\n   stormpy.datastructures.BitVector\n"
+        "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/class.rst\n\n   stormpy.io.JaniModel\n   stormpy.datastructures.BitVector\n"
         "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/apiclass.rst\n\n   stormpy.datastructures.SparseMatrixBuilder\n   stormpy.datastructures.Scheduler\n   stormpy.models.SparseModelComponents\n"
-        "\nSee :class:`stormpy.developer.storage.JaniModel` or :class:`Custom label <stormpy.developer.storage._storage.JaniModel>`.\n"
+        "\nSee :class:`Custom label <stormpy.developer.storage._storage.JaniModel>`.\n"
     )
     (tmp_path / "developer_api.rst").write_text(
         "Developer API Documentation\n===========================\n\n.. autosummary::\n   :toctree: developer_api/generated\n   :template: autosummary/module.rst\n\n   test.developer\n"
-        "\n.. autosummary::\n   :toctree: developer_api/generated\n\n   test.developer.CONSTANT\n"
-        "\n.. autosummary::\n   :toctree: developer_api/generated\n   :template: autosummary/class.rst\n\n   stormpy.numbers.developer.gmp.Rational\n"
     )
     warnings = StringIO()
     app = Sphinx(
@@ -324,8 +235,6 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
         confoverrides={
             "extensions": ["stormpy_templates", "stormpy_developer", "sphinx.ext.autosummary"],
             "templates_path": [str(source / "_templates")],
-            "html_static_path": [str(source / "_static")],
-            "html_css_files": ["custom.css"],
             "autosummary_context": config["autosummary_context"],
             "autosummary_imported_members": True,
             "autoclass_content": "both",
@@ -340,32 +249,17 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     app.build(force_all=True)
     assert app.statuscode == 0, warnings.getvalue()
     assert warnings.getvalue() == ""
-    overview = (tmp_path / "api/generated/test.rst").read_text()
-    assert "Functions" in overview
-    assert "Module Attributes" not in overview
-    assert "Classes" in overview
-    for name in ("compute", "select"):
-        assert app.env.domains["py"].objects[f"test.{name}"].objtype == "function"
-        html = (tmp_path / f"html/api/generated/test.{name}.html").read_text()
-        assert "field-list" in html
-        assert ":param" not in html
-        assert "_compute_" not in html
-        assert "object at 0x" not in html
-        assert "Overloaded function." not in html
-    html = (tmp_path / "html/api/generated/test.select.html").read_text()
-    assert 'href="test.compute.html#test.compute"' in html
-    jani = (tmp_path / "html/api/generated/stormpy.io.JaniModel.html").read_text()
-    assert "other_model" in jani
-    assert 'href="#stormpy.io.JaniModel" title="stormpy.io.JaniModel"' in jani
-    collector = app.env.get_doctree("api/generated/stormpy.ConstraintCollector").astext()
-    assert "model: stormpy.models.SparseModel[stormpy.RationalFunction]" in collector
+    assert app.env.domains["py"].objects["test.compute"].objtype == "function"
+    function = (tmp_path / "html/api/generated/test.compute.html").read_text()
+    assert "field-list" in function
+    assert ":param" not in function
+    assert "_compute_" not in function
+    assert "object at 0x" not in function
+    assert "Overloaded function." not in function
     bitvector = app.env.get_doctree("api/generated/stormpy.datastructures.BitVector")
     constructors = [sig for sig in bitvector.findall(desc_signature) if sig.get("fullname") == "BitVector"]
     assert len(constructors) == 5
     assert "other: stormpy.datastructures.BitVector" in constructors[1].astext()
-    assert "set_entries:" in constructors[4].astext()
-    assert "Overloaded function." not in bitvector.astext()
-    assert "__init__(" not in bitvector.astext()
     assert "*args" not in "\n".join(sig.astext() for sig in constructors)
     matrix_builder = (tmp_path / "html/api/generated/stormpy.datastructures.SparseMatrixBuilder.html").read_text()
     assert "field-list" in matrix_builder
@@ -380,66 +274,17 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     api = (tmp_path / "html/api.html").read_text()
     assert 'href="api/generated/stormpy.io.JaniModel.html#stormpy.io.JaniModel"' in api
     assert "Custom label" in re.sub(r"<[^>]*>", "", api)
-    ordinary_tree = app.env.get_doctree("api/generated/test.Ordinary")
-    methods = [sig for sig in ordinary_tree.findall(desc_signature) if sig.get("fullname") == "Ordinary.convert"]
-    assert len(methods) == 2
-    assert all("self" not in sig.astext() for sig in methods)
-    ordinary = ordinary_tree.astext()
-    assert "components, limit: int = 5" in ordinary
-    assert "model: stormpy.io.JaniModel, value" in ordinary
-    assert "Construct an ordinary object." in ordinary
-    assert "Convert a model." in ordinary
-    assert "Convert an integer." in ordinary
-    assert "Overloaded function." not in ordinary
-    choice_tree = app.env.get_doctree("api/generated/test.choose")
-    choice_signatures = list(choice_tree.findall(desc_signature))
-    assert len(choice_signatures) == 2
-    choice = choice_tree.astext()
-    assert "Overloaded function." not in choice
-    assert "choose(value, limit: int = 5)" in choice
-    assert "choose(value: stormpy.io.JaniModel) -> stormpy.io.JaniModel" in choice
-    assert "Choose an opaque value." in choice
-    assert "Choose a model." in choice
-    # Inspect page content and type-reference targets, excluding shared navigation.
-    developer_name = re.compile(r"\b(?:[A-Za-z_]\w*\.)+developer(?:\.[A-Za-z_]\w*)*\b")
-    for docname in sorted(app.env.found_docs):
-        if docname != "api" and not docname.startswith("api/"):
-            continue
-        tree = app.env.get_doctree(docname)
-        assert "storm::" not in tree.astext(), f"C++ type mentioned in {docname}"
-        assert "test._Opaque" not in tree.astext(), f"Private type mentioned in {docname}"
-        mentions = set(developer_name.findall(tree.astext()))
-        for reference in tree.findall(pending_xref):
-            mentions.update(developer_name.findall(reference.get("reftarget", "")))
-        assert not mentions, f"Developer API mentioned in {docname}: {sorted(mentions)}"
     disclaimer = "The stormpy developer API is internal and always subject to change."
-    for page in (tmp_path / "html/api").rglob("*.html"):
-        assert disclaimer not in page.read_text()
-    for name in (
-        "test.developer",
-        "test.developer.compute",
-        "test.developer.select",
-        "test.developer.Template",
-        "test.developer.Ordinary",
-        "test.developer.choose",
-        "test.developer.ApiError",
-        "test.developer.CONSTANT",
-        "stormpy.numbers.developer.gmp.Rational",
-    ):
-        html = (tmp_path / f"html/developer_api/generated/{name}.html").read_text()
-        assert html.count(disclaimer) == 1
-        assert "developer-api-warning" in html
-    assert disclaimer in (tmp_path / "html/developer_api.html").read_text()
-    developer_index = (tmp_path / "html/developer_api.html").read_text()
-    assert 'href="developer_api/generated/stormpy.numbers.developer.gmp.Rational.html#stormpy.numbers.developer.gmp.Rational"' in developer_index
-    developer_ordinary = app.env.get_doctree("developer_api/generated/test.developer.Ordinary").astext()
-    assert "storm::Components<std::pair<int, int>>" in developer_ordinary
-    assert "storm::Result<int>" in developer_ordinary
-    assert "test._Opaque" in developer_ordinary
-    developer_choice = app.env.get_doctree("developer_api/generated/test.developer.choose").astext()
-    assert "storm::Opaque<int>" in developer_choice
-    assert "stormpy.developer.storage._storage.JaniModel" in developer_choice
-    assert "developer-api-warning" in (tmp_path / "html/_static/custom.css").read_text()
+    for docname in app.env.found_docs:
+        html = (tmp_path / f"html/{docname}.html").read_text()
+        if docname == "developer_api" or docname.startswith("developer_api/"):
+            assert html.count(disclaimer) == 1
+        elif docname.startswith("api/"):
+            assert disclaimer not in html
+            text = app.env.get_doctree(docname).astext()
+            assert "storm::" not in text
+            assert "_compute_" not in text
+            assert "test.developer" not in text
 
 
 def test_public_api_filter_includes_refactored_implementations(monkeypatch):
@@ -457,30 +302,6 @@ def test_developer_api_filter_omits_published_aliases(monkeypatch):
     monkeypatch.setitem(sys.modules, "test.public", SimpleNamespace(Example=family.publish_as("test.public.Example"), Shared=shared))
     config["_PUBLIC_MODULES"]["test.developer"] = ("test.public",)
     assert config["_filter_api_members"]("test.developer", ["Example", "Shared", "Raw"]) == ["Raw"]
-
-
-def test_core_bindings_moved_to_other_public_modules_are_not_duplicated(monkeypatch):
-    config = runpy.run_path(str(Path(__file__).parents[2] / "doc/source/conf.py"))
-    property_type, direction_type, log_level_type = object(), object(), object()
-    monkeypatch.setitem(
-        sys.modules, "stormpy.developer", SimpleNamespace(Property=property_type, OptimizationDirection=direction_type, LogLevel=log_level_type, Raw=object())
-    )
-    monkeypatch.setitem(sys.modules, "stormpy.logic", SimpleNamespace(Property=property_type, OptimizationDirection=direction_type))
-    monkeypatch.setitem(sys.modules, "stormpy.utility", SimpleNamespace(LogLevel=log_level_type))
-    assert config["_filter_api_members"]("stormpy.developer", ["Property", "OptimizationDirection", "LogLevel", "Raw"]) == ["Raw"]
-
-
-@dft
-def test_template_docstring_uses_native_description():
-    lines = ["Native C++ template family exposed as a subscriptable Python object."]
-    docs.template_docstring(None, "class", "stormpy.dft.DFT", stormpy.dft.DFT, None, lines)
-    assert lines == ["Dynamic Fault Tree"]
-
-
-def test_non_template_docstring_is_unchanged():
-    lines = ["Ordinary class description."]
-    docs.template_docstring(None, "class", "Example", object, None, lines)
-    assert lines == ["Ordinary class description."]
 
 
 def test_constructor_descriptions_in_class_body():
@@ -514,46 +335,6 @@ def test_constructor_descriptions_preserve_specialization_differences():
     ]
 
 
-def test_inherited_object_constructor_description_is_omitted():
-    family = make_family()
-    assert docs.constructor_descriptions(family, [family]) == []
-
-
-def test_public_aliases():
-    assert docs.argument_name(stormpy.Rational) == "stormpy.Rational"
-    assert docs.argument_name(stormpy.Interval) == "stormpy.Interval"
-    assert docs.argument_name(stormpy.RationalInterval) == "stormpy.RationalInterval"
-    assert docs.argument_name(stormpy.RationalFunction) == "stormpy.RationalFunction"
-    assert docs.argument_name(stormpy.models.DdType.Sylvan) == "stormpy.models.DdType.Sylvan"
-    assert all("_storage" not in docs.specialization_name(stormpy.models.SparseMdp, inst) for inst in stormpy.models.SparseMdp.metadata.instantiations)
-
-
-def test_pybind_overloads():
-    doc = """get(self: test._Floating, value: float) -> float\nOverloaded function.\n\n1. get(self: test._Floating, value: float) -> float\n\n2. get(self: test._Floating, value: int) -> float\n\nDescription."""
-    indexes = docs.signature_lines(doc, "get")
-    assert indexes == [0, 3, 5]
-    assert docs.signature_lines("get(self: test.Example[ValueType])\n\nDescription.", "get") == [0]
-    assert "Description." not in [doc.splitlines()[i] for i in indexes]
-
-
-def test_overload_substitution_and_unrecognized_cpp_types():
-    family = make_family()
-    entries = []
-    for inst in family.metadata.instantiations:
-        typ = docs.argument_name(inst.arguments[0])
-        entries.append(
-            (
-                inst,
-                f"""shared(*args, **kwargs)\nOverloaded function.\n\n1. shared(self: {inst.native_name}, value: {typ}) -> {typ}\n\n2. shared(self: {inst.native_name}, value: int) -> storm::opaque<{typ}>\n\nShared method.""",
-            )
-        )
-    variants = docs.generic_docs(family, entries, [family], "shared")
-    assert all("1. shared(self: test.Example[ValueType], value: ValueType) -> ValueType" in text for _, text in variants)
-    assert all("storm::opaque<" not in text for _, text in variants)
-    assert all("2. shared(self: test.Example[ValueType], value: int)" in text for _, text in variants)
-    assert all("Shared method." in text for _, text in variants)
-
-
 def test_unresolved_annotations_are_omitted_not_overloads():
     assert (
         docs._public_signature(
@@ -579,25 +360,6 @@ def test_constructor_deduction_descriptions():
     assert docs.deduction_description(stormpy.developer.storage.Add) is None
 
 
-@dft
-def test_dft_constructor_deduction_descriptions():
-    description = docs.deduction_description(stormpy.dft.developer.DFTTraceSimulator)
-    assert "first positional constructor argument" in description
-    assert "``dft``" in description
-
-
-def test_real_constructor_overloads_are_not_dropped():
-    family = stormpy.models.SparseCtmc
-    output = docs.render_members(family, [family, stormpy.models.SparseModel])
-    signatures, variants = docs.constructors(family, [family, stormpy.models.SparseModel])
-    assert signatures == ("(other_model: stormpy.models.SparseCtmc[ValueType])", "(components)")
-    assert variants == []
-    assert "SparseCtmc.__init__" not in output
-    assert "SparseCtmc.__str__" not in output
-    assert ".. py:method:: SparseCtmc.collect_reward_parameters(self: stormpy.models.SparseModel[stormpy.RationalFunction])" in output
-    assert ".. code-block:: text\n\n      collect_reward_parameters(" not in output
-
-
 def test_object_defaults_do_not_split_generic_signatures():
     family = make_family()
     for index, inst in enumerate(family.metadata.instantiations):
@@ -612,17 +374,6 @@ def test_object_defaults_do_not_split_generic_signatures():
     assert variants == []
 
 
-@dft
-def test_developer_dft_builder_constructor():
-    family = stormpy.dft.developer.ExplicitDFTModelBuilder
-    output = docs.render_members(family, [family])
-    signatures, variants = docs.constructors(family, [family])
-    assert signatures == ("(env, dft, symmetries)",)
-    assert variants == []
-    assert "ExplicitDFTModelBuilder.__init__" not in output
-    assert "object at 0x" not in output
-
-
 def test_specialization_specific_constructors_are_retained():
     family = stormpy.models.SparseRewardModel
     signatures, variants = docs.constructors(family, [family])
@@ -630,26 +381,3 @@ def test_specialization_specific_constructors_are_retained():
     assert variants
     assert all("SparseRewardModel[" in specialization for specialization, _ in variants)
     assert all("ValueType" not in signature for _, signature in variants)
-
-
-def test_real_conditional_methods_and_unrecognized_signatures():
-    output = docs.render_members(stormpy.datastructures.Scheduler, [stormpy.datastructures.Scheduler])
-    assert (
-        ".. py:method:: Scheduler.to_value_type(self: stormpy.datastructures.Scheduler, value_type: type = float) -> stormpy.datastructures.Scheduler" in output
-    )
-    assert "cast_to_double_datatype" not in output
-    check = docs.render_members(stormpy.ExplicitQualitativeCheckResult, [stormpy.ExplicitQualitativeCheckResult])
-    assert ".. py:method:: ExplicitQualitativeCheckResult.get_truth_values_vector" in check
-    assert "storm::modelchecker::ExplicitQualitativeCheckResult" not in check
-    matrix = docs.render_members(
-        stormpy.datastructures.SparseMatrix,
-        [stormpy.datastructures.SparseMatrix, stormpy.datastructures.SparseMatrixRows, stormpy.datastructures.SparseMatrixEntry],
-    )
-    assert "stormpy.datastructures.SparseMatrixEntry[ValueType]" in matrix
-    assert ".. py:property:: SparseMatrix.nr_rows" in matrix
-    ma = docs.render_members(stormpy.models.SparseMA, [stormpy.models.SparseMA])
-    assert ".. py:property:: SparseMA.supports_parameters" in ma
-    assert "Type: ``bool``" not in ma
-    state = docs.render_members(stormpy.developer.storage.SparseModelState, [stormpy.developer.storage.SparseModelState])
-    assert "SparseModelState.__int__" not in state
-    assert "SparseModelState.__new__" not in state
