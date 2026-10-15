@@ -304,7 +304,7 @@ def _loaded_template_classes():
 
 def _public_type_names():
     """Map native non-template types to their public or developer exports."""
-    aliases = {}
+    aliases, exports = {}, {}
     for module_name, module in list(sys.modules.items()):
         if not module_name.startswith("stormpy") or module is None or any(part.startswith("_") for part in module_name.split(".")):
             continue
@@ -317,7 +317,9 @@ def _public_type_names():
             public_name = argument_name(obj)
             alias = public_name if public_name != native_name else f"{module_name}.{name}"
             aliases.setdefault(native_name, []).append(alias)
-    return {native: min(names, key=lambda name: (".developer" in name, name.count("."), len(name), name)) for native, names in aliases.items()}
+            exports[f"{module_name}.{name}"] = native_name
+    preferred = {native: min(names, key=lambda name: (".developer" in name, name.count("."), len(name), name)) for native, names in aliases.items()}
+    return {**preferred, **{export: preferred[native] for export, native in exports.items()}}
 
 
 def _function_annotation(annotation, implementation):
@@ -461,8 +463,43 @@ def template_docstring(app, what, name, obj, options, lines):
     lines[:] = "\n\n".join(descriptions).splitlines()
 
 
+def public_type_references(app, doctree):
+    """Resolve native annotations through their published public API aliases.
+
+    Apply this after autodoc parses signatures so constructors, overloads,
+    return types and explicit type roles all use the same mapping.
+    """
+    from docutils import nodes
+    from sphinx.addnodes import desc_signature, pending_xref
+
+    aliases = _public_type_names()
+    for reference in doctree.findall(pending_xref):
+        if reference.get("refdomain") != "py":
+            continue
+        target = reference.get("reftarget")
+        public = aliases.get(target, target)
+        if public == target:
+            continue
+        reference["reftarget"] = public
+        if not reference.get("refexplicit"):
+            for text in list(reference.findall(nodes.Text)):
+                if str(text) == target:
+                    text.parent.replace(text, nodes.Text(public))
+    # Sphinx retains unparseable C++ annotations as plain signature text.
+    # Normalize their type spellings too, even when it cannot create a link.
+    aliases = {native: public for native, public in aliases.items() if native != public}
+    if aliases:
+        pattern = re.compile(r"(?<![\w.])(?:" + "|".join(re.escape(key) for key in sorted(aliases, key=len, reverse=True)) + r")(?![\w.])")
+        for signature in doctree.findall(desc_signature):
+            for text in list(signature.findall(nodes.Text)):
+                public = pattern.sub(lambda match: aliases[match.group()], str(text))
+                if public != str(text):
+                    text.parent.replace(text, nodes.Text(public))
+
+
 def setup(app):
     """Register the project-local Sphinx extension."""
     app.setup_extension("sphinx.ext.autodoc")
     app.connect("autodoc-process-docstring", template_docstring)
+    app.connect("doctree-read", public_type_references)
     return {"parallel_read_safe": True, "parallel_write_safe": True}

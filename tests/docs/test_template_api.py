@@ -1,6 +1,7 @@
 """Sphinx template renderer tests; can run without importing Sphinx itself."""
 
 import importlib.util
+import re
 import runpy
 import sys
 from pathlib import Path
@@ -191,6 +192,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     from io import StringIO
     from types import ModuleType
 
+    from sphinx.addnodes import pending_xref
     from sphinx.application import Sphinx
 
     family = make_native_function(monkeypatch)
@@ -223,6 +225,8 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     (tmp_path / "index.rst").write_text("Documentation\n=============\n\n.. toctree::\n\n   api\n   developer_api\n")
     (tmp_path / "api.rst").write_text(
         "API Documentation\n=================\n\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/module.rst\n\n   test\n"
+        "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/class.rst\n\n   stormpy.io.JaniModel\n"
+        "\nSee :class:`stormpy.developer.storage.JaniModel` or :class:`Custom label <stormpy.developer.storage._storage.JaniModel>`.\n"
     )
     (tmp_path / "developer_api.rst").write_text(
         "Developer API Documentation\n===========================\n\n.. autosummary::\n   :toctree: developer_api/generated\n   :template: autosummary/module.rst\n\n   test.developer\n"
@@ -242,6 +246,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
             "html_css_files": ["custom.css"],
             "autosummary_context": config["autosummary_context"],
             "autosummary_imported_members": True,
+            "autoclass_content": "both",
             # The test loads conf.py through runpy, whose functions cannot be pickled.
             "suppress_warnings": ["config.cache"],
         },
@@ -267,6 +272,22 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
         assert "Overloaded function." not in html
     html = (tmp_path / "html/api/generated/test.select.html").read_text()
     assert 'href="test.compute.html#test.compute"' in html
+    jani = (tmp_path / "html/api/generated/stormpy.io.JaniModel.html").read_text()
+    assert "other_model" in jani
+    assert 'href="#stormpy.io.JaniModel" title="stormpy.io.JaniModel"' in jani
+    api = (tmp_path / "html/api.html").read_text()
+    assert 'href="api/generated/stormpy.io.JaniModel.html#stormpy.io.JaniModel"' in api
+    assert "Custom label" in re.sub(r"<[^>]*>", "", api)
+    # Inspect page content and type-reference targets, excluding shared navigation.
+    developer_name = re.compile(r"\b(?:[A-Za-z_]\w*\.)+developer(?:\.[A-Za-z_]\w*)*\b")
+    for docname in sorted(app.env.found_docs):
+        if docname != "api" and not docname.startswith("api/"):
+            continue
+        tree = app.env.get_doctree(docname)
+        mentions = set(developer_name.findall(tree.astext()))
+        for reference in tree.findall(pending_xref):
+            mentions.update(developer_name.findall(reference.get("reftarget", "")))
+        assert not mentions, f"Developer API mentioned in {docname}: {sorted(mentions)}"
     disclaimer = "The stormpy developer API is internal and always subject to change."
     for page in (tmp_path / "html/api").rglob("*.html"):
         assert disclaimer not in page.read_text()
