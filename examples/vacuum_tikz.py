@@ -1,4 +1,4 @@
-"""Text-free TikZ room diagram: visit heatmap, policy, and room pictograms."""
+"""TikZ room diagram: visit heatmap, labeled scale, policy, and room pictograms."""
 
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -42,7 +42,7 @@ def export_vacuum_tikz(path, grid, mdp, dtmc, scheduler, visits, variables):
              r"\usepackage{tikz}", r"\usetikzlibrary{arrows.meta,svg.path}",
              r"\definecolor{gridcol}{RGB}{43,52,69}",
              r"\definecolor{cellcol}{RGB}{244,245,247}",
-             r"\definecolor{heatcol}{RGB}{83,139,180}",
+             r"\definecolor{heatcol}{RGB}{165,138,181}",
              r"\definecolor{catcol}{RGB}{239,159,39}",
              r"\definecolor{stormyellow}{RGB}{244,190,25}",
              r"\definecolor{hazardcell}{RGB}{252,235,235}",
@@ -145,16 +145,22 @@ def export_vacuum_tikz(path, grid, mdp, dtmc, scheduler, visits, variables):
             sx, sy = x + .5 - .165 * dx, y + .5 - .165 * dy
             ex, ey = x + .5 + .30 * dx, y + .5 + .30 * dy
             lines.append(fr"\draw[-{{Latex[length=6.5pt,width=6.5pt]}},optimalcol,line width=2.6pt] ({sx:.4f},{sy:.4f}) -- ({ex:.4f},{ey:.4f});")
-    # Render the scale with exactly the same color mixtures as the cells,
-    # rather than PGF's independently interpolated shading.
-    for i in range(256):
-        left = .10 + 4.80 * i / 256
-        right = .10 + 4.80 * (i + 1) / 256
-        lines.append(fr"\fill[heatcol!{heat_mix(maximum*i/255):.2f}!cellcol] ({left:.5f},-.23) rectangle ({right:.5f},-.10);")
-    lines.append(r"\draw[gridcol!40,line width=.35pt] (.10,-.23) rectangle (4.90,-.10);")
-    for fraction in (0, .25, .5, .75, 1):
-        x = .10 + 4.80 * fraction
-        lines.append(fr"\draw[gridcol!60,line width=.4pt] ({x:.4f},-.23)--({x:.4f},-.27);")
-        lines.append(fr"\node[anchor=north,inner sep=1pt,text=gridcol,font=\sffamily\scriptsize] at ({x:.4f},-.28) {{{maximum*fraction:.0f}}};")
+    # A single PDF shading avoids seams between separately antialiased strips.
+    # Sample the cells' power-law color mapping at evenly spaced visit counts.
+    lines.append(r"\pgfdeclarehorizontalshading{visitslegend}{100bp}{")
+    lines.append(r"color(0bp)=(cellcol);")
+    # TikZ maps the middle half (25--75bp) of a shading onto the rectangle.
+    for i in range(257):
+        position = 25 + 50 * i / 256
+        lines.append(fr"color({position:.8f}bp)=(heatcol!{heat_mix(maximum*i/256):.2f}!cellcol);")
+    lines.append(r"color(100bp)=(heatcol!85!cellcol)}")
+    # Center the measured row as a whole, with a shared text baseline.
+    lines.append(fr"\matrix[anchor=south,inner sep=0pt,column sep=4pt] at ({width / 2:.2f},{height + .16:.2f}) {{")
+    lines += [r"\node[anchor=base,inner sep=0pt,text=black,font=\sffamily\scriptsize] {Expected visiting times:}; &",
+              r"\node[anchor=base,inner sep=0pt,text=gridcol,font=\sffamily\scriptsize] {0}; &",
+              r"\shade[shading=visitslegend] (-.85,.015) rectangle (.85,.145);",
+              r"\draw[gridcol!40,line width=.35pt] (-.85,.015) rectangle (.85,.145); &",
+              fr"\node[anchor=base,inner sep=0pt,text=gridcol,font=\sffamily\scriptsize] {{{maximum}}}; \\",
+              r"};"]
     lines += [r"\end{tikzpicture}", r"\end{document}"]
     Path(path).write_text("\n".join(lines) + "\n")
