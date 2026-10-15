@@ -231,6 +231,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     (tmp_path / "developer_api.rst").write_text(
         "Developer API Documentation\n===========================\n\n.. autosummary::\n   :toctree: developer_api/generated\n   :template: autosummary/module.rst\n\n   test.developer\n"
         "\n.. autosummary::\n   :toctree: developer_api/generated\n\n   test.developer.CONSTANT\n"
+        "\n.. autosummary::\n   :toctree: developer_api/generated\n   :template: autosummary/class.rst\n\n   stormpy.numbers.developer.gmp.Rational\n"
     )
     warnings = StringIO()
     app = Sphinx(
@@ -299,11 +300,14 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
         "test.developer.Ordinary",
         "test.developer.ApiError",
         "test.developer.CONSTANT",
+        "stormpy.numbers.developer.gmp.Rational",
     ):
         html = (tmp_path / f"html/developer_api/generated/{name}.html").read_text()
         assert html.count(disclaimer) == 1
         assert "developer-api-warning" in html
     assert disclaimer in (tmp_path / "html/developer_api.html").read_text()
+    developer_index = (tmp_path / "html/developer_api.html").read_text()
+    assert 'href="developer_api/generated/stormpy.numbers.developer.gmp.Rational.html#stormpy.numbers.developer.gmp.Rational"' in developer_index
     assert "developer-api-warning" in (tmp_path / "html/_static/custom.css").read_text()
 
 

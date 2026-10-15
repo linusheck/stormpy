@@ -472,6 +472,10 @@ def public_type_references(app, doctree):
     from docutils import nodes
     from sphinx.addnodes import desc_signature, pending_xref
 
+    # Developer pages must keep links to the developer objects they document.
+    docname = app.env.docname
+    if docname == "developer_api" or docname.startswith("developer_api/"):
+        return
     aliases = _public_type_names()
     for reference in doctree.findall(pending_xref):
         if reference.get("refdomain") != "py":
