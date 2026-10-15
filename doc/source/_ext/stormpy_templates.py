@@ -5,6 +5,7 @@ member signatures. Never infer a generic annotation from a single concrete
 signature: fixed types stay concrete; unresolved native signatures are omitted.
 """
 
+import builtins
 import inspect
 import re
 import sys
@@ -33,7 +34,7 @@ def specialization_name(family, inst):
 
 
 def deduction_description(family):
-    """Describe built-in constructor guides using their argument metadata."""
+    """Describe built-in deduction guides using their argument metadata."""
     metadata = family.metadata
     guide = metadata.deduction_guide
     if guide == "deduce_default":
@@ -43,7 +44,8 @@ def deduction_description(family):
         return None
     source = metadata.deduction_source
     position = ("first", "second", "third")[source.position] if 0 <= source.position < 3 else f"position {source.position} (zero-based)"
-    description = f"The specialization can be inferred from the {position} positional constructor argument"
+    context = "function" if isinstance(family, _TemplateFunction) else "constructor"
+    description = f"The specialization can be inferred from the {position} positional {context} argument"
     if source.keywords:
         keywords = " or ".join(f"``{keyword}``" for keyword in source.keywords)
         description += f" (alternatively, the {keywords} keyword argument)"
@@ -72,9 +74,18 @@ def _unresolved(line):
 
 def _split_arguments(text):
     """Split pybind arguments without splitting inside nested type arguments."""
-    args, start, depth = [], 0, 0
+    args, start, depth, quote, escaped = [], 0, 0, None, False
     for i, char in enumerate(text):
-        if char in "<([":
+        if quote:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char in "<([":
             depth += 1
         elif char in ">)]":
             depth -= 1
@@ -87,7 +98,9 @@ def _split_arguments(text):
 
 def _public_signature(line):
     """Drop unresolvable annotations, not the overload they occur in."""
-    match = re.fullmatch(r"(?P<prefix>(?:\d+\. )?\w+)\((?P<args>.*)\) -> (?P<return>.*)", line)
+    # Stabilize defaults even when a function has no return annotation.
+    line = re.sub(r"<[^<>]* object(?: at 0x[0-9a-fA-F]+)?>", "...", line)
+    match = re.fullmatch(r"(?P<prefix>(?:\d+\. )?\w+)\((?P<args>.*)\)(?: -> (?P<return>.*))?", line)
     if not match:
         return line
     args = _split_arguments(match["args"])
@@ -98,9 +111,7 @@ def _public_signature(line):
             if _unresolved(typ):
                 args[i] = name + (" = " + default if default_separator else "")
     result = match["return"]
-    signature = f"{match['prefix']}({', '.join(args)})" + (" -> " + result if not _unresolved(result) else "")
-    # pybind prints object defaults using their process-specific memory address.
-    return re.sub(r"(?<= = )<[^<>]* object at 0x[0-9a-fA-F]+>", "...", signature)
+    return f"{match['prefix']}({', '.join(args)})" + (" -> " + result if result and not _unresolved(result) else "")
 
 
 def signature_lines(doc, name):
@@ -155,7 +166,7 @@ def generic_docs(family, entries, families, name):
                 generic, fixed = replacements[token]
                 return generic if self_type or varies else fixed
 
-            normalized = pattern.sub(replace, line)
+            normalized = pattern.sub(replace, line) if replacements else line
             lines[i] = _public_signature(normalized)
         # pybind's overload heading is not useful without all signatures.
         lines = [line for line in lines if line != "Overloaded function." and line != f"{name}(*args, **kwargs)"]
@@ -279,27 +290,139 @@ def template_functions(module):
     return sorted(name for name, obj in vars(sys.modules[module]).items() if isinstance(obj, _TemplateFunction) and obj.canonical_name == f"{module}.{name}")
 
 
+def _loaded_template_classes():
+    return tuple(
+        {
+            id(obj): obj
+            for module_name, module_obj in list(sys.modules.items())
+            if module_name.startswith("stormpy") and module_obj is not None
+            for obj in vars(module_obj).values()
+            if isinstance(obj, _TemplateClass) and not isinstance(obj, _TemplateFunction)
+        }.values()
+    )
+
+
+def _public_type_names():
+    """Map native non-template types to their public or developer exports."""
+    aliases = {}
+    for module_name, module in list(sys.modules.items()):
+        if not module_name.startswith("stormpy") or module is None or any(part.startswith("_") for part in module_name.split(".")):
+            continue
+        for name, obj in vars(module).items():
+            if name.startswith("_") or not isinstance(obj, type) or not obj.__module__.startswith("stormpy"):
+                continue
+            if hasattr(module, "__all__") and name not in module.__all__:
+                continue
+            native_name = f"{obj.__module__}.{obj.__qualname__}"
+            public_name = argument_name(obj)
+            alias = public_name if public_name != native_name else f"{module_name}.{name}"
+            aliases.setdefault(native_name, []).append(alias)
+    return {native: min(names, key=lambda name: (".developer" in name, name.count("."), len(name), name)) for native, names in aliases.items()}
+
+
+def _function_annotation(annotation, implementation):
+    """Resolve Python forward annotations in the original function's namespace."""
+    if isinstance(annotation, _TemplateClass):
+        return annotation.canonical_name
+    text = annotation if isinstance(annotation, str) else inspect.formatannotation(annotation)
+    namespace = getattr(inspect.unwrap(implementation), "__globals__", {})
+
+    def resolve(match):
+        name, *attributes = match.group().split(".")
+        obj = namespace.get(name, getattr(builtins, name, None))
+        for attribute in attributes:
+            obj = getattr(obj, attribute, None)
+        if isinstance(obj, _TemplateClass):
+            return obj.canonical_name
+        return argument_name(obj) if isinstance(obj, type) else match.group()
+
+    return re.sub(r"\b[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*", resolve, text)
+
+
+def _python_function_signature(implementation, name):
+    signature = inspect.signature(implementation)
+    parameters = list(signature.parameters.values())
+    args = []
+    for i, parameter in enumerate(parameters):
+        if parameter.kind == inspect.Parameter.KEYWORD_ONLY and (
+            i == 0 or parameters[i - 1].kind not in (inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.VAR_POSITIONAL)
+        ):
+            args.append("*")
+        arg = str(parameter.replace(annotation=inspect.Parameter.empty, default=inspect.Parameter.empty))
+        if parameter.annotation is not inspect.Parameter.empty:
+            arg += ": " + _function_annotation(parameter.annotation, implementation)
+        if parameter.default is not inspect.Parameter.empty:
+            default = parameter.default
+            default_text = argument_name(default) if hasattr(default, "name") else repr(default)
+            arg += " = " + default_text
+        args.append(arg)
+        if parameter.kind == inspect.Parameter.POSITIONAL_ONLY and (i + 1 == len(parameters) or parameters[i + 1].kind != inspect.Parameter.POSITIONAL_ONLY):
+            args.append("/")
+    result = f"{name}({', '.join(args)})"
+    if signature.return_annotation is not inspect.Signature.empty:
+        result += " -> " + _function_annotation(signature.return_annotation, implementation)
+    return result
+
+
 def template_function_info(fullname):
     module, _, name = fullname.rpartition(".")
     family = getattr(sys.modules[module], name)
+    aliases = _public_type_names()
+    alias_pattern = re.compile(r"(?<![\w.])(?:" + "|".join(re.escape(key) for key in sorted(aliases, key=len, reverse=True)) + r")(?![\w.])")
     entries = []
     for inst in family.metadata.instantiations:
         doc = member_doc(inst.implementation)
+        native_name = inst.implementation.__name__
+        lines = doc.splitlines()
+        for i in signature_lines(doc, native_name):
+            lines[i] = re.sub(rf"^((?:\d+\. )?){re.escape(native_name)}\(", rf"\g<1>{name}(", lines[i])
+        doc = "\n".join(lines)
         if not signature_lines(doc, name):
             try:
-                signature = inspect.signature(inst.implementation)
+                signature = _python_function_signature(inst.implementation, name)
             except (TypeError, ValueError):
                 pass
             else:
-                doc = f"{name}{signature}\n\n{doc}"
+                doc = f"{signature}\n\n{doc}"
+        lines = doc.splitlines()
+        for i in signature_lines(doc, name):
+            if aliases:
+                lines[i] = alias_pattern.sub(lambda match: aliases[match.group()], lines[i])
+            lines[i] = re.sub(r"<[^<>]* object(?: at 0x[0-9a-fA-F]+)?>", "...", lines[i])
+        doc = "\n".join(lines)
         entries.append((inst, doc))
-    descriptions = {}
-    for inst, doc in generic_docs(family, entries, [], name):
-        descriptions.setdefault(doc, []).append(specialization_name(family, inst))
+    overloads, signatures = {}, []
+    for inst, doc in generic_docs(family, entries, _loaded_template_classes(), name):
+        lines = doc.splitlines()
+        indexes = signature_lines(doc, name)
+        current_signatures = []
+        for position, start in enumerate(indexes):
+            signature = re.sub(r"^\d+\. ", "", lines[start])[len(name) :]
+            end = indexes[position + 1] if position + 1 < len(indexes) else len(lines)
+            description = "\n".join(lines[start + 1 : end]).strip()
+            specializations = overloads.setdefault((signature, description), [])
+            specialization = specialization_name(family, inst)
+            if specialization not in specializations:
+                specializations.append(specialization)
+            current_signatures.append(signature)
+        if not indexes:
+            overloads.setdefault(("", doc), []).append(specialization_name(family, inst))
+        signatures.append(tuple(dict.fromkeys(current_signatures)))
+    common = signatures[0] if signatures and all(group == signatures[0] for group in signatures) else ()
     return {
         "parameters": ", ".join(p.name for p in family.metadata.parameters),
+        "kinds": [(p.name, p.kind) for p in family.metadata.parameters],
+        "signatures": common,
+        "deduction": deduction_description(family),
         "instantiations": [specialization_name(family, inst) for inst in family.metadata.instantiations],
-        "descriptions": list(descriptions.items()),
+        "overloads": [
+            {
+                "signature": signature,
+                "description": description,
+                "specializations": specializations if len(specializations) != len(family.metadata.instantiations) else [],
+            }
+            for (signature, description), specializations in overloads.items()
+        ],
     }
 
 
@@ -312,24 +435,18 @@ def template_info(fullname):
         description = inspect.getdoc(inst.implementation)
         if description:
             descriptions.setdefault(description, []).append(", ".join(argument_name(arg) for arg in inst.arguments))
-    families = {
-        id(obj): obj
-        for module_name, module_obj in list(sys.modules.items())
-        if module_name.startswith("stormpy") and module_obj is not None
-        for obj in vars(module_obj).values()
-        if isinstance(obj, _TemplateClass)
-    }
-    common_constructors, constructor_variants = constructors(family, families.values())
+    families = _loaded_template_classes()
+    common_constructors, constructor_variants = constructors(family, families)
     return {
         "constructors": common_constructors,
         "constructor_variants": constructor_variants,
-        "constructor_descriptions": constructor_descriptions(family, families.values()),
+        "constructor_descriptions": constructor_descriptions(family, families),
         "descriptions": list(descriptions.items()),
         "deduction": deduction_description(family),
         "parameters": ", ".join(p.name for p in metadata.parameters),
         "kinds": [(p.name, p.kind) for p in metadata.parameters],
         "instantiations": [", ".join(argument_name(arg) for arg in inst.arguments) for inst in metadata.instantiations],
-        "members": render_members(family, families.values()),
+        "members": render_members(family, families),
     }
 
 
@@ -337,7 +454,10 @@ def template_docstring(app, what, name, obj, options, lines):
     """Use native family descriptions, not the template wrapper's docstring."""
     if not isinstance(obj, _TemplateClass):
         return
-    descriptions = dict.fromkeys(description for inst in obj.metadata.instantiations if (description := inspect.getdoc(inst.implementation)))
+    if isinstance(obj, _TemplateFunction):
+        descriptions = dict.fromkeys(overload["description"] for overload in template_function_info(obj.canonical_name)["overloads"] if overload["description"])
+    else:
+        descriptions = dict.fromkeys(description for inst in obj.metadata.instantiations if (description := inspect.getdoc(inst.implementation)))
     lines[:] = "\n\n".join(descriptions).splitlines()
 
 

@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 import stormpy
 import stormpy.dft
 from stormpy._template import _TemplateClass, _TemplateFunction, _template_function, _deduce_default
@@ -70,7 +71,184 @@ def test_template_functions_are_listed_separately(monkeypatch):
     info = docs.template_function_info("test.scale")
     assert info["parameters"] == "ValueType"
     assert info["instantiations"] == ["scale[float]", "scale[int]"]
-    assert info["descriptions"] == [("scale(value: int) -> int\n\nScale a value.", ["scale[float]", "scale[int]"])]
+    assert info["signatures"] == ("(value: int) -> int",)
+    assert info["overloads"] == [{"signature": "(value: int) -> int", "description": "Scale a value.", "specializations": []}]
+    assert "scale[float]" in info["deduction"]
+
+
+def make_native_function(monkeypatch, *, conditional=False):
+    def floating():
+        pass
+
+    def integral():
+        pass
+
+    for implementation, typename, index in ((floating, "float", 1), (integral, "int", 2)):
+        implementation.__name__ = f"_compute_{typename}"
+        implementation.__doc__ = (
+            f"_compute_{typename}(*args, **kwargs)\nOverloaded function.\n\n"
+            f"1. _compute_{typename}(value: {typename}, tolerance: float, options: test._Options = <test._Options object at 0x{index:x}>) -> {typename}\n\n"
+            "Compute a value.\n\n:param value: The input.\n:return: The result.\n\n"
+        )
+        if not conditional or implementation is floating:
+            implementation.__doc__ += (
+                f"2. _compute_{typename}(label: str = 'a,b') -> storm::Opaque<{typename}>\n\n" "Compute from a label; see :func:`compute`."
+            )
+    family = _TemplateFunction(
+        "test.compute", SimpleNamespace(_template_instantiations={"compute": {(float,): floating, (int,): integral}}), parameters=["ValueType"]
+    )
+    monkeypatch.setitem(sys.modules, "test", SimpleNamespace(compute=family))
+    return family
+
+
+def test_native_function_signatures_and_prose_are_separate(monkeypatch):
+    make_native_function(monkeypatch)
+    info = docs.template_function_info("test.compute")
+    assert info["signatures"] == ("(value: ValueType, tolerance: float, options = ...) -> ValueType", "(label: str = 'a,b')")
+    assert info["overloads"] == [
+        {"signature": info["signatures"][0], "description": "Compute a value.\n\n:param value: The input.\n:return: The result.", "specializations": []},
+        {"signature": info["signatures"][1], "description": "Compute from a label; see :func:`compute`.", "specializations": []},
+    ]
+    lines = []
+    docs.template_docstring(None, "function", "test.compute", sys.modules["test"].compute, None, lines)
+    assert lines[0] == "Compute a value."
+    assert all("_compute_" not in line and "Overloaded function." not in line for line in lines)
+
+
+def test_function_overloads_only_available_for_some_specializations(monkeypatch):
+    make_native_function(monkeypatch, conditional=True)
+    info = docs.template_function_info("test.compute")
+    assert info["signatures"] == ()
+    assert len(info["overloads"]) == 2
+    assert info["overloads"][0]["specializations"] == []
+    assert info["overloads"][1]["specializations"] == ["compute[float]"]
+    assert info["overloads"][1]["signature"] == "(label: str = 'a,b')"
+
+
+def test_function_with_value_template_parameters():
+    @_template_function("test.scale", parameters=["factor"], instantiations=(2, 3))
+    def scale(factor, value: int) -> int:
+        return factor * value
+
+    entries = [(inst, "scale(value: int) -> int") for inst in scale.metadata.instantiations]
+    assert docs.generic_docs(scale, entries, [], "scale") == entries
+
+
+def test_functions_without_return_annotations_have_stable_defaults():
+    assert (
+        docs._public_signature("run(options: test._Options = <test._Options object at 0x123>, label: str = 'a,b')") == "run(options = ..., label: str = 'a,b')"
+    )
+
+
+def test_python_function_signatures_preserve_argument_kinds(monkeypatch):
+    @_template_function("test.select", parameters=["ValueType"], instantiations=(float, int))
+    def select(value_type, value: "int", /, *args: "str", option: "bool" = False, **kwargs: "int") -> "int":
+        """Select a value.\n\n:param value: Input."""
+        return value
+
+    monkeypatch.setitem(sys.modules, "test", SimpleNamespace(select=select))
+    info = docs.template_function_info("test.select")
+    assert info["signatures"] == ("(value: int, /, *args: str, option: bool = False, **kwargs: int) -> int",)
+    assert info["overloads"][0]["description"] == "Select a value.\n\n:param value: Input."
+
+
+def test_real_native_function_uses_public_generic_types():
+    info = docs.template_function_info("stormpy.developer.build_sparse_model")
+    assert len(info["signatures"]) == 2
+    signature = info["signatures"][0]
+    assert "model: stormpy.SymbolicModelDescription" in signature
+    assert "stormpy.developer.ExplicitModelBuilderOptions[ValueType] = ..." in signature
+    assert "-> stormpy.models.SparseModel[ValueType]" in signature
+    assert all(not docs._unresolved(overload["signature"]) for overload in info["overloads"])
+    assert all("object at 0x" not in overload["signature"] for overload in info["overloads"])
+    aliases = docs._public_type_names()
+    assert aliases[f"{stormpy.logic.Property.__module__}.Property"] == "stormpy.logic.Property"
+    assert aliases[f"{stormpy.models.ModelType.__module__}.ModelType"] == "stormpy.models.ModelType"
+
+
+def test_real_python_function_resolves_forward_annotations():
+    info = docs.template_function_info("stormpy.build_model")
+    (signature,) = info["signatures"]
+    assert "stormpy.io.PrismProgram | stormpy.io.JaniModel" in signature
+    assert "collections.abc.Iterable[stormpy.logic.Property]" in signature
+    assert "*, options:" in signature
+    assert "engine: stormpy.Engine = stormpy.Engine.SPARSE" in signature
+    assert ":param model:" in info["overloads"][0]["description"]
+    dft = docs.template_function_info("stormpy.dft.load_dft_galileo_file")
+    assert dft["signatures"] == ("(path: str | os.PathLike[str]) -> stormpy.dft.DFT",)
+
+
+def test_real_native_conversion_preserves_conditional_overloads():
+    info = docs.template_function_info("stormpy.developer.storage.to_value_type")
+    assert info["signatures"] == ()
+    assert all(not docs._unresolved(overload["signature"]) for overload in info["overloads"])
+    assert any("stormpy.datastructures.Scheduler[float]" in overload["signature"] for overload in info["overloads"])
+    assert any(overload["specializations"] for overload in info["overloads"])
+
+
+def test_sphinx_renders_template_function_signatures_fields_and_links(monkeypatch, tmp_path):
+    pytest.importorskip("sphinx")
+    from io import StringIO
+    from types import ModuleType
+
+    from sphinx.application import Sphinx
+
+    family = make_native_function(monkeypatch)
+
+    @_template_function("test.select", parameters=["ValueType"], instantiations=(float, int), deduce=_deduce_default(float))
+    def select(value_type, value: int, *, label="a,b") -> int:
+        """Select a value using :func:`compute`.
+
+        :param value: The input value.
+        :param label: The label.
+        :return: The selected value.
+        """
+        return value
+
+    module = ModuleType("test")
+    module.compute, module.select = family, select
+    monkeypatch.setitem(sys.modules, "test", module)
+    source = Path(__file__).parents[2] / "doc/source"
+    config = runpy.run_path(str(source / "conf.py"))
+    (tmp_path / "conf.py").write_text("")
+    (tmp_path / "index.rst").write_text("API\n===\n\n.. autosummary::\n   :toctree: generated\n   :template: autosummary/module.rst\n\n   test\n")
+    warnings = StringIO()
+    app = Sphinx(
+        str(tmp_path),
+        str(tmp_path),
+        str(tmp_path / "html"),
+        str(tmp_path / "doctrees"),
+        "html",
+        confoverrides={
+            "extensions": ["stormpy_templates", "sphinx.ext.autosummary"],
+            "templates_path": [str(source / "_templates")],
+            "autosummary_context": config["autosummary_context"],
+            "autosummary_imported_members": True,
+            # The test loads conf.py through runpy, whose functions cannot be pickled.
+            "suppress_warnings": ["config.cache"],
+        },
+        status=StringIO(),
+        warning=warnings,
+        warningiserror=True,
+        freshenv=True,
+    )
+    app.build(force_all=True)
+    assert app.statuscode == 0, warnings.getvalue()
+    assert warnings.getvalue() == ""
+    overview = (tmp_path / "generated/test.rst").read_text()
+    assert "Functions" in overview
+    assert "Module Attributes" not in overview
+    assert "Classes" not in overview
+    for name in ("compute", "select"):
+        assert app.env.domains["py"].objects[f"test.{name}"].objtype == "function"
+        html = (tmp_path / f"html/generated/test.{name}.html").read_text()
+        assert "field-list" in html
+        assert ":param" not in html
+        assert "_compute_" not in html
+        assert "object at 0x" not in html
+        assert "Overloaded function." not in html
+    html = (tmp_path / "html/generated/test.select.html").read_text()
+    assert 'href="test.compute.html#test.compute"' in html
 
 
 def test_public_api_filter_includes_refactored_implementations(monkeypatch):
