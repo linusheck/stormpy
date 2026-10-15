@@ -9,8 +9,11 @@ from types import SimpleNamespace
 
 import pytest
 import stormpy
-import stormpy.dft
 from stormpy._template import _TemplateClass, _TemplateFunction, _template_function, _deduce_default
+from configurations import dft, has_dft
+
+if has_dft:
+    import stormpy.dft
 
 _spec = importlib.util.spec_from_file_location("stormpy_templates", Path(__file__).parents[2] / "doc/source/_ext/stormpy_templates.py")
 docs = importlib.util.module_from_spec(_spec)
@@ -57,6 +60,41 @@ def test_published_template_names_take_precedence():
         output = docs.render_members(public, families)
         assert "test.models.Example[ValueType]" in output
         assert "test.developer.Example" not in output
+
+
+def test_class_signatures_preserve_public_non_template_types():
+    family = make_family()
+    labeling = stormpy.datastructures.StateLabeling
+    native_name = f"{labeling.__module__}.{labeling.__qualname__}"
+    for inst in family.metadata.instantiations:
+        inst.implementation.shared.__doc__ = f"shared(self: {inst.native_name}, labeling: {native_name}) -> {native_name}"
+    output = docs.render_members(family, [family])
+    assert "labeling: stormpy.datastructures.StateLabeling) -> stormpy.datastructures.StateLabeling" in output
+    signatures, _ = docs.constructors(stormpy.models.SparseModelComponents, docs._loaded_template_classes())
+    assert any("state_labeling: stormpy.datastructures.StateLabeling = ..." in signature for signature in signatures)
+
+
+def test_python_specialization_methods_preserve_descriptors_and_defaults():
+    family = make_family()
+
+    def convert(self, value: int, /, *, value_type: type = float) -> float:
+        """Convert a value."""
+
+    def create(value_type: type = float):
+        """Create a value."""
+
+    def build(cls, value_type: type = float):
+        """Build a value."""
+
+    for inst in family.metadata.instantiations:
+        inst.implementation.convert = convert
+        inst.implementation.create = staticmethod(create)
+        inst.implementation.build = classmethod(build)
+    output = docs.render_members(family, [family])
+    assert "Example.convert(self, value: int, /, *, value_type: type = float) -> float" in output
+    assert "Example.create(value_type: type = float)\n   :staticmethod:" in output
+    assert "Example.build(cls, value_type: type = float)\n   :classmethod:" in output
+    assert "Convert a value." in output
 
 
 def test_template_functions_are_listed_separately(monkeypatch):
@@ -175,8 +213,12 @@ def test_real_python_function_resolves_forward_annotations():
     assert "*, options:" in signature
     assert "engine: stormpy.Engine = stormpy.Engine.SPARSE" in signature
     assert ":param model:" in info["overloads"][0]["description"]
-    dft = docs.template_function_info("stormpy.dft.load_dft_galileo_file")
-    assert dft["signatures"] == ("(path: str | os.PathLike[str]) -> stormpy.dft.DFT",)
+
+
+@dft
+def test_real_dft_python_function_resolves_forward_annotations():
+    info = docs.template_function_info("stormpy.dft.load_dft_galileo_file")
+    assert info["signatures"] == ("(path: str | os.PathLike[str]) -> stormpy.dft.DFT",)
 
 
 def test_real_native_conversion_preserves_conditional_overloads():
@@ -264,6 +306,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     (tmp_path / "api.rst").write_text(
         "API Documentation\n=================\n\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/module.rst\n\n   test\n"
         "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/class.rst\n\n   stormpy.io.JaniModel\n   stormpy.ConstraintCollector\n   stormpy.datastructures.BitVector\n"
+        "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/apiclass.rst\n\n   stormpy.datastructures.SparseMatrixBuilder\n   stormpy.datastructures.Scheduler\n   stormpy.models.SparseModelComponents\n"
         "\nSee :class:`stormpy.developer.storage.JaniModel` or :class:`Custom label <stormpy.developer.storage._storage.JaniModel>`.\n"
     )
     (tmp_path / "developer_api.rst").write_text(
@@ -324,6 +367,16 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     assert "Overloaded function." not in bitvector.astext()
     assert "__init__(" not in bitvector.astext()
     assert "*args" not in "\n".join(sig.astext() for sig in constructors)
+    matrix_builder = (tmp_path / "html/api/generated/stormpy.datastructures.SparseMatrixBuilder.html").read_text()
+    assert "field-list" in matrix_builder
+    assert ":param" not in matrix_builder
+    assert "offset+i -&gt; value of i" in matrix_builder
+    scheduler = app.env.get_doctree("api/generated/stormpy.datastructures.Scheduler")
+    conversion = next(sig for sig in scheduler.findall(desc_signature) if sig.get("fullname") == "Scheduler.to_value_type")
+    assert "value_type: type = float" in conversion.astext()
+    components = app.env.get_doctree("api/generated/stormpy.models.SparseModelComponents")
+    constructor = next(sig for sig in components.findall(desc_signature) if sig.get("fullname") == "SparseModelComponents")
+    assert "state_labeling: stormpy.datastructures.StateLabeling" in constructor.astext()
     api = (tmp_path / "html/api.html").read_text()
     assert 'href="api/generated/stormpy.io.JaniModel.html#stormpy.io.JaniModel"' in api
     assert "Custom label" in re.sub(r"<[^>]*>", "", api)
@@ -417,6 +470,7 @@ def test_core_bindings_moved_to_other_public_modules_are_not_duplicated(monkeypa
     assert config["_filter_api_members"]("stormpy.developer", ["Property", "OptimizationDirection", "LogLevel", "Raw"]) == ["Raw"]
 
 
+@dft
 def test_template_docstring_uses_native_description():
     lines = ["Native C++ template family exposed as a subscriptable Python object."]
     docs.template_docstring(None, "class", "stormpy.dft.DFT", stormpy.dft.DFT, None, lines)
@@ -522,9 +576,14 @@ def test_constructor_deduction_descriptions():
     fallback = docs.deduction_description(stormpy.models.SparseModelComponents)
     assert "``transition_matrix``" in fallback
     assert "If none is supplied, ``SparseModelComponents[float]``" in fallback
-    assert "first positional constructor argument" in docs.deduction_description(stormpy.dft.developer.DFTTraceSimulator)
-    assert "``dft``" in docs.deduction_description(stormpy.dft.developer.DFTTraceSimulator)
     assert docs.deduction_description(stormpy.developer.storage.Add) is None
+
+
+@dft
+def test_dft_constructor_deduction_descriptions():
+    description = docs.deduction_description(stormpy.dft.developer.DFTTraceSimulator)
+    assert "first positional constructor argument" in description
+    assert "``dft``" in description
 
 
 def test_real_constructor_overloads_are_not_dropped():
@@ -553,6 +612,7 @@ def test_object_defaults_do_not_split_generic_signatures():
     assert variants == []
 
 
+@dft
 def test_developer_dft_builder_constructor():
     family = stormpy.dft.developer.ExplicitDFTModelBuilder
     output = docs.render_members(family, [family])
@@ -574,7 +634,9 @@ def test_specialization_specific_constructors_are_retained():
 
 def test_real_conditional_methods_and_unrecognized_signatures():
     output = docs.render_members(stormpy.datastructures.Scheduler, [stormpy.datastructures.Scheduler])
-    assert ".. py:method:: Scheduler.to_value_type" in output
+    assert (
+        ".. py:method:: Scheduler.to_value_type(self: stormpy.datastructures.Scheduler, value_type: type = float) -> stormpy.datastructures.Scheduler" in output
+    )
     assert "cast_to_double_datatype" not in output
     check = docs.render_members(stormpy.ExplicitQualitativeCheckResult, [stormpy.ExplicitQualitativeCheckResult])
     assert ".. py:method:: ExplicitQualitativeCheckResult.get_truth_values_vector" in check

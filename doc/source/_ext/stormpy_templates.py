@@ -124,10 +124,11 @@ def generic_docs(family, entries, families, name):
     """Generalize signature tokens only if they vary between specializations."""
     if name == "property":
         return entries
+    aliases = _public_type_names()
     result = []
     for inst, doc in entries:
         # Map each concrete spelling to (generic spelling, fixed spelling).
-        replacements = {}
+        replacements = {native: (public, public) for native, public in aliases.items()}
         for arg, param in zip(inst.arguments, family.metadata.parameters):
             if isinstance(arg, type):
                 for spelling in (argument_name(arg), f"{arg.__module__}.{arg.__qualname__}"):
@@ -234,7 +235,16 @@ def render_members(family, families):
                 continue
             if descriptor is None:
                 descriptor = member
-            entries.append((inst, member_doc(member)))
+            doc = member_doc(member)
+            implementation = member.__func__ if isinstance(member, (staticmethod, classmethod)) else member
+            if callable(implementation) and not signature_lines(doc, name):
+                try:
+                    signature = _python_function_signature(implementation, name)
+                except (TypeError, ValueError):
+                    pass
+                else:
+                    doc = f"{signature}\n\n{doc}".strip()
+            entries.append((inst, doc))
         if not entries:
             continue
         kind = "property" if isinstance(descriptor, property) else "method" if callable(descriptor) or isinstance(descriptor, classmethod) else "attribute"
@@ -267,7 +277,7 @@ def render_members(family, families):
             for paragraph in doc.split("\n\n"):
                 if not paragraph.strip():
                     continue
-                if " -> " in paragraph or re.match(rf"^(?:\d+\. )?{re.escape(name)}\(", paragraph):
+                if re.match(rf"^(?:\d+\. )?{re.escape(name)}\(", paragraph):
                     lines.extend(["   .. code-block:: text", ""])
                     lines.extend("      " + line for line in paragraph.splitlines())
                 else:
@@ -355,7 +365,7 @@ def _python_function_signature(implementation, name):
             arg += ": " + _function_annotation(parameter.annotation, implementation)
         if parameter.default is not inspect.Parameter.empty:
             default = parameter.default
-            default_text = argument_name(default) if hasattr(default, "name") else repr(default)
+            default_text = argument_name(default) if isinstance(default, type) or hasattr(default, "name") else repr(default)
             arg += " = " + default_text
         args.append(arg)
         if parameter.kind == inspect.Parameter.POSITIONAL_ONLY and (i + 1 == len(parameters) or parameters[i + 1].kind != inspect.Parameter.POSITIONAL_ONLY):
