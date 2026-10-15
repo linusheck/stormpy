@@ -40,7 +40,6 @@ Work in progress!
    stormpy.dft.developer
 ```
 
-<<<<<<< HEAD
 ```{eval-rst}
 .. autosummary::
    :toctree: api/generated

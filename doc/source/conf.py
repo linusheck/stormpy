@@ -12,7 +12,7 @@ import sys
 import stormpy
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent / "_ext"))
-from stormpy_templates import template_families, template_info
+from stormpy_templates import template_families, template_functions, template_info, template_function_info
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -47,14 +47,10 @@ autoclass_content = "both"  # Add documentation for both the class and __init__
 # compiled _logic module and imported into stormpy.logic)
 autosummary_imported_members = True
 
-# For modules that re-export members of other modules: the members that should
+# For developer modules that re-export members of other modules: the members that should
 # be listed on the module's autosummary page, identified by their __module__.
 # All other module pages list all their members.
 _MEMBER_MODULES = {
-    # The top-level stormpy package also re-exports the members of several
-    # submodules (e.g. storage and logic). Its page (the core API) only lists
-    # the members defined in stormpy itself or in the compiled _core extension.
-    "stormpy": {"stormpy", "stormpy._core"},
     # The number-independent core types live in the compiled _pycarl_core module.
     "stormpy.numbers.developer": {"stormpy.numbers.developer", "stormpy.numbers.developer._pycarl_core"},
     # The number-dependent formula types are bound under the shared formula module.
@@ -65,20 +61,43 @@ _MEMBER_MODULES = {
     "stormpy.numbers.developer.parse": {"stormpy.numbers.developer.parse"},
 }
 
+# Raw bindings shared with a public module are documented on the public page.
+_PUBLIC_MODULES = {
+    "stormpy.developer": ("stormpy", "stormpy.logic", "stormpy.utility"),
+    "stormpy.developer.info": ("stormpy.info",),
+    "stormpy.developer.logic": ("stormpy.logic",),
+    "stormpy.developer.storage": ("stormpy.models", "stormpy.datastructures", "stormpy.expressions", "stormpy.io"),
+    "stormpy.developer.utility": ("stormpy.utility",),
+    "stormpy.dft.developer": ("stormpy.dft",),
+    "stormpy.numbers.developer": ("stormpy.numbers",),
+}
+
 
 def _filter_api_members(module, members):
     """
     Filter the members listed on the autosummary page of a module.
 
-    To document every member only on the page of the module it belongs to,
-    the pages of the modules in _MEMBER_MODULES (which re-export members of
-    other modules) only list the members defined in the given modules.
+    Public modules declare their API in __all__, including objects whose
+    implementations live in private core modules or developer bindings.
     """
     members = [name for name in members if not name.startswith("_")]
+    module_obj = sys.modules[module]
+    if hasattr(module_obj, "__all__"):
+        return [name for name in members if name in module_obj.__all__]
+    for public_name in _PUBLIC_MODULES.get(module, ()):
+        public_module = importlib.import_module(public_name)
+        members = [
+            name
+            for name in members
+            if getattr(public_module, name, None) is not getattr(module_obj, name, None)
+            and not (
+                hasattr(getattr(module_obj, name, None), "publish_as")
+                and getattr(getattr(public_module, name, None), "canonical_name", None) == f"{public_name}.{name}"
+            )
+        ]
     accepted = _MEMBER_MODULES.get(module)
     if accepted is None:
         return members
-    module_obj = sys.modules[module]
     return [name for name in members if getattr(getattr(module_obj, name, None), "__module__", None) in accepted]
 
 
@@ -86,7 +105,9 @@ def _filter_api_members(module, members):
 autosummary_context = {
     "filter_api_members": _filter_api_members,
     "template_families": template_families,
+    "template_functions": template_functions,
     "template_info": template_info,
+    "template_function_info": template_function_info,
 }
 
 # Wrap long signatures instead of scrolling them

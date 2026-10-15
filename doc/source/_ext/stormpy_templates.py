@@ -11,7 +11,7 @@ import sys
 from difflib import SequenceMatcher
 
 import stormpy
-from stormpy._template import _TemplateClass
+from stormpy._template import _TemplateClass, _TemplateFunction
 
 
 def argument_name(argument):
@@ -22,7 +22,7 @@ def argument_name(argument):
     else:
         # Only these public namespaces own template argument types. In
         # particular, do not search loaded modules or expose private classes.
-        namespaces = (stormpy, stormpy.storage)
+        namespaces = (stormpy, stormpy.numbers, stormpy.models, stormpy.datastructures, stormpy.expressions, stormpy.io, stormpy.logic, stormpy.utility)
         aliases = (f"{module.__name__}.{key}" for module in namespaces for key, value in vars(module).items() if not key.startswith("_") and value is cls)
         name = min(aliases, key=lambda s: (s.count("."), len(s), s), default=f"{cls.__module__}.{cls.__qualname__}")
     return name if isinstance(argument, type) else f"{name}.{argument.name}" if hasattr(argument, "name") else repr(argument)
@@ -121,7 +121,11 @@ def generic_docs(family, entries, families, name):
             if isinstance(arg, type):
                 for spelling in (argument_name(arg), f"{arg.__module__}.{arg.__qualname__}"):
                     replacements[spelling] = (param.name, spelling)
-        for other in families:
+        # Published families share their native classes with developer families.
+        # Apply public spellings last so raw bindings never hide a public alias.
+        for other in sorted(families, key=lambda obj: (".developer" not in obj.canonical_name, obj.canonical_name)):
+            if isinstance(other, _TemplateFunction):
+                continue
             for spec in other.metadata.instantiations:
                 params = [
                     next((param.name for value, param in zip(inst.arguments, family.metadata.parameters) if value is arg), argument_name(arg))
@@ -263,7 +267,40 @@ def render_members(family, families):
 
 def template_families(module):
     """Public families owned by this module, excluding re-exports."""
-    return sorted(name for name, obj in vars(sys.modules[module]).items() if isinstance(obj, _TemplateClass) and obj.canonical_name == f"{module}.{name}")
+    return sorted(
+        name
+        for name, obj in vars(sys.modules[module]).items()
+        if isinstance(obj, _TemplateClass) and not isinstance(obj, _TemplateFunction) and obj.canonical_name == f"{module}.{name}"
+    )
+
+
+def template_functions(module):
+    """Template functions owned by this module, excluding re-exports."""
+    return sorted(name for name, obj in vars(sys.modules[module]).items() if isinstance(obj, _TemplateFunction) and obj.canonical_name == f"{module}.{name}")
+
+
+def template_function_info(fullname):
+    module, _, name = fullname.rpartition(".")
+    family = getattr(sys.modules[module], name)
+    entries = []
+    for inst in family.metadata.instantiations:
+        doc = member_doc(inst.implementation)
+        if not signature_lines(doc, name):
+            try:
+                signature = inspect.signature(inst.implementation)
+            except (TypeError, ValueError):
+                pass
+            else:
+                doc = f"{name}{signature}\n\n{doc}"
+        entries.append((inst, doc))
+    descriptions = {}
+    for inst, doc in generic_docs(family, entries, [], name):
+        descriptions.setdefault(doc, []).append(specialization_name(family, inst))
+    return {
+        "parameters": ", ".join(p.name for p in family.metadata.parameters),
+        "instantiations": [specialization_name(family, inst) for inst in family.metadata.instantiations],
+        "descriptions": list(descriptions.items()),
+    }
 
 
 def template_info(fullname):

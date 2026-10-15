@@ -1,12 +1,14 @@
 """Sphinx template renderer tests; can run without importing Sphinx itself."""
 
 import importlib.util
+import runpy
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
 import stormpy
 import stormpy.dft
-from stormpy._template import _TemplateClass
+from stormpy._template import _TemplateClass, _TemplateFunction, _template_function, _deduce_default
 
 _spec = importlib.util.spec_from_file_location("stormpy_templates", Path(__file__).parents[2] / "doc/source/_ext/stormpy_templates.py")
 docs = importlib.util.module_from_spec(_spec)
@@ -43,6 +45,60 @@ def test_shared_and_fixed_types_and_conditional_members():
     assert "value: ValueType" in output
     assert "-> ValueType" in output
     assert "Available only for: ``Example[float]``." in output
+
+
+def test_published_template_names_take_precedence():
+    family = make_family()
+    developer = family.publish_as("test.developer.Example")
+    public = family.publish_as("test.models.Example")
+    for families in ([public, developer], [developer, public]):
+        output = docs.render_members(public, families)
+        assert "test.models.Example[ValueType]" in output
+        assert "test.developer.Example" not in output
+
+
+def test_template_functions_are_listed_separately(monkeypatch):
+    @_template_function("test.scale", parameters=["ValueType"], instantiations=(float, int), deduce=_deduce_default(float))
+    def scale(value_type, value: int) -> int:
+        """Scale a value."""
+        return value
+
+    monkeypatch.setitem(sys.modules, "test", SimpleNamespace(Example=make_family(), scale=scale, alias=scale))
+    assert isinstance(scale, _TemplateFunction)
+    assert docs.template_families("test") == ["Example"]
+    assert docs.template_functions("test") == ["scale"]
+    info = docs.template_function_info("test.scale")
+    assert info["parameters"] == "ValueType"
+    assert info["instantiations"] == ["scale[float]", "scale[int]"]
+    assert info["descriptions"] == [("scale(value: int) -> int\n\nScale a value.", ["scale[float]", "scale[int]"])]
+
+
+def test_public_api_filter_includes_refactored_implementations(monkeypatch):
+    config = runpy.run_path(str(Path(__file__).parents[2] / "doc/source/conf.py"))
+    implementation = type("Public", (), {"__module__": "test.developer._core"})
+    monkeypatch.setitem(sys.modules, "test.public", SimpleNamespace(__all__=["Public"], Public=implementation, Imported=object(), _private=object()))
+    assert config["_filter_api_members"]("test.public", ["Public", "Imported", "_private"]) == ["Public"]
+
+
+def test_developer_api_filter_omits_published_aliases(monkeypatch):
+    config = runpy.run_path(str(Path(__file__).parents[2] / "doc/source/conf.py"))
+    family = make_family().publish_as("test.developer.Example")
+    shared = object()
+    monkeypatch.setitem(sys.modules, "test.developer", SimpleNamespace(Example=family, Shared=shared, Raw=object()))
+    monkeypatch.setitem(sys.modules, "test.public", SimpleNamespace(Example=family.publish_as("test.public.Example"), Shared=shared))
+    config["_PUBLIC_MODULES"]["test.developer"] = ("test.public",)
+    assert config["_filter_api_members"]("test.developer", ["Example", "Shared", "Raw"]) == ["Raw"]
+
+
+def test_core_bindings_moved_to_other_public_modules_are_not_duplicated(monkeypatch):
+    config = runpy.run_path(str(Path(__file__).parents[2] / "doc/source/conf.py"))
+    property_type, direction_type, log_level_type = object(), object(), object()
+    monkeypatch.setitem(
+        sys.modules, "stormpy.developer", SimpleNamespace(Property=property_type, OptimizationDirection=direction_type, LogLevel=log_level_type, Raw=object())
+    )
+    monkeypatch.setitem(sys.modules, "stormpy.logic", SimpleNamespace(Property=property_type, OptimizationDirection=direction_type))
+    monkeypatch.setitem(sys.modules, "stormpy.utility", SimpleNamespace(LogLevel=log_level_type))
+    assert config["_filter_api_members"]("stormpy.developer", ["Property", "OptimizationDirection", "LogLevel", "Raw"]) == ["Raw"]
 
 
 def test_template_docstring_uses_native_description():
@@ -98,8 +154,8 @@ def test_public_aliases():
     assert docs.argument_name(stormpy.Interval) == "stormpy.Interval"
     assert docs.argument_name(stormpy.RationalInterval) == "stormpy.RationalInterval"
     assert docs.argument_name(stormpy.RationalFunction) == "stormpy.RationalFunction"
-    assert docs.argument_name(stormpy.storage.DdType.Sylvan) == "stormpy.DdType.Sylvan"
-    assert all("_storage" not in docs.specialization_name(stormpy.SparseMdp, inst) for inst in stormpy.SparseMdp.metadata.instantiations)
+    assert docs.argument_name(stormpy.models.DdType.Sylvan) == "stormpy.models.DdType.Sylvan"
+    assert all("_storage" not in docs.specialization_name(stormpy.models.SparseMdp, inst) for inst in stormpy.models.SparseMdp.metadata.instantiations)
 
 
 def test_pybind_overloads():
@@ -135,35 +191,35 @@ def test_unresolved_annotations_are_omitted_not_overloads():
         )
         == "run(self, components, limit: int = 5)"
     )
-    assert docs._public_signature("run(self: stormpy.storage.SparseMdp[ValueType]) -> float") == "run(self: stormpy.storage.SparseMdp[ValueType]) -> float"
+    assert docs._public_signature("run(self: stormpy.models.SparseMdp[ValueType]) -> float") == "run(self: stormpy.models.SparseMdp[ValueType]) -> float"
 
 
 def test_constructor_deduction_descriptions():
-    assert "SparseMatrix[float]" in docs.deduction_description(stormpy.storage.SparseMatrix)
-    inferred = docs.deduction_description(stormpy.storage.SparseMdp)
+    assert "SparseMatrix[float]" in docs.deduction_description(stormpy.datastructures.SparseMatrix)
+    inferred = docs.deduction_description(stormpy.models.SparseMdp)
     assert "first positional constructor argument" in inferred
     assert "``components`` or ``other_model``" in inferred
     assert "[float]" not in inferred
-    second = docs.deduction_description(stormpy.storage.MemoryStructureBuilder)
+    second = docs.deduction_description(stormpy.datastructures.MemoryStructureBuilder)
     assert "second positional constructor argument" in second
     assert "``model``" in second
-    fallback = docs.deduction_description(stormpy.storage.SparseModelComponents)
+    fallback = docs.deduction_description(stormpy.models.SparseModelComponents)
     assert "``transition_matrix``" in fallback
     assert "If none is supplied, ``SparseModelComponents[float]``" in fallback
     assert "first positional constructor argument" in docs.deduction_description(stormpy.dft.developer.DFTTraceSimulator)
     assert "``dft``" in docs.deduction_description(stormpy.dft.developer.DFTTraceSimulator)
-    assert docs.deduction_description(stormpy.storage.Add) is None
+    assert docs.deduction_description(stormpy.developer.storage.Add) is None
 
 
 def test_real_constructor_overloads_are_not_dropped():
-    family = stormpy.storage.SparseCtmc
-    output = docs.render_members(family, [family, stormpy.storage.SparseModel])
-    signatures, variants = docs.constructors(family, [family, stormpy.storage.SparseModel])
-    assert signatures == ("(other_model: stormpy.storage.SparseCtmc[ValueType])", "(components)")
+    family = stormpy.models.SparseCtmc
+    output = docs.render_members(family, [family, stormpy.models.SparseModel])
+    signatures, variants = docs.constructors(family, [family, stormpy.models.SparseModel])
+    assert signatures == ("(other_model: stormpy.models.SparseCtmc[ValueType])", "(components)")
     assert variants == []
     assert "SparseCtmc.__init__" not in output
     assert "SparseCtmc.__str__" not in output
-    assert ".. py:method:: SparseCtmc.collect_reward_parameters(self: stormpy.storage.SparseModel[stormpy.RationalFunction])" in output
+    assert ".. py:method:: SparseCtmc.collect_reward_parameters(self: stormpy.models.SparseModel[stormpy.RationalFunction])" in output
     assert ".. code-block:: text\n\n      collect_reward_parameters(" not in output
 
 
@@ -192,7 +248,7 @@ def test_developer_dft_builder_constructor():
 
 
 def test_specialization_specific_constructors_are_retained():
-    family = stormpy.storage.SparseRewardModel
+    family = stormpy.models.SparseRewardModel
     signatures, variants = docs.constructors(family, [family])
     assert not signatures
     assert variants
@@ -201,21 +257,21 @@ def test_specialization_specific_constructors_are_retained():
 
 
 def test_real_conditional_methods_and_unrecognized_signatures():
-    output = docs.render_members(stormpy.Scheduler, [stormpy.Scheduler])
-    section = output.split(".. py:method:: Scheduler.cast_to_double_datatype", 1)[1].split(".. py:", 1)[0]
-    assert "Available only for:" in section
-    assert "Scheduler[stormpy.Interval]" not in section
-    assert "-> stormpy.storage.Scheduler[float]" in section
-    assert "-> stormpy.storage.Scheduler[ValueType]" not in section
+    output = docs.render_members(stormpy.datastructures.Scheduler, [stormpy.datastructures.Scheduler])
+    assert ".. py:method:: Scheduler.to_value_type" in output
+    assert "cast_to_double_datatype" not in output
     check = docs.render_members(stormpy.ExplicitQualitativeCheckResult, [stormpy.ExplicitQualitativeCheckResult])
-    assert ".. py:method:: ExplicitQualitativeCheckResult.as_explicit_exact_qualitative(self)" in check
+    assert ".. py:method:: ExplicitQualitativeCheckResult.get_truth_values_vector" in check
     assert "storm::modelchecker::ExplicitQualitativeCheckResult" not in check
-    matrix = docs.render_members(stormpy.SparseMatrix, [stormpy.SparseMatrix, stormpy.SparseMatrixRows, stormpy.SparseMatrixEntry])
-    assert "stormpy.storage.SparseMatrixEntry[ValueType]" in matrix
+    matrix = docs.render_members(
+        stormpy.datastructures.SparseMatrix,
+        [stormpy.datastructures.SparseMatrix, stormpy.datastructures.SparseMatrixRows, stormpy.datastructures.SparseMatrixEntry],
+    )
+    assert "stormpy.datastructures.SparseMatrixEntry[ValueType]" in matrix
     assert ".. py:property:: SparseMatrix.nr_rows" in matrix
-    ma = docs.render_members(stormpy.storage.SparseMA, [stormpy.storage.SparseMA])
+    ma = docs.render_members(stormpy.models.SparseMA, [stormpy.models.SparseMA])
     assert ".. py:property:: SparseMA.supports_parameters" in ma
     assert "Type: ``bool``" not in ma
-    state = docs.render_members(stormpy.storage.SparseModelState, [stormpy.storage.SparseModelState])
+    state = docs.render_members(stormpy.developer.storage.SparseModelState, [stormpy.developer.storage.SparseModelState])
     assert "SparseModelState.__int__" not in state
     assert "SparseModelState.__new__" not in state

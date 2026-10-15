@@ -1,9 +1,11 @@
 {#- Only list the members that belong to this module (see filter_api_members in conf.py) -#}
-{%- set attributes = filter_api_members(fullname, attributes) -%}
-{%- set functions = filter_api_members(fullname, functions) -%}
+{%- set families = filter_api_members(fullname, template_families(fullname)) -%}
+{%- set template_funcs = filter_api_members(fullname, template_functions(fullname)) -%}
+{%- set attributes = filter_api_members(fullname, attributes) | reject('in', families + template_funcs) | list -%}
+{%- set functions = (filter_api_members(fullname, functions) + template_funcs) | unique | sort | list -%}
 {%- set classes = filter_api_members(fullname, classes) -%}
 {%- set exceptions = filter_api_members(fullname, exceptions) -%}
-{%- set classes = (classes + template_families(fullname)) | unique | sort | list -%}
+{%- set classes = (classes + families) | unique | sort | list -%}
 {{ fullname | escape | underline}}
 
 .. automodule:: {{ fullname }}
@@ -26,6 +28,7 @@
 
    .. autosummary::
       :toctree:
+      :template: autosummary/apifunction.rst
    {% for item in functions %}
       {{ item }}
    {%- endfor %}
