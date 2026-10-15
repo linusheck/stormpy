@@ -186,7 +186,7 @@ def test_real_native_conversion_preserves_conditional_overloads():
     assert any(overload["specializations"] for overload in info["overloads"])
 
 
-def test_sphinx_renders_template_function_signatures_fields_and_links(monkeypatch, tmp_path):
+def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     pytest.importorskip("sphinx")
     from io import StringIO
     from types import ModuleType
@@ -208,10 +208,26 @@ def test_sphinx_renders_template_function_signatures_fields_and_links(monkeypatc
     module = ModuleType("test")
     module.compute, module.select = family, select
     monkeypatch.setitem(sys.modules, "test", module)
+    developer = ModuleType("test.developer")
+    developer.compute = family.publish_as("test.developer.compute")
+    developer.select = select.publish_as("test.developer.select")
+    developer.Template = make_family().publish_as("test.developer.Template")
+    developer.Ordinary = type("Ordinary", (), {"__module__": developer.__name__, "__doc__": "An ordinary class."})
+    developer.ApiError = type("ApiError", (Exception,), {"__module__": developer.__name__, "__doc__": "An API error."})
+    developer.CONSTANT = 123
+    module.developer = developer
+    monkeypatch.setitem(sys.modules, "test.developer", developer)
     source = Path(__file__).parents[2] / "doc/source"
     config = runpy.run_path(str(source / "conf.py"))
     (tmp_path / "conf.py").write_text("")
-    (tmp_path / "index.rst").write_text("API\n===\n\n.. autosummary::\n   :toctree: generated\n   :template: autosummary/module.rst\n\n   test\n")
+    (tmp_path / "index.rst").write_text("Documentation\n=============\n\n.. toctree::\n\n   api\n   developer_api\n")
+    (tmp_path / "api.rst").write_text(
+        "API Documentation\n=================\n\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/module.rst\n\n   test\n"
+    )
+    (tmp_path / "developer_api.rst").write_text(
+        "Developer API Documentation\n===========================\n\n.. autosummary::\n   :toctree: developer_api/generated\n   :template: autosummary/module.rst\n\n   test.developer\n"
+        "\n.. autosummary::\n   :toctree: developer_api/generated\n\n   test.developer.CONSTANT\n"
+    )
     warnings = StringIO()
     app = Sphinx(
         str(tmp_path),
@@ -220,8 +236,10 @@ def test_sphinx_renders_template_function_signatures_fields_and_links(monkeypatc
         str(tmp_path / "doctrees"),
         "html",
         confoverrides={
-            "extensions": ["stormpy_templates", "sphinx.ext.autosummary"],
+            "extensions": ["stormpy_templates", "stormpy_developer", "sphinx.ext.autosummary"],
             "templates_path": [str(source / "_templates")],
+            "html_static_path": [str(source / "_static")],
+            "html_css_files": ["custom.css"],
             "autosummary_context": config["autosummary_context"],
             "autosummary_imported_members": True,
             # The test loads conf.py through runpy, whose functions cannot be pickled.
@@ -235,20 +253,37 @@ def test_sphinx_renders_template_function_signatures_fields_and_links(monkeypatc
     app.build(force_all=True)
     assert app.statuscode == 0, warnings.getvalue()
     assert warnings.getvalue() == ""
-    overview = (tmp_path / "generated/test.rst").read_text()
+    overview = (tmp_path / "api/generated/test.rst").read_text()
     assert "Functions" in overview
     assert "Module Attributes" not in overview
     assert "Classes" not in overview
     for name in ("compute", "select"):
         assert app.env.domains["py"].objects[f"test.{name}"].objtype == "function"
-        html = (tmp_path / f"html/generated/test.{name}.html").read_text()
+        html = (tmp_path / f"html/api/generated/test.{name}.html").read_text()
         assert "field-list" in html
         assert ":param" not in html
         assert "_compute_" not in html
         assert "object at 0x" not in html
         assert "Overloaded function." not in html
-    html = (tmp_path / "html/generated/test.select.html").read_text()
+    html = (tmp_path / "html/api/generated/test.select.html").read_text()
     assert 'href="test.compute.html#test.compute"' in html
+    disclaimer = "The stormpy developer API is internal and always subject to change."
+    for page in (tmp_path / "html/api").rglob("*.html"):
+        assert disclaimer not in page.read_text()
+    for name in (
+        "test.developer",
+        "test.developer.compute",
+        "test.developer.select",
+        "test.developer.Template",
+        "test.developer.Ordinary",
+        "test.developer.ApiError",
+        "test.developer.CONSTANT",
+    ):
+        html = (tmp_path / f"html/developer_api/generated/{name}.html").read_text()
+        assert html.count(disclaimer) == 1
+        assert "developer-api-warning" in html
+    assert disclaimer in (tmp_path / "html/developer_api.html").read_text()
+    assert "developer-api-warning" in (tmp_path / "html/_static/custom.css").read_text()
 
 
 def test_public_api_filter_includes_refactored_implementations(monkeypatch):

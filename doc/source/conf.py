@@ -29,6 +29,7 @@ language = "en"
 
 extensions = [
     "stormpy_templates",
+    "stormpy_developer",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
@@ -167,6 +168,11 @@ html_theme_options = {
             "text": "API",
             "link": "api",
             "match": "api/*",
+        },
+        {
+            "text": "Developer API",
+            "link": "developer_api",
+            "match": "developer_api/*",
         },
         {
             "text": "Storm",
