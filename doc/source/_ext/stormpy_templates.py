@@ -463,6 +463,83 @@ def template_docstring(app, what, name, obj, options, lines):
     lines[:] = "\n\n".join(descriptions).splitlines()
 
 
+def _normalize_public_signature(line):
+    """Publish known native types before omitting unresolved annotations."""
+    aliases = _public_type_names()
+    for family in sorted(_loaded_template_classes(), key=lambda obj: (".developer" not in obj.canonical_name, obj.canonical_name)):
+        for inst in family.metadata.instantiations:
+            aliases[inst.native_name] = f"{family.canonical_name}[{', '.join(argument_name(arg) for arg in inst.arguments)}]"
+    if aliases:
+        pattern = re.compile(r"(?<![\w.])(?:" + "|".join(re.escape(key) for key in sorted(aliases, key=len, reverse=True)) + r")(?![\w.])")
+        line = pattern.sub(lambda match: aliases[match.group()], line)
+    return _public_signature(line)
+
+
+def _native_overloads(what, obj):
+    """Read pybind's numbered signatures, excluding its placeholder signature."""
+    if isinstance(obj, _TemplateClass) or what not in {"class", "exception", "method", "function"}:
+        return []
+    constructor = what in {"class", "exception"}
+    native_name = "__init__" if constructor else getattr(obj, "__name__", "")
+    doc = member_doc(obj.__init__ if constructor else obj)
+    if "Overloaded function." not in doc or not native_name:
+        return []
+    lines = doc.splitlines()
+    return [lines[i] for i in signature_lines(doc, native_name) if re.match(r"\d+\. ", lines[i])]
+
+
+def public_signature(app, what, name, obj, options, signature, return_annotation):
+    """Render native overloads as signatures, normalizing public type names."""
+    docname = app.env.docname
+    developer_page = docname == "developer_api" or docname.startswith("developer_api/")
+    overloads = _native_overloads(what, obj)
+    if overloads:
+        signatures = []
+        for line in overloads:
+            if not developer_page:
+                line = _normalize_public_signature(line)
+            match = re.fullmatch(r"\d+\. \w+\((.*)\)(?: -> (.*))?", line)
+            arguments = _split_arguments(match[1])
+            if what in {"class", "exception", "method"} and arguments[0].split(":", 1)[0] in {"self", "cls"}:
+                arguments.pop(0)
+            result = f"({', '.join(arguments)})"
+            if match[2] and what not in {"class", "exception"}:
+                result += f" -> {match[2]}"
+            signatures.append(result)
+        # Sphinx 9's new autodoc renderer prefixes only the first line of an
+        # event-supplied signature; the legacy renderer prefixes every line.
+        if not getattr(app.config, "autodoc_use_legacy_class_based", True):
+            module = max((module for module in sys.modules if name.startswith(module + ".")), key=len, default="")
+            relative_name = name[len(module) + 1 :] if module else name
+            signatures[1:] = [relative_name + sig for sig in signatures[1:]]
+        return "\n".join(signatures), None
+    if not signature or developer_page:
+        return
+    line = "signature" + signature + (f" -> {return_annotation}" if return_annotation else "")
+    normalized = _normalize_public_signature(line)
+    match = re.fullmatch(r"signature(\(.*\))(?: -> (.*))?", normalized)
+    return match.groups() if match else None
+
+
+def public_docstring(app, what, name, obj, options, lines):
+    """Keep overload prose in the body; signatures are rendered separately."""
+    overloads = _native_overloads(what, obj)
+    if overloads:
+        # Sphinx may already have consumed the leading *args/**kwargs line.
+        native_name = overloads[0].split("(", 1)[0].split(". ", 1)[1]
+        indexes = set(signature_lines("\n".join(lines), native_name))
+        lines[:] = [line for i, line in enumerate(lines) if i not in indexes and line != "Overloaded function."]
+    docname = app.env.docname
+    if isinstance(obj, _TemplateClass) or docname == "developer_api" or docname.startswith("developer_api/"):
+        return
+    names = {name.rsplit(".", 1)[-1], getattr(obj, "__name__", "")}
+    if what == "class":
+        names.add("__init__")
+    indexes = {i for native_name in names if native_name for i in signature_lines("\n".join(lines), native_name)}
+    for i in indexes:
+        lines[i] = _normalize_public_signature(lines[i])
+
+
 def public_type_references(app, doctree):
     """Resolve native annotations through their published public API aliases.
 
@@ -505,5 +582,7 @@ def setup(app):
     """Register the project-local Sphinx extension."""
     app.setup_extension("sphinx.ext.autodoc")
     app.connect("autodoc-process-docstring", template_docstring)
+    app.connect("autodoc-process-docstring", public_docstring)
+    app.connect("autodoc-process-signature", public_signature)
     app.connect("doctree-read", public_type_references)
     return {"parallel_read_safe": True, "parallel_write_safe": True}

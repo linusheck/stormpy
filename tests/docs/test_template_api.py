@@ -192,7 +192,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     from io import StringIO
     from types import ModuleType
 
-    from sphinx.addnodes import pending_xref
+    from sphinx.addnodes import desc_signature, pending_xref
     from sphinx.application import Sphinx
 
     family = make_native_function(monkeypatch)
@@ -215,6 +215,44 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     developer.select = select.publish_as("test.developer.select")
     developer.Template = make_family().publish_as("test.developer.Template")
     developer.Ordinary = type("Ordinary", (), {"__module__": developer.__name__, "__doc__": "An ordinary class."})
+
+    def constructor(self, components, limit=5):
+        """__init__(self: test.developer._bindings.Ordinary, components: storm::Components<std::pair<int, int>>, limit: int = 5) -> None
+
+        Construct an ordinary object.
+        """
+
+    def convert(self, model, value):
+        """convert(*args, **kwargs)
+        Overloaded function.
+
+        1. convert(self: test.developer._bindings.Ordinary, model: stormpy.developer.storage._storage.JaniModel, value: test._Opaque) -> storm::Result<int>
+
+        Convert a model.
+
+        2. convert(self: test.developer._bindings.Ordinary, model: stormpy.developer.storage._storage.JaniModel, value: int) -> int
+
+        Convert an integer.
+        """
+
+    def choose(value):
+        """choose(*args, **kwargs)
+        Overloaded function.
+
+        1. choose(value: storm::Opaque<int>, limit: int = 5) -> storm::Result<int>
+
+        Choose an opaque value.
+
+        2. choose(value: stormpy.developer.storage._storage.JaniModel) -> stormpy.developer.storage._storage.JaniModel
+
+        Choose a model.
+        """
+
+    developer.Ordinary.__init__ = constructor
+    developer.Ordinary.convert = convert
+    choose.__module__ = developer.__name__
+    module.Ordinary = type("Ordinary", (), {"__module__": module.__name__, "__init__": constructor, "convert": convert})
+    module.choose = developer.choose = choose
     developer.ApiError = type("ApiError", (Exception,), {"__module__": developer.__name__, "__doc__": "An API error."})
     developer.CONSTANT = 123
     module.developer = developer
@@ -225,7 +263,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     (tmp_path / "index.rst").write_text("Documentation\n=============\n\n.. toctree::\n\n   api\n   developer_api\n")
     (tmp_path / "api.rst").write_text(
         "API Documentation\n=================\n\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/module.rst\n\n   test\n"
-        "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/class.rst\n\n   stormpy.io.JaniModel\n"
+        "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/class.rst\n\n   stormpy.io.JaniModel\n   stormpy.ConstraintCollector\n   stormpy.datastructures.BitVector\n"
         "\nSee :class:`stormpy.developer.storage.JaniModel` or :class:`Custom label <stormpy.developer.storage._storage.JaniModel>`.\n"
     )
     (tmp_path / "developer_api.rst").write_text(
@@ -262,7 +300,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     overview = (tmp_path / "api/generated/test.rst").read_text()
     assert "Functions" in overview
     assert "Module Attributes" not in overview
-    assert "Classes" not in overview
+    assert "Classes" in overview
     for name in ("compute", "select"):
         assert app.env.domains["py"].objects[f"test.{name}"].objtype == "function"
         html = (tmp_path / f"html/api/generated/test.{name}.html").read_text()
@@ -276,15 +314,47 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     jani = (tmp_path / "html/api/generated/stormpy.io.JaniModel.html").read_text()
     assert "other_model" in jani
     assert 'href="#stormpy.io.JaniModel" title="stormpy.io.JaniModel"' in jani
+    collector = app.env.get_doctree("api/generated/stormpy.ConstraintCollector").astext()
+    assert "model: stormpy.models.SparseModel[stormpy.RationalFunction]" in collector
+    bitvector = app.env.get_doctree("api/generated/stormpy.datastructures.BitVector")
+    constructors = [sig for sig in bitvector.findall(desc_signature) if sig.get("fullname") == "BitVector"]
+    assert len(constructors) == 5
+    assert "other: stormpy.datastructures.BitVector" in constructors[1].astext()
+    assert "set_entries:" in constructors[4].astext()
+    assert "Overloaded function." not in bitvector.astext()
+    assert "__init__(" not in bitvector.astext()
+    assert "*args" not in "\n".join(sig.astext() for sig in constructors)
     api = (tmp_path / "html/api.html").read_text()
     assert 'href="api/generated/stormpy.io.JaniModel.html#stormpy.io.JaniModel"' in api
     assert "Custom label" in re.sub(r"<[^>]*>", "", api)
+    ordinary_tree = app.env.get_doctree("api/generated/test.Ordinary")
+    methods = [sig for sig in ordinary_tree.findall(desc_signature) if sig.get("fullname") == "Ordinary.convert"]
+    assert len(methods) == 2
+    assert all("self" not in sig.astext() for sig in methods)
+    ordinary = ordinary_tree.astext()
+    assert "components, limit: int = 5" in ordinary
+    assert "model: stormpy.io.JaniModel, value" in ordinary
+    assert "Construct an ordinary object." in ordinary
+    assert "Convert a model." in ordinary
+    assert "Convert an integer." in ordinary
+    assert "Overloaded function." not in ordinary
+    choice_tree = app.env.get_doctree("api/generated/test.choose")
+    choice_signatures = list(choice_tree.findall(desc_signature))
+    assert len(choice_signatures) == 2
+    choice = choice_tree.astext()
+    assert "Overloaded function." not in choice
+    assert "choose(value, limit: int = 5)" in choice
+    assert "choose(value: stormpy.io.JaniModel) -> stormpy.io.JaniModel" in choice
+    assert "Choose an opaque value." in choice
+    assert "Choose a model." in choice
     # Inspect page content and type-reference targets, excluding shared navigation.
     developer_name = re.compile(r"\b(?:[A-Za-z_]\w*\.)+developer(?:\.[A-Za-z_]\w*)*\b")
     for docname in sorted(app.env.found_docs):
         if docname != "api" and not docname.startswith("api/"):
             continue
         tree = app.env.get_doctree(docname)
+        assert "storm::" not in tree.astext(), f"C++ type mentioned in {docname}"
+        assert "test._Opaque" not in tree.astext(), f"Private type mentioned in {docname}"
         mentions = set(developer_name.findall(tree.astext()))
         for reference in tree.findall(pending_xref):
             mentions.update(developer_name.findall(reference.get("reftarget", "")))
@@ -298,6 +368,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
         "test.developer.select",
         "test.developer.Template",
         "test.developer.Ordinary",
+        "test.developer.choose",
         "test.developer.ApiError",
         "test.developer.CONSTANT",
         "stormpy.numbers.developer.gmp.Rational",
@@ -308,6 +379,13 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     assert disclaimer in (tmp_path / "html/developer_api.html").read_text()
     developer_index = (tmp_path / "html/developer_api.html").read_text()
     assert 'href="developer_api/generated/stormpy.numbers.developer.gmp.Rational.html#stormpy.numbers.developer.gmp.Rational"' in developer_index
+    developer_ordinary = app.env.get_doctree("developer_api/generated/test.developer.Ordinary").astext()
+    assert "storm::Components<std::pair<int, int>>" in developer_ordinary
+    assert "storm::Result<int>" in developer_ordinary
+    assert "test._Opaque" in developer_ordinary
+    developer_choice = app.env.get_doctree("developer_api/generated/test.developer.choose").astext()
+    assert "storm::Opaque<int>" in developer_choice
+    assert "stormpy.developer.storage._storage.JaniModel" in developer_choice
     assert "developer-api-warning" in (tmp_path / "html/_static/custom.css").read_text()
 
 
