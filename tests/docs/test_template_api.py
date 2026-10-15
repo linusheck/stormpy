@@ -198,6 +198,7 @@ def test_real_python_function_resolves_forward_annotations():
 
 def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     pytest.importorskip("sphinx")
+    import pickle
     from io import StringIO
     from types import ModuleType
 
@@ -238,8 +239,6 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
             "autosummary_context": config["autosummary_context"],
             "autosummary_imported_members": True,
             "autoclass_content": "both",
-            # The test loads conf.py through runpy, whose functions cannot be pickled.
-            "suppress_warnings": ["config.cache"],
         },
         status=StringIO(),
         warning=warnings,
@@ -249,6 +248,8 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     app.build(force_all=True)
     assert app.statuscode == 0, warnings.getvalue()
     assert warnings.getvalue() == ""
+    cached_env = pickle.loads((tmp_path / "doctrees/environment.pickle").read_bytes())
+    assert cached_env.config.autosummary_context["template_families"]("test") == ["Example"]
     assert app.env.domains["py"].objects["test.compute"].objtype == "function"
     function = (tmp_path / "html/api/generated/test.compute.html").read_text()
     assert "field-list" in function
@@ -296,11 +297,13 @@ def test_public_api_filter_includes_refactored_implementations(monkeypatch):
 
 def test_developer_api_filter_omits_published_aliases(monkeypatch):
     config = runpy.run_path(str(Path(__file__).parents[2] / "doc/source/conf.py"))
+    from stormpy_autosummary import _PUBLIC_MODULES
+
     family = make_family().publish_as("test.developer.Example")
     shared = object()
     monkeypatch.setitem(sys.modules, "test.developer", SimpleNamespace(Example=family, Shared=shared, Raw=object()))
     monkeypatch.setitem(sys.modules, "test.public", SimpleNamespace(Example=family.publish_as("test.public.Example"), Shared=shared))
-    config["_PUBLIC_MODULES"]["test.developer"] = ("test.public",)
+    monkeypatch.setitem(_PUBLIC_MODULES, "test.developer", ("test.public",))
     assert config["_filter_api_members"]("test.developer", ["Example", "Shared", "Raw"]) == ["Raw"]
 
 

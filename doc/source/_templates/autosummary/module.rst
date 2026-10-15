@@ -1,4 +1,4 @@
-{#- Only list the members that belong to this module (see filter_api_members in conf.py) -#}
+{#- Only list the members that belong to this module (see stormpy_autosummary.py) -#}
 {%- set families = filter_api_members(fullname, template_families(fullname)) -%}
 {%- set template_funcs = filter_api_members(fullname, template_functions(fullname)) -%}
 {%- set attributes = filter_api_members(fullname, attributes) | reject('in', families + template_funcs) | list -%}
