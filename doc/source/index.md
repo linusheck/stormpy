@@ -14,6 +14,7 @@ using_pycarl
 development
 contributors
 api
+extensions_api
 developer_api
 ```
 

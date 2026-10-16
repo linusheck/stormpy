@@ -4,9 +4,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # Needed for version information
-import importlib
 import pathlib
-import re
 import sys
 from functools import partial
 
@@ -63,6 +61,7 @@ autosummary_context = {
         "template_function_info": template_function_info,
     }.items()
 }
+autosummary_context["api_submodules"] = {"stormpy.utility": ("multiobjective_plotting",)}
 
 # Wrap long signatures instead of scrolling them
 python_maximum_signature_line_length = 100
@@ -123,6 +122,11 @@ html_theme_options = {
             "match": "api/*",
         },
         {
+            "text": "Extensions API",
+            "link": "extensions_api",
+            "match": "extensions_api/*",
+        },
+        {
             "text": "Developer API",
             "link": "developer_api",
             "match": "developer_api/*",
@@ -170,28 +174,7 @@ notebook_docs = sorted(str(p.relative_to(_source_dir).with_suffix("")) for p in 
 html_context = {"notebook_docs": notebook_docs}
 
 
-def _skip_members_republished_in_public_api(app, what, name, obj, skip, options):
-    """Skip documenting a member of an `X.developer` module if the same
-    object is already re-exported under the parent public module `X`.
-    """
-    modname = app.env.temp_data.get("autodoc:module")
-    if not modname or not modname.endswith(".developer"):
-        return skip
-    public_modname = modname[: -len(".developer")]
-    try:
-        public_module = importlib.import_module(public_modname)
-    except ImportError:
-        return skip
-    if getattr(public_module, name, None) is obj:
-        return True
-    return skip
-
-
 # -- Myst options --
 myst_enable_extensions = [
     "colon_fence",
 ]
-
-
-def setup(app):
-    app.connect("autodoc-skip-member", _skip_members_republished_in_public_api)

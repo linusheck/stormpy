@@ -17,4 +17,5 @@ cmake-build-debug/
 .DS_Store
 .venv/
 doc/source/api/generated/
+doc/source/extensions_api/generated/
 doc/source/developer_api/generated/

@@ -1,6 +1,5 @@
 """Sphinx template renderer tests; can run without importing Sphinx itself."""
 
-import importlib.util
 import re
 import runpy
 import sys
@@ -11,9 +10,8 @@ import pytest
 import stormpy
 from stormpy._template import _TemplateClass, _TemplateFunction, _template_function, _deduce_default
 
-_spec = importlib.util.spec_from_file_location("stormpy_templates", Path(__file__).parents[2] / "doc/source/_ext/stormpy_templates.py")
-docs = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(docs)
+sys.path.insert(0, str(Path(__file__).parents[2] / "doc/source/_ext"))
+import stormpy_templates as docs
 
 
 def make_family():
@@ -213,10 +211,13 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     module.developer.Example = module.Example.publish_as("test.developer.Example")
     monkeypatch.setitem(sys.modules, "test", module)
     monkeypatch.setitem(sys.modules, "test.developer", module.developer)
+    monkeypatch.setitem(sys.modules, "test.plotting", ModuleType("test.plotting"))
+    monkeypatch.setitem(sys.modules, "test.extension", ModuleType("test.extension"))
     source = Path(__file__).parents[2] / "doc/source"
     config = runpy.run_path(str(source / "conf.py"))
+    config["autosummary_context"]["api_submodules"]["test"] = ("plotting",)
     (tmp_path / "conf.py").write_text("")
-    (tmp_path / "index.rst").write_text("Documentation\n=============\n\n.. toctree::\n\n   api\n   developer_api\n")
+    (tmp_path / "index.rst").write_text("Documentation\n=============\n\n.. toctree::\n\n   api\n   extensions_api\n   developer_api\n")
     (tmp_path / "api.rst").write_text(
         "API Documentation\n=================\n\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/module.rst\n\n   test\n"
         "\n.. autosummary::\n   :toctree: api/generated\n   :template: autosummary/class.rst\n\n   stormpy.io.JaniModel\n   stormpy.datastructures.BitVector\n"
@@ -225,6 +226,10 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     )
     (tmp_path / "developer_api.rst").write_text(
         "Developer API Documentation\n===========================\n\n.. autosummary::\n   :toctree: developer_api/generated\n   :template: autosummary/module.rst\n\n   test.developer\n"
+        "\nSee :class:`stormpy.developer.storage._storage.JaniModel`.\n"
+    )
+    (tmp_path / "extensions_api.rst").write_text(
+        "Extensions API Documentation\n============================\n\n.. autosummary::\n   :toctree: extensions_api/generated\n   :template: autosummary/module.rst\n\n   test.extension\n"
     )
     warnings = StringIO()
     app = Sphinx(
@@ -248,6 +253,13 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     app.build(force_all=True)
     assert app.statuscode == 0, warnings.getvalue()
     assert warnings.getvalue() == ""
+    extension_api = (tmp_path / "html/extensions_api.html").read_text()
+    assert "extensions_api/generated/test.extension.html" in extension_api
+    public_module = (tmp_path / "html/api/generated/test.html").read_text()
+    assert "test.plotting.html" in public_module
+    assert (tmp_path / "html/api/generated/test.plotting.html").exists()
+    developer_api = (tmp_path / "html/developer_api.html").read_text()
+    assert 'href="api/generated/stormpy.io.JaniModel.html#stormpy.io.JaniModel"' in developer_api
     cached_env = pickle.loads((tmp_path / "doctrees/environment.pickle").read_bytes())
     assert cached_env.config.autosummary_context["template_families"]("test") == ["Example"]
     assert app.env.domains["py"].objects["test.compute"].objtype == "function"
@@ -275,7 +287,7 @@ def test_sphinx_renders_public_and_developer_apis(monkeypatch, tmp_path):
     api = (tmp_path / "html/api.html").read_text()
     assert 'href="api/generated/stormpy.io.JaniModel.html#stormpy.io.JaniModel"' in api
     assert "Custom label" in re.sub(r"<[^>]*>", "", api)
-    disclaimer = "The stormpy developer API is internal and always subject to change."
+    disclaimer = "The stormpy developer API is internal and can be subject to change."
     for docname in app.env.found_docs:
         html = (tmp_path / f"html/{docname}.html").read_text()
         if docname == "developer_api" or docname.startswith("developer_api/"):
@@ -297,14 +309,41 @@ def test_public_api_filter_includes_refactored_implementations(monkeypatch):
 
 def test_developer_api_filter_omits_published_aliases(monkeypatch):
     config = runpy.run_path(str(Path(__file__).parents[2] / "doc/source/conf.py"))
-    from stormpy_autosummary import _PUBLIC_MODULES
 
-    family = make_family().publish_as("test.developer.Example")
+    family = make_family().publish_as("stormpy.docs_test.developer.Example")
+    wrapped = make_family().publish_as("stormpy.docs_test.developer.Wrapped")
     shared = object()
-    monkeypatch.setitem(sys.modules, "test.developer", SimpleNamespace(Example=family, Shared=shared, Raw=object()))
-    monkeypatch.setitem(sys.modules, "test.public", SimpleNamespace(Example=family.publish_as("test.public.Example"), Shared=shared))
-    monkeypatch.setitem(_PUBLIC_MODULES, "test.developer", ("test.public",))
-    assert config["_filter_api_members"]("test.developer", ["Example", "Shared", "Raw"]) == ["Raw"]
+    raw = object()
+    monkeypatch.setitem(
+        sys.modules,
+        "stormpy.docs_test.developer",
+        SimpleNamespace(__all__=["Example", "Shared", "Raw", "Wrapped"], Example=family, Shared=shared, Raw=raw, Wrapped=wrapped),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "stormpy.docs_test",
+        SimpleNamespace(
+            __all__=["Published", "Alias", "Wrapped"],
+            Published=family.publish_as("stormpy.docs_test.Published"),
+            Alias=shared,
+            Wrapped=make_family().publish_as("stormpy.docs_test.Wrapped"),
+        ),
+    )
+    # Private modules and developer modules do not establish public ownership.
+    monkeypatch.setitem(sys.modules, "stormpy._docs_test", SimpleNamespace(__all__=["Raw"], Raw=raw))
+    # A same-named wrapper with different implementations does not replace
+    # the raw binding's documentation (e.g. build_symbolic_model).
+    assert config["_filter_api_members"]("stormpy.docs_test.developer", ["Example", "Shared", "Raw", "Wrapped"]) == ["Raw", "Wrapped"]
+
+
+def test_raw_binding_filter_keeps_project_reexports(monkeypatch):
+    from stormpy_autosummary import _filter_api_members
+
+    # GMP and CLN formula types report a shared module, outside the backend.
+    formula = type("Formula", (), {"__module__": "stormpy.numbers.developer.formula"})
+    imported = type("Imported", (), {"__module__": "third_party"})
+    monkeypatch.setitem(sys.modules, "stormpy.docs_test.developer.formula", SimpleNamespace(Formula=formula, Imported=imported))
+    assert _filter_api_members("stormpy.docs_test.developer.formula", ["Formula", "Imported"]) == ["Formula"]
 
 
 def test_constructor_descriptions_in_class_body():

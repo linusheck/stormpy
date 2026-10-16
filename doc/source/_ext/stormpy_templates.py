@@ -13,9 +13,10 @@ from difflib import SequenceMatcher
 
 import stormpy
 from stormpy._template import _TemplateClass, _TemplateFunction
+from stormpy_autosummary import is_developer_api_page, public_api_modules
 
 
-def argument_name(argument):
+def argument_name(argument, namespaces=None):
     """Use public exports rather than the defining module of a native type."""
     cls = argument if isinstance(argument, type) else type(argument)
     if cls.__module__ == "builtins":
@@ -23,8 +24,9 @@ def argument_name(argument):
     else:
         # Only these public namespaces own template argument types. In
         # particular, do not search loaded modules or expose private classes.
-        namespaces = (stormpy, stormpy.numbers, stormpy.models, stormpy.datastructures, stormpy.expressions, stormpy.io, stormpy.logic, stormpy.utility)
-        aliases = (f"{module.__name__}.{key}" for module in namespaces for key, value in vars(module).items() if not key.startswith("_") and value is cls)
+        if namespaces is None:
+            namespaces = public_api_modules()
+        aliases = (f"{module.__name__}.{key}" for module in namespaces for key in module.__all__ if getattr(module, key) is cls)
         name = min(aliases, key=lambda s: (s.count("."), len(s), s), default=f"{cls.__module__}.{cls.__qualname__}")
     return name if isinstance(argument, type) else f"{name}.{argument.name}" if hasattr(argument, "name") else repr(argument)
 
@@ -315,6 +317,7 @@ def _loaded_template_classes():
 def _public_type_names():
     """Map native non-template types to their public or developer exports."""
     aliases, exports = {}, {}
+    namespaces = public_api_modules()
     for module_name, module in list(sys.modules.items()):
         if not module_name.startswith("stormpy") or module is None or any(part.startswith("_") for part in module_name.split(".")):
             continue
@@ -324,7 +327,7 @@ def _public_type_names():
             if hasattr(module, "__all__") and name not in module.__all__:
                 continue
             native_name = f"{obj.__module__}.{obj.__qualname__}"
-            public_name = argument_name(obj)
+            public_name = argument_name(obj, namespaces)
             alias = public_name if public_name != native_name else f"{module_name}.{name}"
             aliases.setdefault(native_name, []).append(alias)
             exports[f"{module_name}.{name}"] = native_name
@@ -500,8 +503,7 @@ def _native_overloads(what, obj):
 
 def public_signature(app, what, name, obj, options, signature, return_annotation):
     """Render native overloads as signatures, normalizing public type names."""
-    docname = app.env.docname
-    developer_page = docname == "developer_api" or docname.startswith("developer_api/")
+    developer_page = is_developer_api_page(app.env.docname)
     overloads = _native_overloads(what, obj)
     if overloads:
         signatures = []
@@ -539,8 +541,7 @@ def public_docstring(app, what, name, obj, options, lines):
         native_name = overloads[0].split("(", 1)[0].split(". ", 1)[1]
         indexes = set(signature_lines("\n".join(lines), native_name))
         lines[:] = [line for i, line in enumerate(lines) if i not in indexes and line != "Overloaded function."]
-    docname = app.env.docname
-    if isinstance(obj, _TemplateClass) or docname == "developer_api" or docname.startswith("developer_api/"):
+    if isinstance(obj, _TemplateClass) or is_developer_api_page(app.env.docname):
         return
     names = {name.rsplit(".", 1)[-1], getattr(obj, "__name__", "")}
     if what == "class":
@@ -559,11 +560,11 @@ def public_type_references(app, doctree):
     from docutils import nodes
     from sphinx.addnodes import desc_signature, pending_xref
 
-    # Developer pages must keep links to the developer objects they document.
-    docname = app.env.docname
-    if docname == "developer_api" or docname.startswith("developer_api/"):
-        return
     aliases = _public_type_names()
+    if is_developer_api_page(app.env.docname):
+        # Public re-exports have no separate developer page. Keep other
+        # developer targets unchanged, including backend-specific formulas.
+        aliases = {native: public for native, public in aliases.items() if "developer" not in public.split(".")}
     for reference in doctree.findall(pending_xref):
         if reference.get("refdomain") != "py":
             continue

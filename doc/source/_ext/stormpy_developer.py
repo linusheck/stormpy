@@ -1,14 +1,14 @@
 """Mark internal developer API pages, including all autosummary descendants."""
 
 from docutils import nodes
+from stormpy_autosummary import is_developer_api_page
 
 
 def add_developer_api_warning(app, doctree):
-    docname = app.env.docname
-    if docname != "developer_api" and not docname.startswith("developer_api/"):
+    if not is_developer_api_page(app.env.docname):
         return
-    warning = nodes.warning(classes=["developer-api-warning"])
-    warning += nodes.paragraph(text="The stormpy developer API is internal and always subject to change.")
+    warning = nodes.warning()
+    warning += nodes.paragraph(text="The stormpy developer API is internal and can be subject to change.")
     section = next((child for child in doctree.children if isinstance(child, nodes.section)), doctree)
     position = 1 if section.children and isinstance(section.children[0], nodes.title) else 0
     section.insert(position, warning)

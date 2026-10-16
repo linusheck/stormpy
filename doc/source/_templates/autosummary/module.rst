@@ -6,9 +6,23 @@
 {%- set classes = filter_api_members(fullname, classes) -%}
 {%- set exceptions = filter_api_members(fullname, exceptions) -%}
 {%- set classes = (classes + families) | unique | sort | list -%}
+{%- set submodules = api_submodules.get(fullname, ()) -%}
 {{ fullname | escape | underline}}
 
 .. automodule:: {{ fullname }}
+
+   {% block submodules %}
+   {%- if submodules %}
+   .. rubric:: {{ _('Submodules') }}
+
+   .. autosummary::
+      :toctree:
+      :template: autosummary/module.rst
+   {% for module in submodules %}
+      {{ module }}
+   {%- endfor %}
+   {% endif %}
+   {%- endblock %}
 
    {% block attributes %}
    {%- if attributes %}
